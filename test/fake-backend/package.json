@@ -1,0 +1,19 @@
+{
+  "name": "fake-backend",
+  "version": "1.0.0",
+  "description": "a dumb Express app that fakes the backend the way I want",
+  "main": "fake.js",
+  "scripts": {
+    "start": "tsc && node fake.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-http-proxy": "^2.0.0"
+  }
+}

@@ -1,0 +1,55 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+
+processors:
+  batch:
+  transform/labelme:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["collector.location"], "${COLLECTOR_LOCATION}")
+          - set(attributes["meta.signal_type"], "metrics") where attributes["meta.signal_type"] == nil
+          - set(attributes["collector.collector"], "${COLLECTOR_NAME}")
+    trace_statements:
+      - context: resource
+        statements:
+          - set(attributes["collector.location"], "${COLLECTOR_LOCATION}")
+          - set(attributes["collector.collector"], "${COLLECTOR_NAME}")
+    log_statements:
+      - context: resource
+        statements:
+          - set(attributes["collector.location"], "${COLLECTOR_LOCATION}")
+          - set(attributes["collector.collector"], "${COLLECTOR_NAME}")
+
+exporters:
+  otlp:
+    endpoint: "api.honeycomb.io:443"
+    headers:
+      "x-honeycomb-team": "$HONEYCOMB_API_KEY"
+  otlp/logs:
+    endpoint: "api.honeycomb.io:443"
+    headers:
+      "x-honeycomb-team": "$HONEYCOMB_API_KEY"
+      "x-honeycomb-dataset": "booth-game-logs"
+  otlp/metrics:
+    endpoint: "api.honeycomb.io:443"
+    headers:
+      "x-honeycomb-team": "$HONEYCOMB_API_KEY"
+      "x-honeycomb-dataset": "booth-game-metrics"
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, transform/labelme]
+      exporters: [otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, transform/labelme]
+      exporters: [otlp/metrics]
+    logs:
+      receivers: [otlp]
+      processors: [batch, transform/labelme]
+      exporters: [otlp/logs]

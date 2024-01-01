@@ -1,0 +1,11 @@
+services:
+  collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4318:4318" # OTLP http receiver
+    environment:
+      - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
+      - COLLECTOR_LOCATION=local docker-compose
+      - COLLECTOR_NAME=frankie

@@ -1,0 +1,56 @@
+{
+  "name": "quiz-booth-game",
+  "version": "0.2.0",
+  "description": "Take a quiz about observability, while using observability",
+  "scripts": {
+    "build-info": "./populate_build_info.sh",
+    "parcel-build": "parcel build src/App.tsx",
+    "static-build": "cp static/* dist",
+    "build": "npm run parcel-build && npm run build-info && npm run static-build",
+    "clean": "rm -rf dist/* && rm -rf .parcel-cache",
+    "serve-js": "parcel src/App.tsx",
+    "serve-static": "copy-and-watch static/* dist --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jessitron/quiz-booth-game.git"
+  },
+  "keywords": [
+    "observability",
+    "quiz",
+    "opentelemetry"
+  ],
+  "author": "jessitron",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jessitron/quiz-booth-game/issues"
+  },
+  "homepage": "https://github.com/jessitron/quiz-booth-game#readme",
+  "dependencies": {
+    "@opentelemetry/context-zone": "^1.18.1",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.46.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.45.1",
+    "@opentelemetry/instrumentation": "^0.45.1",
+    "@opentelemetry/instrumentation-document-load": "^0.34.0",
+    "@opentelemetry/instrumentation-fetch": "^0.46.0",
+    "@opentelemetry/resources": "^1.18.1",
+    "@opentelemetry/sdk-logs": "^0.46.0",
+    "@opentelemetry/sdk-trace-web": "^1.18.1",
+    "@opentelemetry/semantic-conventions": "^1.18.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-error-boundary": "^4.0.12",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@types/uuid": "^9.0.7",
+    "copy-and-watch": "^0.1.6",
+    "parcel": "^2.10.3",
+    "parcel-resolver-ignore": "^2.2.0",
+    "process": "^0.11.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

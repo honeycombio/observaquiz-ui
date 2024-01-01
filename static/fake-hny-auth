@@ -1,0 +1,22 @@
+{
+  "api_key_access": {
+    "events": true,
+    "markers": true,
+    "triggers": true,
+    "boards": true,
+    "queries": false,
+    "columns": false,
+    "createDatasets": true,
+    "slos": false,
+    "recipients": false,
+    "privateBoards": false
+  },
+  "environment": {
+    "name": "quiz-local",
+    "slug": "quiz-local"
+  },
+  "team": {
+    "name": "modernity",
+    "slug": "modernity"
+  }
+}

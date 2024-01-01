@@ -1,0 +1,13 @@
+#!/bin/bash
+# dependency: http-server
+
+# Run the local collector
+docker-compose -f ./local-collector/docker-compose.yml up -d
+
+cd test/fake-backend
+
+if [[ ! -d "node_modules" ]]; then
+  npm install
+fi
+
+npm run start

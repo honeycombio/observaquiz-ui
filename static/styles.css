@@ -1,0 +1,71 @@
+:root {
+  /* variables from chota */
+  --bg-color: #f5f7fa;
+  /* --bg-secondary-color: #f3f3f6; */
+  --color-primary: #0296ec;
+  /* --color-lightGrey: #d2d6dd;
+  --color-grey: #747681;
+  --color-darkGrey: #3f4144; */
+  --color-error: #ec5802;
+  --color-success: #21ec02; /* also good with the primary, tetradic: #CD02EC */
+  /* --grid-maxWidth: 120rem;
+  --grid-gutter: 2rem;
+  --font-size: 1.6rem;
+  --font-color: #333333; */
+  --font-family-sans: Roboto, sans-serif;
+  /* --font-family-mono: monaco, "Consolas", "Lucida Console", monospace; */
+}
+
+footer {
+  margin-top: 10rem;
+}
+
+.footer {
+  border-top: 1rem groove var(--color-grey);
+  padding: 1rem;
+}
+
+img.small-logo {
+  display: inline;
+  object-fit: scale-down;
+  height: 4rem;
+  margin-right: 1rem;
+}
+
+.error {
+  color: var(--color-error);
+}
+
+/* Tracker team */
+
+#booth-game-tracker {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: var(--color-grey);
+  border-radius: 2px;
+  align-items: center;
+  margin: 1px 0px 5px 0px;
+  height: 2rem;
+}
+
+#booth-game-tracker div {
+  margin: 2px;
+  height: 1rem;
+  border-radius: 2px;
+  width: 50%;
+  transition: all 0.5s linear;
+}
+
+#booth-game-tracker > .completed-step {
+  background-color: green;
+}
+
+#booth-game-tracker > .you-are-here {
+  background-color: yellow;
+  height: 1.5rem;
+}
+
+#booth-game-tracker > .incomplete-step {
+  background-color: pink;
+}
