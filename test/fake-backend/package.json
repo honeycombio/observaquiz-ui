@@ -13,6 +13,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@types/express-http-proxy": "^1.6.6",
     "express": "^4.18.2",
     "express-http-proxy": "^2.0.0"
   }
