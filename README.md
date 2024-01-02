@@ -4,50 +4,32 @@
 
 [Otel API docs](https://open-telemetry.github.io/opentelemetry-js/)
 
-## one-time setup
-
-`aws ecr create-repository --repository-name quiz-booth-game`
-
-make a namespace, that's in `infra/terraform/quiz.tf`
-
-`k apply -f service.yaml`
-
-## iterating
-
-Change something in 'src'
-
-`npm run build`
-
-`./deploy`
-
 ## Running Locally
-
-Install http-server
-
-```sh
-npm install -g http-server
-```
 
 ```sh
 export HONEYCOMB_API_KEY=<your-key>
 ./run
 ```
 
-This will run a collector on port 4318 that will forward everything to honeycomb and a webserver that serves the connect and forwards any non-static requests to the collector.
+This will run a collector on port 4318 that will forward everything to honeycomb and a webserver that serves the app plus a fake backend, and forwards /v1/traces and /v1/logs to the collector.
 
 this will make builds happen whenever you make ts changes:
 
-`npx parcel serve src/index.tsx`
+`npm run serve-js`
 
-To continue work.:
+and this will make copies happen whenever you make html or css changes:
+
+`npm run serve-static`
+
+To continue work:
 
 - make changes
-- npm run builr
+- npm run build (if you don't have 'serve-js'/'serve-static' running)
 - in the browser, cmd-shift-R for "no really, refresh all the things"
 
 To stop:
 
-- ^C to stop the http-server
+- ^C to stop the fake
 - `./stop` to shut down the collector
 
 ## Deploying
