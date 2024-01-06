@@ -4,8 +4,8 @@ import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing"
 
 function TracingTrackerInternal() {
   return (
-    <div className="tracing-tracker">
-      <h2>Tracing Tracker</h2>
+    <div id="tracing-tracker">
+      <div>(tracing tracker)</div>
     </div>
   );
 }

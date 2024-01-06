@@ -69,3 +69,15 @@ img.small-logo {
 #booth-game-tracker > .incomplete-step {
   background-color: pink;
 }
+
+#tracing-tracker {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: var(--color-grey);
+  border-radius: 2px;
+  align-items: center;
+  margin: 1px 0px 5px 0px;
+  height: 2rem;
+  color: white;
+}
