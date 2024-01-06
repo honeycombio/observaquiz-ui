@@ -38,7 +38,7 @@ function beginExistence(
 ) {
   console.log("Existence tracing: beginExistence of ", componentName);
   const { span: spanThatWeSendRightAway, context: innerContext } = componentLifecycleTracer.startActiveSpan(
-    `Load ${componentName}`,
+    `${componentName}`,
     {
       attributes: {
         "jess.telemetry.intent": "lifecycle structural span",
@@ -56,7 +56,7 @@ function beginExistence(
   console.log("Ending span right away", spanThatWeSendRightAway.spanContext().spanId);
   spanThatWeSendRightAway.end(); // ship it so something will be there
   const spanThatWeWillTryToEnd = componentLifecycleTracer.startSpan(
-    `Existence of ${componentName}`,
+    `${componentName} existence`,
     {
       attributes: {
         "jess.telemetry.intent": "lifecycle duration span",
