@@ -4,12 +4,14 @@ import { BoothGameTracker } from "./Tracker/BoothGameTracker";
 import { ComponentLifecycleTracing } from "./tracing/ComponentLifecycleTracing";
 import { TrackedSteps, initialTrackedSteps } from "./Tracker/trackedSteps";
 import { useDeclareTracedState } from "./tracing/TracedState";
+import { TracingTracker } from "./Tracker/TracingTracker";
 
 function TrackedBoothGameInternal(props: BoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
   return (
     <div id="tracked-booth-game">
       <BoothGameTracker trackedSteps={trackedSteps} />
+      <TracingTracker />
       <BoothGame {...props} trackedSteps={trackedSteps} setTrackedSteps={setTrackedSteps} />
     </div>
   );
