@@ -50,6 +50,7 @@ export const EVENT_SPAN_ID_KEY = Symbol("span ID of the parent of the event")
 export function standardAttributes(componentName: string) {
   return {
     "app.some.nonsense": "lizard",
+    "jess.telemetry.called_in_span_id": trace.getActiveSpan()?.spanContext().spanId,
     "app.existence.componentName": componentName,
   };
 }
@@ -80,7 +81,6 @@ export function wrapAsActiveLifecycleSpan(
           "trace.event_id": uniqueID,
           excitementLevel: "mild",
           "jess.telemetry.intent": "lifecycle custom event",
-          "jess.telemetry.caused_by_span_id": trace.getActiveSpan()?.spanContext().spanId,
           name,
           ...standardAttributes(componentName),
           ...componentAttributes,
@@ -108,7 +108,6 @@ export function wrapAsActiveLifecycleSpan(
           "trace.event_id": uniqueID,
           excitementLevel: "disturbed",
           "jess.telemetry.intent": "lifecycle error event",
-          "jess.telemetry.caused_by_span_id": trace.getActiveSpan()?.spanContext().spanId,
           name,
           error: true,
           ...standardAttributes(componentName),
@@ -133,13 +132,12 @@ export function wrapAsActiveLifecycleSpan(
 
     spanContext: () => componentLifecycleSpans.spanThatWeSendRightAway.spanContext(),
     inSpan: (name: string, attributes: Attributes, fn: () => any) => {
-      const currentlyActiveSpanId = trace.getActiveSpan()?.spanContext().spanId;
       return componentLifecycleTracer.startActiveSpan(
         name,
         {
           attributes: {
             "jess.telemetry.intent": "custom lifecycle span",
-            "jess.telemetry.caused_by_span_id": currentlyActiveSpanId,
+            ...standardAttributes(componentName),
             ...attributes,
           },
         },
@@ -163,13 +161,12 @@ export function wrapAsActiveLifecycleSpan(
       );
     },
     inSpanAsync: (name: string, attributes: Attributes, fn: () => any) => {
-      const currentlyActiveSpanId = trace.getActiveSpan()?.spanContext().spanId;
       return componentLifecycleTracer.startActiveSpan(
         name,
         {
           attributes: {
-            "jess.telemetry.intent": "custom lifecycle span",
-            "jess.telemetry.caused_by_span_id": currentlyActiveSpanId,
+            "jess.telemetry.intent": "custom lifecycle span async",
+            ...standardAttributes(componentName),
             ...attributes,
           },
         },

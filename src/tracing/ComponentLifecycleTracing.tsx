@@ -92,7 +92,7 @@ function endExistence(componentLifecycleSpans: ComponentLifecycleSpans | undefin
       severityText: "Unloaded",
       attributes: {
         "jess.telemetry.intent": "lifecycle end event",
-        excitementLevel: "ordinary",
+        excitementLevel: "begrudging",
         name: "Unloaded",
         ...standardAttributes(componentName),
       },

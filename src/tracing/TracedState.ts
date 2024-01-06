@@ -57,7 +57,7 @@ export function useTracedState<T>(
       "stateTrace.name": currentState.provenance.name,
       "stateTrace.value": JSON.stringify(currentState.value), // NOTE: this is a limitation on the kind of values that can be wrapped
       "stateTrace.previousValue": JSON.stringify(previousValue), // NOTE: this is a limitation on the kind of values that can be wrapped
-      "stateTrace.caused_by_span_id": currentState.provenance.spanContext?.spanId,
+      "stateTrace.called_in_span_id": currentState.provenance.spanContext?.spanId,
       "stateTrace.caused_by_event_id": currentState.provenance.associatedEventId,
       "stateTrace.caused_by_event_span_id": currentState.provenance.associatedEventSpanId,
       "stateTrace.version": currentState.provenance.version,
