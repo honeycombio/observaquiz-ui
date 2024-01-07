@@ -1,4 +1,4 @@
-import { BoothGame, BoothGameProps } from "./BoothGame/BoothGame";
+import { BoothGame } from "./BoothGame/BoothGame";
 import React from "react";
 import { BoothGameTracker } from "./Tracker/BoothGameTracker";
 import { ComponentLifecycleTracing } from "./tracing/ComponentLifecycleTracing";
@@ -10,6 +10,10 @@ import { HowToReset } from "./resetQuiz";
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
   const [tracingTeam, setTracingTeam] = React.useState<TracingTeam | undefined>(undefined);
+
+// there will be a useEffect dependent on tracingTeam that updates the fields in the special SPanProcessor
+
+
   return (
     <div id="tracked-booth-game">
       <BoothGameTracker trackedSteps={trackedSteps} />
