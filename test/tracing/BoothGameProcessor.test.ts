@@ -1,5 +1,5 @@
 import { Span } from "@opentelemetry/sdk-trace-base";
-import { BoothGameProcessor } from "../../src/tracing/BoothGameProcessor";
+import { BoothGameCustomerTeam, BoothGameProcessor } from "../../src/tracing/BoothGameProcessor";
 import { TestSpanProcessor, createTestSpan } from "./TestSpanProcessor";
 import { Context } from "@opentelemetry/api";
 
@@ -37,7 +37,29 @@ describe("booth game processor sending to our team", () => {
 });
 
 describe("Setting the customer team on the booth game processor", () => {
-  test("You can set the customer team exactly once", () => {});
+  test("You can set the customer team exactly once", () => {
+    const normalProcessor = new TestSpanProcessor();
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+
+    const customerTeam: BoothGameCustomerTeam = {
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz-local" },
+      apiKey: "11222",
+    };
+
+    boothGameProcessor.learnCustomerTeam(customerTeam);
+
+    const anotherCustomerTeam: BoothGameCustomerTeam = {
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz" },
+      apiKey: "33444",
+    };
+
+    expect(() => boothGameProcessor.learnCustomerTeam(anotherCustomerTeam)).toThrow();
+  });
+
   test("You can clear the customer team and then set it again", () => {});
 });
 

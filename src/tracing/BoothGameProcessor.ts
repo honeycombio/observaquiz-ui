@@ -1,7 +1,24 @@
 import { Span, ReadableSpan, SpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { Context } from "@opentelemetry/api";
+import { HoneycombRegion } from "./TracingDestination";
+
+export type BoothGameCustomerTeam = {
+  region: HoneycombRegion;
+  team: { slug: string };
+  environment: { slug: string };
+  apiKey: string;
+};
 
 export class BoothGameProcessor implements SpanProcessor {
+  private customerTeam?: BoothGameCustomerTeam = undefined;
+
+  learnCustomerTeam(customerTeam: BoothGameCustomerTeam) {
+    if (this.customerTeam && this.customerTeam?.apiKey != customerTeam.apiKey) {
+      throw new Error("You can only set the customer team once");
+    }
+    this.customerTeam = customerTeam;
+  }
+
   constructor(private readonly normalProcessor: SpanProcessor) {}
 
   forceFlush(): Promise<void> {
