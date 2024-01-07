@@ -52,7 +52,25 @@ describe("booth game processor sending to our team", () => {
     expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.env.slug"]).toEqual("quiz-local");
   });
 
-  test("To the normal processor, it tells it this is our span for our team", () => {});
+  test("To the normal processor, it tells it this is our span for our team", () => {
+    const normalProcessor = new TestSpanProcessor();
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+
+    const customerTeam: BoothGameCustomerTeam = {
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz-local" },
+      apiKey: "11222",
+    };
+    boothGameProcessor.learnCustomerTeam(customerTeam);
+
+    const testSpan = createTestSpan("fake span", { testAttribute: "does it care" });
+    const fakeParentContext = { stuff: "things" } as unknown as Context;
+
+    boothGameProcessor.onStart(testSpan, fakeParentContext);
+
+    expect(normalProcessor.onlyStartedSpan().attributes["boothGame.telemetry.destination"]).toEqual("devrel");
+  });
 });
 
 describe("Setting the customer team on the booth game processor", () => {
