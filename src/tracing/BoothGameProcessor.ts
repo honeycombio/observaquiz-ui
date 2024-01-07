@@ -1,6 +1,6 @@
 import { Span, ReadableSpan, SpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { Context } from "@opentelemetry/api";
-import { HoneycombRegion } from "./TracingDestination";
+import { HONEYCOMB_DATASET_NAME, HoneycombRegion } from "./TracingDestination";
 
 export type BoothGameCustomerTeam = {
   region: HoneycombRegion;
@@ -35,6 +35,8 @@ export class BoothGameProcessor implements SpanProcessor {
       span.setAttribute("honeycomb.team.slug", this.customerTeam.team.slug);
       span.setAttribute("honeycomb.env.slug", this.customerTeam.environment.slug);
     }
+    span.setAttribute("honeycomb.dataset", HONEYCOMB_DATASET_NAME); // should we be pulling the service name off the resource?
+    span.setAttribute("boothGame.telemetry.destination", "devrel");
     this.normalProcessor.onStart(span, parentContext);
   }
   onEnd(span: ReadableSpan): void {

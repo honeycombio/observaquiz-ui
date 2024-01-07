@@ -2,6 +2,7 @@ import { Span } from "@opentelemetry/sdk-trace-base";
 import { BoothGameCustomerTeam, BoothGameProcessor } from "../../src/tracing/BoothGameProcessor";
 import { TestSpanProcessor, createTestSpan } from "./TestSpanProcessor";
 import { Context } from "@opentelemetry/api";
+import { HONEYCOMB_DATASET_NAME } from "../../src/tracing/TracingDestination";
 
 test("something", () => {
   expect(1).toBe(1);
@@ -50,6 +51,7 @@ describe("booth game processor sending to our team", () => {
     expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.region"]).toEqual("us");
     expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.team.slug"]).toEqual("modernity");
     expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.env.slug"]).toEqual("quiz-local");
+    expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.dataset"]).toEqual(HONEYCOMB_DATASET_NAME);
   });
 
   test("To the normal processor, it tells it this is our span for our team", () => {
@@ -128,6 +130,8 @@ describe("booth game processor sending to the customer's team", () => {
   test("After the customer API key is cleared, it stops sending anything to the customer processor", () => {});
 
   test("When it has a customer processor, every span goes there WITH the team attributes set", () => {});
+
+  test("Spans sent to the customer processor have the destination set to customer, unlike the ones sent to our team", () => {});
 
   test("When it gets spans before the customer processor, and then it gets the customer processor, it sends the spans to the customer processor", () => {});
 
