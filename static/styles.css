@@ -74,14 +74,15 @@ img.small-logo {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  background-color: var(--color-grey);
-  border-radius: 2px;
   align-items: center;
-  margin: 1px 0px 5px 0px;
   height: 2rem;
   color: white;
 }
 
+/* TODO: get this transition to work */
 #tracing-tracker-placeholder {
   transition: all 0.5s linear;
+  background-color: var(--color-grey);
+  border-radius: 2px;
+  margin: 1px 0px 5px 0px;
 }
