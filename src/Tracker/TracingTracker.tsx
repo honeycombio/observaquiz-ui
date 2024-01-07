@@ -1,12 +1,22 @@
 // a component that displays where the traces are going
 import React from "react";
-import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { HoneycombRegion } from "../tracing/TracingDestination";
+import { getLinkToCurrentSpan } from "../tracing/activeLifecycleSpan";
 
-function TracingTrackerInternal() {
+function TracingTrackerInternal(props: TracingTrackerProps) {
+  const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
+  const { tracingTeam } = props;
+  if (!tracingTeam) {
+    return <div id="tracing-tracker-placeholder"></div>;
+  }
   return (
     <div id="tracing-tracker">
-      <div>(tracing tracker)</div>
+      <div>Honeycomb team: {tracingTeam.team.name}</div>
+      <div>Environment: {tracingTeam.environment.name}</div>
+      <div>
+        <a href={getLinkToCurrentSpan(tracingTeam, activeLifecycleSpan)}>See current trace</a>
+      </div>
     </div>
   );
 }
@@ -27,13 +37,10 @@ export type TracingTrackerProps = {
 };
 
 export function TracingTracker(props: TracingTrackerProps) {
-  if (!props.tracingTeam) {
-    return <div id="tracing-tracker-placeholder"></div>;
-  }
   return (
     <ComponentLifecycleTracing componentName="TracingTracker">
       <div id="tracing-tracker-placeholder">
-        <TracingTrackerInternal />
+        <TracingTrackerInternal {...props} />
       </div>
     </ComponentLifecycleTracing>
   );

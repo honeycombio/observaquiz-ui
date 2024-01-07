@@ -73,8 +73,7 @@ img.small-logo {
 #tracing-tracker {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: space-evenly;
   height: 2rem;
   color: white;
 }
