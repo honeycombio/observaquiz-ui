@@ -9,7 +9,7 @@ test("something", () => {
 describe("booth game processor sending to our team", () => {
   test("It passes every span through to the normal processor", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor( normalProcessor );
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
 
     const testSpan = { name: "fake span", attributes: { testAttribute: "does it care" } } as unknown as Span;
     // What does it even mean to send a span to a processor? Expect all methods to pass through.
@@ -39,7 +39,7 @@ describe("booth game processor sending to the customer's team", () => {
 
   test("After the customer API key is cleared, it stops sending anything to the customer processor", () => {});
 
-  test("When it has a customer processor, every span goes there WITH the team attributes set");
+  test("When it has a customer processor, every span goes there WITH the team attributes set", () => {});
 
   test("When it gets spans before the customer processor, and then it gets the customer processor, it sends the spans to the customer processor", () => {});
 
