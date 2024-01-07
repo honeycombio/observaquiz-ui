@@ -35,6 +35,7 @@ export class TestSpanProcessor implements SpanProcessor {
   }
 }
 
+// could we get the SDK to give us a real one? sounds hard.
 export function createTestSpan(name: string, attributes?: Attributes): Span {
   const yoAttributes: Attributes = { ...attributes };
   function setAttribute(key: string, value?: AttributeValue | undefined): Span {
