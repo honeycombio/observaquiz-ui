@@ -48,6 +48,9 @@ function initializeTracing() {
     new OTLPTraceExporter({ url: collectorUrl }),
     //    new ConsoleSpanExporter(),
   ]);
+
+  // i observe that span processors are not singular, they all get to operate on it.
+  // I think the BaggageSpanProcessor could operate here, and not have to incorporate the batch processor.
   provider.addSpanProcessor(new SessionIdProcessor());
 
   provider.addSpanProcessor(
