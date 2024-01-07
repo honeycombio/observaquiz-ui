@@ -1,6 +1,9 @@
 import { Span, ReadableSpan, SpanProcessor } from "@opentelemetry/sdk-trace-base";
 
 export class BoothGameProcessor implements SpanProcessor {
+
+  constructor(private readonly normalProcessor: SpanProcessor) {}
+  
   forceFlush(): Promise<void> {
     throw new Error("Method not implemented.");
   }
