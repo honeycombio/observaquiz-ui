@@ -32,6 +32,8 @@ export class BoothGameProcessor implements SpanProcessor {
     console.log("BoothGameProcessor.onStart", span);
     if (this.customerTeam) {
       span.setAttribute("honeycomb.region", this.customerTeam.region);
+      span.setAttribute("honeycomb.team.slug", this.customerTeam.team.slug);
+      span.setAttribute("honeycomb.env.slug", this.customerTeam.environment.slug);
     }
     this.normalProcessor.onStart(span, parentContext);
   }

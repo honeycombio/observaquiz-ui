@@ -48,6 +48,8 @@ describe("booth game processor sending to our team", () => {
     boothGameProcessor.onStart(testSpan, fakeParentContext);
 
     expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.region"]).toEqual("us");
+    expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.team.slug"]).toEqual("modernity");
+    expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.env.slug"]).toEqual("quiz-local");
   });
 
   test("To the normal processor, it tells it this is our span for our team", () => {});
