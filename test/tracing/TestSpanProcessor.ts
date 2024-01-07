@@ -18,6 +18,12 @@ export class TestSpanProcessor implements SpanProcessor {
 
   startedSpans: Array<[Span, Context]> = [];
   endedSpans: ReadableSpan[] = [];
+  onlyStartedSpan() {
+    if (this.startedSpans.length != 1) {
+      throw new Error("Expected exactly one started span, had " + this.startedSpans.length);
+    }
+    return this.startedSpans[0][0];
+  }
 
   forceFlush(): Promise<void> {
     this.wasForceFlushed = true;

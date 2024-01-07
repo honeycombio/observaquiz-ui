@@ -30,8 +30,25 @@ describe("booth game processor sending to our team", () => {
     expect(normalProcessor.wasForceFlushed).toBe(true);
   });
 
-  // note: I could make this happen in the ComponentLifecycleTraces, might be useful. But hey, we can put it here whatevs.
-  test("When it has the customer team attributes, it sets them on every span to the normal processor", () => {});
+  test("When it has the customer team attributes, it sets them on every span to the normal processor", () => {
+    const normalProcessor = new TestSpanProcessor();
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+
+    const customerTeam: BoothGameCustomerTeam = {
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz-local" },
+      apiKey: "11222",
+    };
+    boothGameProcessor.learnCustomerTeam(customerTeam);
+
+    const testSpan = createTestSpan("fake span", { testAttribute: "does it care" });
+    const fakeParentContext = { stuff: "things" } as unknown as Context;
+
+    boothGameProcessor.onStart(testSpan, fakeParentContext);
+
+    expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.region"]).toEqual("us");
+  });
 
   test("To the normal processor, it tells it this is our span for our team", () => {});
 });
@@ -60,7 +77,29 @@ describe("Setting the customer team on the booth game processor", () => {
     expect(() => boothGameProcessor.learnCustomerTeam(anotherCustomerTeam)).toThrow();
   });
 
-  test("You can clear the customer team and then set it again", () => {});
+  test("You can clear the customer team and then set it again", () => {
+    const normalProcessor = new TestSpanProcessor();
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+
+    const customerTeam: BoothGameCustomerTeam = {
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz-local" },
+      apiKey: "11222",
+    };
+
+    boothGameProcessor.learnCustomerTeam(customerTeam);
+    boothGameProcessor.clearCustomerTeam();
+
+    const anotherCustomerTeam: BoothGameCustomerTeam = {
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz" },
+      apiKey: "33444",
+    };
+
+    boothGameProcessor.learnCustomerTeam(anotherCustomerTeam); // does not throw
+  });
 });
 
 describe("booth game processor sending to the customer's team", () => {
