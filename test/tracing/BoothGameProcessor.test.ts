@@ -1,6 +1,7 @@
 import { Span } from "@opentelemetry/sdk-trace-base";
 import { BoothGameProcessor } from "../../src/tracing/BoothGameProcessor";
 import { TestSpanProcessor } from "./TestSpanProcessor";
+import { Context } from "@opentelemetry/api";
 
 test("something", () => {
   expect(1).toBe(1);
@@ -12,12 +13,13 @@ describe("booth game processor sending to our team", () => {
     const boothGameProcessor = new BoothGameProcessor(normalProcessor);
 
     const testSpan = { name: "fake span", attributes: { testAttribute: "does it care" } } as unknown as Span;
+    const fakeParentContext = { stuff: "things" } as unknown as Context;
     // What does it even mean to send a span to a processor? Expect all methods to pass through.
-    boothGameProcessor.onStart(testSpan);
+    boothGameProcessor.onStart(testSpan, fakeParentContext);
     boothGameProcessor.onEnd(testSpan);
 
-    expect(normalProcessor.startedSpans).toEqual([testSpan]);
-    expect(normalProcessor.endedSpans).toEqual([testSpan]);
+    expect(normalProcessor.startedSpans).toEqual([[testSpan, fakeParentContext]]);
+    expect(normalProcessor.endedSpans).toEqual([testSpan]); 
 
     expect(normalProcessor.wasShutdown).toBe(false);
     boothGameProcessor.shutdown();
