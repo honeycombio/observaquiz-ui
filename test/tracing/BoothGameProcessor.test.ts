@@ -18,7 +18,7 @@ test("something", () => {
 describe("booth game processor sending to our team", () => {
   test("It passes every span through to the normal processor", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
 
     const testSpan = createTestSpan("fake span", { testAttribute: "does it care" });
     const fakeParentContext = { stuff: "things" } as unknown as Context;
@@ -41,7 +41,7 @@ describe("booth game processor sending to our team", () => {
 
   test("When it has the customer team attributes, it sets them on every span to the normal processor", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
 
     const customerTeam: BoothGameCustomerTeam = {
       region: "us",
@@ -64,7 +64,7 @@ describe("booth game processor sending to our team", () => {
 
   test("To the normal processor, it tells it this is our span for our team", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
 
     const customerTeam: BoothGameCustomerTeam = {
       region: "us",
@@ -86,7 +86,7 @@ describe("booth game processor sending to our team", () => {
 describe("Setting the customer team on the booth game processor", () => {
   test("You can set the customer team exactly once", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
 
     const customerTeam: BoothGameCustomerTeam = {
       region: "us",
@@ -109,7 +109,7 @@ describe("Setting the customer team on the booth game processor", () => {
 
   test("You can clear the customer team and then set it again", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor);
+    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
 
     const customerTeam: BoothGameCustomerTeam = {
       region: "us",
@@ -131,4 +131,3 @@ describe("Setting the customer team on the booth game processor", () => {
     boothGameProcessor.learnCustomerTeam(anotherCustomerTeam); // does not throw
   });
 });
-

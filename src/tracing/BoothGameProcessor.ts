@@ -23,7 +23,7 @@ export class BoothGameProcessor implements SpanProcessor {
     this.customerTeam = undefined;
   }
 
-  constructor(private readonly normalProcessor: SpanProcessor) {}
+  constructor(private readonly normalProcessor: SpanProcessor, private readonly spinUpCustomerProcessor: (apikey: string) => SpanProcessor) {}
 
   forceFlush(): Promise<void> {
     return this.normalProcessor.forceFlush();

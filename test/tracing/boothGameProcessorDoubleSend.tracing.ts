@@ -13,8 +13,19 @@ const provider = new WebTracerProvider({
   resource,
 });
 
-export const NormalProcessor = new TestSpanProcessor();
+export const normalProcessor = new TestSpanProcessor();
 
-provider.addSpanProcessor(new BoothGameProcessor(NormalProcessor));
+export var customerProcessor: TestSpanProcessor | undefined = undefined;
+export var customerApiKey: string | undefined = undefined;
+
+function spinUpCustomerProcessor(apikey: string) {
+  customerApiKey = apikey;
+  customerProcessor = new TestSpanProcessor();
+  return customerProcessor;
+}
+
+export const boothGameProcessor = new BoothGameProcessor(normalProcessor, spinUpCustomerProcessor);
+
+provider.addSpanProcessor(boothGameProcessor);
 
 provider.register({});
