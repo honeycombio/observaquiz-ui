@@ -29,11 +29,28 @@ describe("booth game processor sending to the customer's team", () => {
 
     expect(customerProcessor).toBeDefined();
     expect(customerApiKey).toEqual("fake api key");
+
+    boothGameProcessor.clearCustomerTeam(); // for the next test
+  });
+
+  test("When it has a customer processor, every span goes there WITH the team attributes set", () => {
+    boothGameProcessor.learnCustomerTeam({
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz-local" },
+      apiKey: "fake api key",
+    });
+
+    expect(customerProcessor).toBeDefined();
+
+    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
+    expect(customerProcessor?.onlyStartedSpan().attributes["testAttribute"]).toEqual("does it care");
+    expect(customerProcessor?.onlyStartedSpan().attributes["honeycomb.region"]).toEqual("us");
+
+    boothGameProcessor.clearCustomerTeam(); // for the next test
   });
 
   test("After the customer API key is cleared, it stops sending anything to the customer processor", () => {});
-
-  test("When it has a customer processor, every span goes there WITH the team attributes set", () => {});
 
   test("Spans sent to the customer processor have the destination set to customer, unlike the ones sent to our team", () => {});
 
