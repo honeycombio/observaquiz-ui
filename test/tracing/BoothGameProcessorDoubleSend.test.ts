@@ -1,5 +1,18 @@
+import { NormalProcessor } from "./boothGameProcessorDoubleSend.tracing";
+import { trace } from "@opentelemetry/api";
+
+const tracer = trace.getTracer("booth game processor double send test");
 
 describe("booth game processor sending to the customer's team", () => {
+  test("Even in this configuration, it sends a created span to the normal processor", () => {
+    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
+
+    expect(NormalProcessor.onlyStartedSpan().attributes["testAttribute"]).toEqual("does it care");
+
+    span.end();
+
+    expect(NormalProcessor.endedSpans.length).toEqual(1);
+  });
   test("When it learns about the customer API key, it creates a customer processor", () => {});
 
   test("After the customer API key is cleared, it stops sending anything to the customer processor", () => {});

@@ -29,7 +29,6 @@ export class BoothGameProcessor implements SpanProcessor {
     return this.normalProcessor.forceFlush();
   }
   onStart(span: Span, parentContext: Context): void {
-    console.log("BoothGameProcessor.onStart", span);
     if (this.customerTeam) {
       span.setAttribute("honeycomb.region", this.customerTeam.region);
       span.setAttribute("honeycomb.team.slug", this.customerTeam.team.slug);
@@ -40,11 +39,9 @@ export class BoothGameProcessor implements SpanProcessor {
     this.normalProcessor.onStart(span, parentContext);
   }
   onEnd(span: ReadableSpan): void {
-    console.log("BoothGameProcessor.onEnd", span);
     this.normalProcessor.onEnd(span);
   }
   shutdown(): Promise<void> {
-    console.log("BoothGameProcessor.shutdown");
     return this.normalProcessor.shutdown();
   }
 }
