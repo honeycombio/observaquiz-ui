@@ -1,6 +1,6 @@
 import { Span } from "@opentelemetry/sdk-trace-base";
 import { BoothGameProcessor } from "../../src/tracing/BoothGameProcessor";
-import { TestSpanProcessor } from "./TestSpanProcessor";
+import { TestSpanProcessor, createTestSpan } from "./TestSpanProcessor";
 import { Context } from "@opentelemetry/api";
 
 test("something", () => {
@@ -12,14 +12,14 @@ describe("booth game processor sending to our team", () => {
     const normalProcessor = new TestSpanProcessor();
     const boothGameProcessor = new BoothGameProcessor(normalProcessor);
 
-    const testSpan = { name: "fake span", attributes: { testAttribute: "does it care" } } as unknown as Span;
+    const testSpan = createTestSpan("fake span", { testAttribute: "does it care" });
     const fakeParentContext = { stuff: "things" } as unknown as Context;
     // What does it even mean to send a span to a processor? Expect all methods to pass through.
     boothGameProcessor.onStart(testSpan, fakeParentContext);
     boothGameProcessor.onEnd(testSpan);
 
     expect(normalProcessor.startedSpans).toEqual([[testSpan, fakeParentContext]]);
-    expect(normalProcessor.endedSpans).toEqual([testSpan]); 
+    expect(normalProcessor.endedSpans).toEqual([testSpan]);
 
     expect(normalProcessor.wasShutdown).toBe(false);
     boothGameProcessor.shutdown();
@@ -34,6 +34,11 @@ describe("booth game processor sending to our team", () => {
   test("When it has the customer team attributes, it sets them on every span to the normal processor", () => {});
 
   test("To the normal processor, it tells it this is our span for our team", () => {});
+});
+
+describe("Setting the customer team on the booth game processor", () => {
+  test("You can set the customer team exactly once", () => {});
+  test("You can clear the customer team and then set it again", () => {});
 });
 
 describe("booth game processor sending to the customer's team", () => {
