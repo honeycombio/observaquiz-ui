@@ -10,10 +10,25 @@ function TracingTrackerInternal() {
   );
 }
 
-export function TracingTracker() {
+export type TracingDestination = {
+  team: { name: string; slug: string };
+  environment: { name: string; slug: string };
+  dataset: string;
+};
+
+export type TracingTrackerProps = {
+  tracingDestination: TracingDestination | undefined;
+};
+
+export function TracingTracker(props: TracingTrackerProps) {
+  if (!props.tracingDestination) {
+    return <div id="tracing-tracker-placeholder"></div>;
+  }
   return (
     <ComponentLifecycleTracing componentName="TracingTracker">
-      <TracingTrackerInternal />
+      <div id="tracing-tracker-placeholder">
+        <TracingTrackerInternal />
+      </div>
     </ComponentLifecycleTracing>
   );
 }

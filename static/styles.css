@@ -81,3 +81,7 @@ img.small-logo {
   height: 2rem;
   color: white;
 }
+
+#tracing-tracker-placeholder {
+  transition: all 0.5s linear;
+}

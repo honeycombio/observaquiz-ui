@@ -11,7 +11,7 @@ function TrackedBoothGameInternal(props: BoothGameProps) {
   return (
     <div id="tracked-booth-game">
       <BoothGameTracker trackedSteps={trackedSteps} />
-      <TracingTracker />
+      <TracingTracker tracingDestination={undefined} />
       <BoothGame {...props} trackedSteps={trackedSteps} setTrackedSteps={setTrackedSteps} />
     </div>
   );
