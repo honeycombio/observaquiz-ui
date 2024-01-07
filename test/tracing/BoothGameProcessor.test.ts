@@ -19,6 +19,7 @@ describe("booth game processor sending to our team", () => {
     boothGameProcessor.onStart(testSpan, fakeParentContext);
     boothGameProcessor.onEnd(testSpan);
 
+    // it gets the same object, so they're the same even when modified by BoothGameProcessor
     expect(normalProcessor.startedSpans).toEqual([[testSpan, fakeParentContext]]);
     expect(normalProcessor.endedSpans).toEqual([testSpan]);
 
