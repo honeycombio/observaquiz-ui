@@ -18,10 +18,10 @@ import {
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
-import { datasetName } from "./TracingDestination"
+import { HONEYCOMB_DATASET_NAME } from "./TracingDestination"
 import { BatchWithBaggageSpanProcessor } from "./BaggageSpanProcessor";
 
-const serviceName = datasetName;
+const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";
 
 type WindowWithBuildInfo = typeof window & { BUILD_INFO?: Record<string, string> };

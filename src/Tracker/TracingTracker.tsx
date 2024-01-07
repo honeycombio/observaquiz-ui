@@ -1,6 +1,7 @@
 // a component that displays where the traces are going
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import { HoneycombRegion } from "../tracing/TracingDestination";
 
 function TracingTrackerInternal() {
   return (
@@ -10,18 +11,23 @@ function TracingTrackerInternal() {
   );
 }
 
-export type TracingDestination = {
+// move to TracingDestination?
+export type TracingTeam = {
+  region: HoneycombRegion;
   team: { name: string; slug: string };
   environment: { name: string; slug: string };
-  dataset: string;
+};
+
+export type TracingTeamAware = {
+  tracingTeam: TracingTeam | undefined;
 };
 
 export type TracingTrackerProps = {
-  tracingDestination: TracingDestination | undefined;
+  tracingTeam: TracingTeam | undefined;
 };
 
 export function TracingTracker(props: TracingTrackerProps) {
-  if (!props.tracingDestination) {
+  if (!props.tracingTeam) {
     return <div id="tracing-tracker-placeholder"></div>;
   }
   return (

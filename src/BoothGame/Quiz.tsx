@@ -3,8 +3,9 @@ import { Question } from "./Question";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { HowToReset } from "../resetQuiz";
 import { TracingErrorBoundary } from "../tracing/TracingErrorBoundary";
+import { TracingTeamAware } from "../Tracker/TracingTracker";
 
-type QuizProps = { questionSet: QuestionSet } & HowToReset;
+type QuizProps = { questionSet: QuestionSet } & HowToReset & TracingTeamAware;
 
 export type QuestionSet = {
   question_set: string;
@@ -42,7 +43,7 @@ function QuizInternal(props: QuizProps) {
 export function Quiz(props: QuizProps) {
   return (
     <ComponentLifecycleTracing componentName="QuizApp">
-      <TracingErrorBoundary howToReset={props.howToReset}>
+      <TracingErrorBoundary howToReset={props.howToReset} tracingTeam={props.tracingTeam}>
         <QuizInternal {...props} />
       </TracingErrorBoundary>
     </ComponentLifecycleTracing>

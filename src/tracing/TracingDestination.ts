@@ -5,7 +5,7 @@
 // Should this be in React state in BoothGame? likely. And available as a context.
 // there are dependencies here in TracingComponentLifecycle. not sure how to express those well.
 
-export const datasetName = "observaquiz-browser";
+export const HONEYCOMB_DATASET_NAME = "observaquiz-browser";
 
 export type HoneycombRegion = "us" | "eu"; // could add dogfood if we want to test there
 
@@ -18,34 +18,13 @@ function honeycombUrl(region: HoneycombRegion): string {
   }
 }
 
-export class TracingDestination {
-  constructor(
-    private honeycombRegion: HoneycombRegion,
-    private teamSlug: string,
-    private envSlug: string,
-    private datasetSlug: string
-  ) {}
-
-  public getUrlToDataset(): string {
-    // https://ui.honeycomb.io/modernity/environments/quiz-local/datasets/browser/
-    return `${honeycombUrl(this.honeycombRegion)}/${this.teamSlug}/environments/${this.envSlug}/datasets/${
-      this.datasetSlug
-    }`;
-  }
-}
-
-export var KnownTracingDestination: null | TracingDestination = null;
-
-export function learnTracingDestination(params: {
-  honeycombRegion: HoneycombRegion;
-  teamSlug: string;
-  envSlug: string;
-}) {
-  KnownTracingDestination = new TracingDestination(
-    params.honeycombRegion,
-    params.teamSlug,
-    params.envSlug,
-    datasetName
-  );
-  console.log("learnTracingDestination", params);
+export function getUrlToDataset(team: {
+  region: HoneycombRegion;
+  team: { slug: string };
+  environment: { slug: string };
+}): string {
+  // https://ui.honeycomb.io/modernity/environments/quiz-local/datasets/browser/
+  return `${honeycombUrl(team.region)}/${team.team.slug}/environments/${
+    team.environment.slug
+  }/datasets/${HONEYCOMB_DATASET_NAME}`;
 }

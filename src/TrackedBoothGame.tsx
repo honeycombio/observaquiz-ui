@@ -4,19 +4,30 @@ import { BoothGameTracker } from "./Tracker/BoothGameTracker";
 import { ComponentLifecycleTracing } from "./tracing/ComponentLifecycleTracing";
 import { TrackedSteps, initialTrackedSteps } from "./Tracker/trackedSteps";
 import { useDeclareTracedState } from "./tracing/TracedState";
-import { TracingTracker } from "./Tracker/TracingTracker";
+import { TracingTeam, TracingTracker } from "./Tracker/TracingTracker";
+import { HowToReset } from "./resetQuiz";
 
-function TrackedBoothGameInternal(props: BoothGameProps) {
+function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
+  const [tracingTeam, setTracingTeam] = React.useState<TracingTeam | undefined>(undefined);
   return (
     <div id="tracked-booth-game">
       <BoothGameTracker trackedSteps={trackedSteps} />
-      <TracingTracker tracingDestination={undefined} />
-      <BoothGame {...props} trackedSteps={trackedSteps} setTrackedSteps={setTrackedSteps} />
+      <TracingTracker tracingTeam={tracingTeam} />
+      <BoothGame
+        {...props}
+        trackedSteps={trackedSteps}
+        setTrackedSteps={setTrackedSteps}
+        setTracingTeam={setTracingTeam}
+        tracingTeam={tracingTeam}
+      />
     </div>
   );
 }
-export type TrackedBoothGameProps = BoothGameProps;
+export type TrackedBoothGameProps = {
+  resetCount: number;
+} & HowToReset;
+
 export function TrackedBoothGame(props: TrackedBoothGameProps) {
   return (
     <ComponentLifecycleTracing team="shared" componentName="TrackedBoothGame">

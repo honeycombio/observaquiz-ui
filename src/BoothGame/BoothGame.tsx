@@ -6,9 +6,9 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/Compo
 import { HowToReset } from "../resetQuiz";
 import { Hello } from "./Hello";
 import { QuestionSet, Quiz } from "./Quiz";
-import { learnTracingDestination } from "../tracing/TracingDestination";
 import { TrackedSteps, advance } from "../Tracker/trackedSteps";
 import { TracedState } from "../tracing/TracedState";
+import { TracingTeam, TracingTeamAware } from "../Tracker/TracingTracker";
 
 type QuizState =
   | { name: "hello" }
@@ -40,24 +40,21 @@ function BoothGameInternal(props: BoothGameProps) {
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
     console.log("Thank you for the api key", news.apiKey);
-    boothGameLifecycleSpan.addLog("change state", {
+    boothGameLifecycleSpan.withLog("change state", {
       "app.boothGame.state": "ask questions",
       "app.boothGame.previousState": "get api key",
-    });
-    // This will put it on any _new_ spans created. But not span events, and not open spans.
-    // TODO: replace this with a processor that retains old spans to dual-send.
-    SessionGateway.setSessionValue("apiKey", news.apiKey);
-    SessionGateway.setSessionValue("teamSlug", news.team.slug);
-    SessionGateway.setSessionValue("environmentSlug", news.environment.slug);
-    console.log("I now think I set it on the session");
+    }, () => {
 
-    learnTracingDestination({
-      honeycombRegion: news.region,
-      teamSlug: news.team.slug,
-      envSlug: news.environment.slug,
-    });
+      // This will put it on any _new_ spans created. But not span events, and not open spans.
+      // TODO: replace this with a processor that retains old spans to dual-send.
+      SessionGateway.setSessionValue("apiKey", news.apiKey);
+      SessionGateway.setSessionValue("teamSlug", news.team.slug);
+      SessionGateway.setSessionValue("environmentSlug", news.environment.slug);
 
-    setCurrentState({ name: "load question set" });
+      props.setTracingTeam(news);
+      
+      setCurrentState({ name: "load question set" });
+    });
   }
 
   function acceptQuestionSet(questionSet: QuestionSet) {
@@ -84,7 +81,7 @@ function BoothGameInternal(props: BoothGameProps) {
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;
       break;
     case "ask questions":
-      content = <Quiz questionSet={currentState.questionSet} howToReset={props.howToReset} />;
+      content = <Quiz questionSet={currentState.questionSet} howToReset={props.howToReset} tracingTeam={props.tracingTeam} />;
       break;
     default:
       boothGameLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentState });
@@ -99,7 +96,8 @@ export type BoothGameProps = {
   resetCount: number;
   trackedSteps: TracedState<TrackedSteps>;
   setTrackedSteps: (trackedSteps: TrackedSteps) => void;
-} & HowToReset;
+  setTracingTeam: (tracingTeam: TracingTeam) => void;
+} & HowToReset & TracingTeamAware;
 
 export function BoothGame(props: BoothGameProps) {
   return (

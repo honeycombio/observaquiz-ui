@@ -1,16 +1,8 @@
-import {
-  trace,
-  propagation,
-  Span,
-  Context,
-  context,
-  Attributes,
-  SpanContext,
-  SpanStatusCode,
-} from "@opentelemetry/api";
+import { trace, Span, Context, context, Attributes, SpanContext, SpanStatusCode } from "@opentelemetry/api";
 import * as logsAPI from "@opentelemetry/api-logs";
-import { KnownTracingDestination } from "./TracingDestination";
 import { v4 as uuidv4 } from "uuid";
+import { TracingTeam } from "../Tracker/TracingTracker";
+import { getUrlToDataset } from "./TracingDestination";
 
 export type ComponentLifecycleSpans = {
   spanThatWeSendRightAway: Span; // use this for logs & as a parent for other spans
@@ -27,7 +19,6 @@ export type ActiveLifecycleSpanType = {
   inSpanAsync<T>(name: string, attributes: Attributes, fn: () => Promise<T>): Promise<T>;
   spanContext(): SpanContext | undefined;
   inContext<T>(fn: () => T): T;
-  getLinkToCurrentSpan(): string | undefined;
 };
 
 export const nilSpan: ActiveLifecycleSpanType = {
@@ -39,13 +30,12 @@ export const nilSpan: ActiveLifecycleSpanType = {
   inSpan: (name: string, attributes: Attributes, fn: () => any) => fn(),
   inSpanAsync: (name: string, attributes: Attributes, fn: () => any) => fn(),
   inContext: (fn: () => any) => fn(),
-  getLinkToCurrentSpan: () => undefined,
 };
 
 const componentLifecycleLogger = logsAPI.logs.getLogger("app/component-lifecycle");
 const componentLifecycleTracer = trace.getTracer("app/component-lifecycle");
-export const EVENT_ID_KEY = Symbol("event ID key")
-export const EVENT_SPAN_ID_KEY = Symbol("span ID of the parent of the event")
+export const EVENT_ID_KEY = Symbol("event ID key");
+export const EVENT_SPAN_ID_KEY = Symbol("span ID of the parent of the event");
 
 export function standardAttributes(componentName: string) {
   return {
@@ -61,16 +51,6 @@ export function wrapAsActiveLifecycleSpan(
   componentAttributes?: Attributes
 ): ActiveLifecycleSpanType {
   return {
-    getLinkToCurrentSpan: () => {
-      // TODO: add time parameters, from when this page was loaded to 10m from now
-      return (
-        KnownTracingDestination?.getUrlToDataset() +
-        "/trace?trace_id=" +
-        componentLifecycleSpans.spanThatWeSendRightAway.spanContext().traceId +
-        "&span=" +
-        componentLifecycleSpans.spanThatWeSendRightAway.spanContext().spanId
-      );
-    },
     addLog: (name: string, attributes?: Attributes) => {
       const uniqueID = uuidv4();
       componentLifecycleLogger.emit({
@@ -93,7 +73,10 @@ export function wrapAsActiveLifecycleSpan(
 
     withLog<T>(name: string, attributes: Attributes, fn: () => T): T {
       const logId = this.addLog(name, attributes);
-      const nextContext = context.active().setValue(EVENT_ID_KEY, logId).setValue(EVENT_SPAN_ID_KEY, this.spanContext()?.spanId);
+      const nextContext = context
+        .active()
+        .setValue(EVENT_ID_KEY, logId)
+        .setValue(EVENT_SPAN_ID_KEY, this.spanContext()?.spanId);
       return context.with(nextContext, () => fn());
     },
 
@@ -193,4 +176,15 @@ export function wrapAsActiveLifecycleSpan(
       return context.with(componentLifecycleSpans.contextToUseAsAParent, fn);
     },
   };
+}
+
+export function getLinkToCurrentSpan(tracingTeam: TracingTeam, lifecycleSpan: ActiveLifecycleSpanType): string {
+  // TODO: add time parameters, from when this page was loaded to 10m from now
+  return (
+    getUrlToDataset(tracingTeam) +
+    "/trace?trace_id=" +
+    lifecycleSpan.spanContext()?.traceId +
+    "&span=" +
+    lifecycleSpan.spanContext()?.spanId
+  );
 }

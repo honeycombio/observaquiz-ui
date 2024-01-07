@@ -10,13 +10,10 @@ import {
 } from "@opentelemetry/api";
 import React, { useContext, useState } from "react";
 import * as logsAPI from "@opentelemetry/api-logs";
-import { KnownTracingDestination } from "./TracingDestination";
-import { v4 as uuidv4 } from "uuid";
 import { ActiveLifecycleSpanType, ComponentLifecycleSpans, nilSpan, standardAttributes, wrapAsActiveLifecycleSpan } from "./activeLifecycleSpan";
 
 // only used in this and the other tracing class.
 export const OpentelemetryContext = React.createContext<Context>(context.active()!);
-
 
 export const ActiveLifecycleSpan = React.createContext<ActiveLifecycleSpanType>(nilSpan);
 
