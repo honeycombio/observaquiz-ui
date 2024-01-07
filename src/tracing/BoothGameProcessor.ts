@@ -11,21 +11,31 @@ export type BoothGameCustomerTeam = {
 
 export class BoothGameProcessor implements SpanProcessor {
   private customerTeam?: BoothGameCustomerTeam = undefined;
+  private customerSpanProcessor?: SpanProcessor = undefined;
+
+  constructor(
+    private readonly normalProcessor: SpanProcessor,
+    private readonly spinUpCustomerProcessor: (apikey: string) => SpanProcessor
+  ) {}
 
   learnCustomerTeam(customerTeam: BoothGameCustomerTeam) {
     if (this.customerTeam && this.customerTeam?.apiKey != customerTeam.apiKey) {
       throw new Error("You can only set the customer team once");
     }
     this.customerTeam = customerTeam;
+    this.customerSpanProcessor = this.spinUpCustomerProcessor(customerTeam.apiKey);
   }
 
   clearCustomerTeam() {
     this.customerTeam = undefined;
+    const goodbyeOldCustomerSpanProcessor = this.customerSpanProcessor;
+    this.customerSpanProcessor = undefined;
+    // seems like a good idea to do this now, asynchronously:
+    goodbyeOldCustomerSpanProcessor?.forceFlush().then(() => goodbyeOldCustomerSpanProcessor?.shutdown());
   }
 
-  constructor(private readonly normalProcessor: SpanProcessor, private readonly spinUpCustomerProcessor: (apikey: string) => SpanProcessor) {}
-
   forceFlush(): Promise<void> {
+    this.customerSpanProcessor?.forceFlush(); // if it's around
     return this.normalProcessor.forceFlush();
   }
   onStart(span: Span, parentContext: Context): void {
@@ -42,6 +52,7 @@ export class BoothGameProcessor implements SpanProcessor {
     this.normalProcessor.onEnd(span);
   }
   shutdown(): Promise<void> {
+    this.customerSpanProcessor?.shutdown(); // if it's around
     return this.normalProcessor.shutdown();
   }
 }

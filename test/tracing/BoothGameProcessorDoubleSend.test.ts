@@ -1,4 +1,9 @@
-import { boothGameProcessor, normalProcessor } from "./boothGameProcessorDoubleSend.tracing";
+import {
+  boothGameProcessor,
+  normalProcessor,
+  customerProcessor,
+  customerApiKey,
+} from "./boothGameProcessorDoubleSend.tracing";
 import { trace } from "@opentelemetry/api";
 
 const tracer = trace.getTracer("booth game processor double send test");
@@ -15,7 +20,6 @@ describe("booth game processor sending to the customer's team", () => {
   });
 
   test("When it learns about the customer API key, it creates a customer processor", () => {
-
     boothGameProcessor.learnCustomerTeam({
       region: "us",
       team: { slug: "modernity" },
@@ -23,7 +27,8 @@ describe("booth game processor sending to the customer's team", () => {
       apiKey: "fake api key",
     });
 
-
+    expect(customerProcessor).toBeDefined();
+    expect(customerApiKey).toEqual("fake api key");
   });
 
   test("After the customer API key is cleared, it stops sending anything to the customer processor", () => {});
