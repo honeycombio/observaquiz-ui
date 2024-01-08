@@ -9,7 +9,6 @@ type QuestionSetJson = {
   question_set: string;
   questions: Array<{
     question: string;
-    question_number: number;
     id: string;
   }>;
 };
