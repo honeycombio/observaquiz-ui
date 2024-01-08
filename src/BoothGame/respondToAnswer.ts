@@ -38,7 +38,10 @@ export function fetchResponseToAnswer(
       if (response.ok) {
         return response.json().then((json) => {
           const interpretation = `I give that a ${json.score}. ${json.better_answer}`;
-          span.addLog("Response received", { "app.question.response": JSON.stringify(json) });
+          span.addLog("Response received", {
+            "app.question.response": JSON.stringify(json),
+            "app.question.interpretation": interpretation,
+          });
           return { status: "success", text: interpretation } as ResponseFromAI;
         });
       } else {
