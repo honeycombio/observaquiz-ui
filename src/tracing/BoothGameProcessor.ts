@@ -78,12 +78,12 @@ export class BoothGameProcessor implements SpanProcessor {
     }
     if (this.openSpanCopies[span.spanContext().spanId]) {
       // also end the copy. We'll see it again in this function, just above here
-      this.openSpanCopies[span.spanContext().spanId].end();
+      this.openSpanCopies[span.spanContext().spanId].end(span.endTime);
       delete this.openSpanCopies[span.spanContext().spanId];
     }
     this.normalProcessor.onEnd(span);
   }
-  
+
   shutdown(): Promise<void> {
     this.customerSpanProcessor?.shutdown(); // if it's around
     return this.normalProcessor.shutdown();
@@ -104,6 +104,7 @@ export class BoothGameProcessor implements SpanProcessor {
     );
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
+    copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
     return copy;
   }
 }

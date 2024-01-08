@@ -40,6 +40,7 @@ describe("booth game processor sending to the customer's team", () => {
       environment: { slug: "quiz-local" },
       apiKey: "fake api key",
     });
+    normalProcessor.clearMemory();
 
     expect(customerProcessor).toBeDefined();
 
@@ -49,6 +50,17 @@ describe("booth game processor sending to the customer's team", () => {
 
     span.end();
     expect(customerProcessor?.endedSpans.length).toEqual(1);
+
+    const customerSpan = customerProcessor?.onlyEndedSpan();
+    const normalSpan = normalProcessor.onlyEndedSpan();
+
+    expect(customerSpan?.spanContext()).toEqual(normalSpan.spanContext());
+    expect(customerSpan?.duration).toEqual(normalSpan.duration);
+    expect(customerSpan?.startTime).toEqual(normalSpan.startTime);
+    expect(customerSpan?.endTime).toEqual(normalSpan.endTime);
+    expect(customerSpan?.instrumentationLibrary).toEqual(normalSpan.instrumentationLibrary);
+    expect(customerSpan?.name).toEqual(normalSpan.name);
+    // expect(customerSpan?.status).toEqual(normalSpan.status); this won't be true, hrm, I wonder if I can send the ended span to both most of the time
 
     boothGameProcessor.clearCustomerTeam(); // for the next test
   });

@@ -24,6 +24,16 @@ export class TestSpanProcessor implements SpanProcessor {
     }
     return this.startedSpans[0][0];
   }
+  onlyEndedSpan() {
+    if (this.startedSpans.length != 1) {
+      throw new Error("Expected exactly one started span, had " + this.startedSpans.length);
+    }
+    return this.endedSpans[0];
+  }
+  clearMemory() {
+    this.startedSpans = [];
+    this.endedSpans = [];
+  }
 
   forceFlush(): Promise<void> {
     this.wasForceFlushed = true;
