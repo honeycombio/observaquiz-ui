@@ -12,13 +12,13 @@ function TracingTrackerInternal(props: TracingTrackerProps) {
   }
   return (
     <div id="tracing-tracker">
-      <div>Honeycomb team: {tracingTeam.team.name}</div>
-      <div>Environment: {tracingTeam.environment.name}</div>
-      <div>
+      <p>Honeycomb team: {tracingTeam.team.name}</p>
+      <p>Environment: {tracingTeam.environment.name}</p>
+      <p>
         <a target="_blank" href={getLinkToCurrentSpan(tracingTeam, activeLifecycleSpan)}>
           See current trace
         </a>
-      </div>
+      </p>
     </div>
   );
 }
