@@ -6,13 +6,13 @@ import { HowToReset } from "../resetQuiz";
 
 type QuestionSetState = "loading" | "error";
 
-type QuestionSetJson = {
-  question_set: string;
-  questions: Array<{
-    question: string;
-    question_number: number;
-    id: string;
-  }>;
+type QuestionSetJson = Array<{
+  question: string;
+  id: string;
+}>;
+
+const convertQuestionSetJsonToQuestionSet = (json: QuestionSetJson): QuestionSet => {
+  return { question_set: "unknown", questions: json.map((q, i) => ({ ...q, question_number: i + 1 })) };
 };
 
 export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
@@ -37,7 +37,7 @@ export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
           .then((json) => {
             span.setAttributes({ "app.questions.response": JSON.stringify(json) });
             /* Here, here is the movement */
-            props.moveForward(json as QuestionSetJson);
+            props.moveForward(convertQuestionSetJsonToQuestionSet(json as QuestionSetJson));
           })
       )
       .catch((e) => {
