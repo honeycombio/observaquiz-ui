@@ -26,9 +26,8 @@ app.get("/api/questions", (req, res) => {
 // Now for the fake backend
 app.post("/api/questions/:questionId/answer", (req, res) => {
   res.send({
-    text: `Grade: C
-
-  Observability is the practice of gaining insights and understanding about a system's behavior and performance. It involves the ability to measure and monitor various aspects of the system to identify issues, troubleshoot problems, and make data-driven decisions for improvement. While your answer touches on the concept of "seeing stuff going on," it lacks the depth and comprehensive understanding of observability.`,
+    score: "10",
+    better_answer: "something like that",
   });
 });
 

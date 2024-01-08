@@ -16,11 +16,21 @@ function QuestionInternal(props: QuestionProps) {
 
   const [answerContent, setAnswerContent] = React.useState<string>("");
   const [response, setResponse] = React.useState<string | undefined>(undefined);
-  const [state, setState] = React.useState<QuestionState>({
+  const [state, setStateInternal] = React.useState<QuestionState>({
     name: "answering",
     inputEnabled: true,
     nextStep: "submit answer",
   });
+
+  function setState(newState: QuestionState) {
+    activeLifecycleSpan.addLog("state change", {
+      "app.question.state": newState.name,
+      "app.question.inputEnabled": newState.inputEnabled,
+      "app.question.button": newState.nextStep,
+      "app.question.prevState": state.name,
+    });
+    setStateInternal(newState);
+  }
 
   function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
     setAnswerContent(event.target.value);
