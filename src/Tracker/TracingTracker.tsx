@@ -15,7 +15,9 @@ function TracingTrackerInternal(props: TracingTrackerProps) {
       <div>Honeycomb team: {tracingTeam.team.name}</div>
       <div>Environment: {tracingTeam.environment.name}</div>
       <div>
-        <a href={getLinkToCurrentSpan(tracingTeam, activeLifecycleSpan)}>See current trace</a>
+        <a target="_blank" href={getLinkToCurrentSpan(tracingTeam, activeLifecycleSpan)}>
+          See current trace
+        </a>
       </div>
     </div>
   );
