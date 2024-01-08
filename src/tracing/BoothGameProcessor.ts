@@ -11,9 +11,13 @@ export type BoothGameCustomerTeam = {
 
 export const BOOTH_GAME_TELEMETRY_DESTINATION = "boothGame.telemetry.destination";
 
+type SpanId = string;
+
 export class BoothGameProcessor implements SpanProcessor {
   private customerTeam?: BoothGameCustomerTeam = undefined;
   private customerSpanProcessor?: SpanProcessor = undefined;
+
+  private openSpanCopies: Record<SpanId, Span> = {};
 
   constructor(
     private readonly normalProcessor: SpanProcessor,
@@ -59,6 +63,7 @@ export class BoothGameProcessor implements SpanProcessor {
     // it will come back through here, and we will process it as a customer span.
     // When its corresponding `span` ends, we will end `copy`.
     const copy = this.copySpanToCustomerTeam(span, parentContext);
+    this.openSpanCopies[span.spanContext().spanId] = copy;
 
     // now the original gets to go on its way, marked as such
     span.setAttribute(BOOTH_GAME_TELEMETRY_DESTINATION, "devrel");
@@ -66,8 +71,19 @@ export class BoothGameProcessor implements SpanProcessor {
   }
 
   onEnd(span: ReadableSpan): void {
+    if (span.attributes[BOOTH_GAME_TELEMETRY_DESTINATION] === "customer") {
+      // it has looped back around, send it on
+      this.customerSpanProcessor?.onEnd(span);
+      return;
+    }
+    if (this.openSpanCopies[span.spanContext().spanId]) {
+      // also end the copy. We'll see it again in this function, just above here
+      this.openSpanCopies[span.spanContext().spanId].end();
+      delete this.openSpanCopies[span.spanContext().spanId];
+    }
     this.normalProcessor.onEnd(span);
   }
+  
   shutdown(): Promise<void> {
     this.customerSpanProcessor?.shutdown(); // if it's around
     return this.normalProcessor.shutdown();
