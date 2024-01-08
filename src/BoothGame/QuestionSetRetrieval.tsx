@@ -12,7 +12,7 @@ type QuestionSetJson = Array<{
 }>;
 
 const convertQuestionSetJsonToQuestionSet = (json: QuestionSetJson): QuestionSet => {
-  return { question_set: "unknown", questions: json.map((q, i) => ({ ...q, question_number: i + 1 })) };
+  return { question_set: "unknown", questions: json.map((q, i) => ({ ...q, question_number: i })) };
 };
 
 export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
