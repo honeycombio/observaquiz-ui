@@ -1,4 +1,4 @@
-import { ActiveLifecycleSpanType } from "../tracing/ComponentLifecycleTracing";
+import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 
 export type ResponseFromAI =
   | {
@@ -6,6 +6,11 @@ export type ResponseFromAI =
       text: string;
     }
   | { status: "failure"; error: string };
+
+type AnswersAPIResponse = {
+  score: string;
+  better_answer: string;
+};
 
 export function fetchResponseToAnswer(
   span: ActiveLifecycleSpanType,
@@ -32,8 +37,9 @@ export function fetchResponseToAnswer(
     .then((response) => {
       if (response.ok) {
         return response.json().then((json) => {
+          const interpretation = `I give that a ${json.score}. ${json.better_answer}`;
           span.addLog("Response received", { "app.question.response": JSON.stringify(json) });
-          return { status: "success", text: json.text } as ResponseFromAI;
+          return { status: "success", text: interpretation } as ResponseFromAI;
         });
       } else {
         span.addLog("Error received", {
