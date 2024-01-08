@@ -1,7 +1,7 @@
 import { ReadableSpan, SpanProcessor, Span as TraceBaseSpan } from "@opentelemetry/sdk-trace-base";
 import { Context, trace, Span, HrTime } from "@opentelemetry/api";
 import { HONEYCOMB_DATASET_NAME, HoneycombRegion } from "./TracingDestination";
-import { logApi } from "@opentelemetry/api-logs";
+import { logs as logApi, SeverityNumber } from "@opentelemetry/api-logs";
 
 export type BoothGameCustomerTeam = {
   region: HoneycombRegion;
@@ -13,12 +13,22 @@ export type BoothGameCustomerTeam = {
 type DoubleSendState = {
   copy: Span;
   started: boolean;
-  endTime?: HrTime;
+  onStartSpan?: TraceBaseSpan; // populated if we got the copy in onStart, but didn't have the customer team yet
+  onStartParentContext?: Context; // ditto
+  endTime?: HrTime; // populated if we got the original span in onEnd, but didn't have the customer team yet
 };
 
 export const BOOTH_GAME_TELEMETRY_DESTINATION = "boothGame.telemetry.destination";
 
 const ownLogger = logApi.getLogger("booth game processor");
+
+function warn(message: string) {
+  ownLogger.emit({
+    body: message,
+    severityText: "warning",
+    severityNumber: SeverityNumber.WARN,
+  });
+}
 
 type SpanId = string;
 
@@ -39,6 +49,23 @@ export class BoothGameProcessor implements SpanProcessor {
     }
     this.customerTeam = customerTeam;
     this.customerSpanProcessor = this.spinUpCustomerProcessor(customerTeam.apiKey);
+    this.sendAnySpansThatWereWaitingForCustomerTeam();
+  }
+
+  sendAnySpansThatWereWaitingForCustomerTeam() {
+    for (const spanId in this.openSpanCopies) {
+      const copyState = this.openSpanCopies[spanId];
+      if (!copyState.started && copyState.onStartSpan && copyState.onStartParentContext) {
+        // god there are so many weird state edge cases
+        this.customerSpanProcessor?.onStart(copyState.onStartSpan, copyState.onStartParentContext);
+        copyState.started = true;
+        copyState.onStartSpan = undefined;
+        copyState.onStartParentContext = undefined;
+      }
+      if (copyState.endTime) {
+        copyState.copy.end(copyState.endTime);
+      }
+    }
   }
 
   clearCustomerTeam() {
@@ -57,10 +84,18 @@ export class BoothGameProcessor implements SpanProcessor {
   onStart(span: TraceBaseSpan, parentContext: Context): void {
     console.log("span received with attributes", JSON.stringify(span.attributes));
     if (span.attributes[BOOTH_GAME_TELEMETRY_DESTINATION] === "customer") {
+      const copy = this.openSpanCopies[span.spanContext().spanId];
+      if (!copy) {
+        warn("In onStart, no copy found of span " + JSON.stringify(span.spanContext()));
+        return;
+      }
       if (this.customerSpanProcessor) {
         this.customerSpanProcessor.onStart(span, parentContext);
-        this.openSpanCopies[span.spanContext().spanId].started = true;
-      } 
+        copy.started = true;
+      } else {
+        copy.onStartSpan = span;
+        copy.onStartParentContext = parentContext;
+      }
       return;
     }
 
@@ -88,15 +123,15 @@ export class BoothGameProcessor implements SpanProcessor {
       if (this.customerSpanProcessor) {
         this.customerSpanProcessor.onEnd(span);
       } else {
-        ownLogger.warn("No customer span processor for the end of span" + JSON.stringify(span.spanContext()));
+        warn("No customer span processor for the end of span" + JSON.stringify(span.spanContext()));
       }
       delete this.openSpanCopies[span.spanContext().spanId];
       return;
     }
     this.normalProcessor.onEnd(span);
-    const copyState = this.openSpanCopies[span.spanContext().spanId]
+    const copyState = this.openSpanCopies[span.spanContext().spanId];
     if (!copyState) {
-      ownLogger.warn("No copy found of span " + JSON.stringify(span.spanContext()));
+      warn("No copy found of span " + JSON.stringify(span.spanContext()));
       return;
     }
     // TODO: copy any additions to the span since we copied it
@@ -105,7 +140,7 @@ export class BoothGameProcessor implements SpanProcessor {
       this.openSpanCopies[span.spanContext().spanId].copy.end(span.endTime);
     } else {
       // record that it is ready to be ended
-       copyState.endTime = span.endTime;
+      copyState.endTime = span.endTime;
     }
   }
 

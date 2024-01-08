@@ -126,6 +126,31 @@ describe("booth game processor sending to the customer's team", () => {
     normalProcessor.clearMemory();
   });
 
+  test("When it gets spans before the customer processor, and then it gets the customer processor before the span ends, then it starts the spans in the customer processor.", () => {
+    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
+    
+    expect(normalProcessor.startedSpans.length).toEqual(1); // there it goes, to the normal one
+    expect(customerProcessor).toBeUndefined; // not yet
+    
+    boothGameProcessor.learnCustomerTeam({
+      region: "us",
+      team: { slug: "modernity" },
+      environment: { slug: "quiz-local" },
+      apiKey: "fake api key",
+    });
+    
+    expect(customerProcessor).toBeDefined();
+    expect(customerProcessor?.startedSpans.length).toEqual(1);
+    expect(customerProcessor?.endedSpans.length).toEqual(0);
+    
+    span.end();
+    expect(customerProcessor?.endedSpans.length).toEqual(1);
+
+    boothGameProcessor.clearCustomerTeam(); // for the next test
+    normalProcessor.clearMemory();
+  });
+
+
   test("When a span is updated after creation, those updates are applied to the copy sent to the customer team", () => {
     // we may not catch all of them but let's catch some
     // hmm I wonder if we should do the opposite: copy it for our team, and send the original to them - so that they get the best copy?
