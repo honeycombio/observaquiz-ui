@@ -20,7 +20,6 @@ export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
   const [questionSetState, setQuestionSetState] = React.useState<QuestionSetState>("loading");
 
   React.useEffect(() => {
-    // TODO: put this call in a span
     span
       .inSpanAsync("fetch questions", {}, () =>
         fetch("/api/questions")
