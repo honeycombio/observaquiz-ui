@@ -10,13 +10,6 @@ type QuestionState =
   | { name: "showing response"; inputEnabled: false; nextStep: "next question" }
   | { name: "error"; inputEnabled: true; nextStep: "submit answer" };
 
-function weird(response: ResponseFromAI): boolean {
-  if (response.status !== "success") {
-    return true;
-  }
-  return !response.text;
-}
-
 function QuestionInternal(props: QuestionProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const { questionText, questionId } = props;
@@ -63,15 +56,13 @@ function QuestionInternal(props: QuestionProps) {
         fetchResponseToAnswer(activeLifecycleSpan, { questionId, questionText, answerContent })
       )
       .then((response) => {
-        if (response.status !== "success") {
+        if (response.status === "failure") {
           setResponse(response.error);
-          setState({ name: "error", inputEnabled: true, nextStep: "submit answer" });
-        } else if (weird(response)) {
-          setResponse("Well that was a weird response");
           setState({ name: "error", inputEnabled: true, nextStep: "submit answer" });
         } else {
           // success
-          setResponse(response.text);
+          const interpretation = `I give that a ${response.response.score}. ${response.response.better_answer}`;
+          setResponse(interpretation);
           setState({ name: "showing response", inputEnabled: false, nextStep: "next question" });
         }
       });

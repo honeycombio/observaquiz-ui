@@ -1,9 +1,10 @@
 import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
+import { Attributes } from "@opentelemetry/api";
 
 export type ResponseFromAI =
   | {
       status: "success";
-      text: string;
+      response: AnswersAPIResponse;
     }
   | { status: "failure"; error: string };
 
@@ -11,6 +12,25 @@ type AnswersAPIResponse = {
   score: string;
   better_answer: string;
 };
+
+function verifyResponse(response: any): AnswersAPIResponse {
+  if (!response) {
+    throw new Error("Response is empty");
+  }
+  if (!response.score) {
+    throw "Response is missing score";
+  }
+  if (typeof response.score != "string") {
+    throw "Response score is not a string";
+  }
+  if (typeof response.better_answer != "string") {
+    throw "Response better_answer is not a string";
+  }
+  if (!response.better_answer) {
+    throw "Response is missing better_answer";
+  }
+  return response as AnswersAPIResponse;
+}
 
 export function fetchResponseToAnswer(
   span: ActiveLifecycleSpanType,
@@ -21,42 +41,42 @@ export function fetchResponseToAnswer(
   }
 ): Promise<ResponseFromAI> {
   const { questionId, questionText, answerContent } = params;
+  const url = `/api/questions/${questionId}/answer`;
+  const body = JSON.stringify({
+    questionText,
+    answerContent,
+  });
+  const logAttributes: Attributes = { "app.questionAnswer.request": body, "app.questionAnswer.url": url };
   return span
     .inContext(() =>
-      fetch(`/api/questions/${questionId}/answer`, {
+      fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          questionText,
-          answerContent,
-        }),
+        body,
       })
     )
     .then((response) => {
-      if (response.ok) {
-        return response.json().then((json) => {
-          const interpretation = `I give that a ${json.score}. ${json.better_answer}`;
-          span.addLog("Response received", {
-            "app.question.response": JSON.stringify(json),
-            "app.question.interpretation": interpretation,
-          });
-          return { status: "success", text: interpretation } as ResponseFromAI;
-        });
-      } else {
-        span.addLog("Error received", {
-          "app.question.response.status": response.status,
-          "app.question.error": response.statusText,
-        });
-        return { status: "failure", error: response.statusText } as ResponseFromAI;
+      logAttributes["app.questionAnswer.response.status"] = response.status;
+      logAttributes["app.questionAnswer.response.contentType"] = response.headers.get("Content-Type") || "unset";
+      if (!response.ok) {
+        throw new Error(`Response not ok: ${response.status} ${response.statusText}`);
       }
+      return response
+        .json()
+        .then<ResponseFromAI>((json) => {
+          logAttributes["app.questionAnswer.response"] = JSON.stringify(json);
+          const response = verifyResponse(json); // throws on failure
+          return { status: "success", response };
+        })
+        .then((response) => {
+          span.addLog("Response accepted", logAttributes);
+          return response;
+        });
     })
-    .catch((error: Error) => {
-      // TODO: make a function that adds an error, and sets the duration span to error, and prints the log with error severity
-      span.addLog("Error received", {
-        "app.question.error": error.message,
-      });
-      return { status: "failure", error: (error as Error).message } as ResponseFromAI;
+    .catch<ResponseFromAI>((error: Error) => {
+      span.addError("Error received", error, logAttributes);
+      return { status: "failure", error: error.message };
     });
 }
