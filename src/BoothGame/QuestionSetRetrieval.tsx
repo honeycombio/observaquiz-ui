@@ -1,8 +1,7 @@
 import React from "react";
 import { Configuration } from "../Configuration";
-import { QuestionSet, Quiz } from "./Quiz";
+import { QuestionSet } from "./Quiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { HowToReset } from "../resetQuiz";
 
 type QuestionSetState = "loading" | "error";
 
