@@ -1,0 +1,10 @@
+set -e
+set -x
+
+npm run clean
+
+npm run build
+
+cd infra
+
+pulumi up --yes
