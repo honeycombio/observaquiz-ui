@@ -1,14 +1,15 @@
-import React, { ChangeEvent, ChangeEventHandler, Component } from "react";
+import React, { ChangeEvent } from "react";
 import { InteractionTracing } from "../tracing/InteractionTracing";
 import { HowToReset } from "../resetQuiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { ResponseFromAI, fetchResponseToAnswer } from "./respondToAnswer";
+import { fetchResponseToAnswer } from "./respondToAnswer";
+import { Attributes } from "@opentelemetry/api";
 
 type QuestionState =
-  | { name: "answering"; inputEnabled: true; nextStep: "submit answer" }
-  | { name: "loading response"; inputEnabled: false; nextStep: "cancel" }
-  | { name: "showing response"; inputEnabled: false; nextStep: "next question" }
-  | { name: "error"; inputEnabled: true; nextStep: "submit answer" };
+  | { name: "answering"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined }
+  | { name: "loading response"; inputEnabled: false; nextStep: "cancel"; alternativeNextStep: undefined }
+  | { name: "showing response"; inputEnabled: false; nextStep: "next question"; alternativeNextStep: "try again" }
+  | { name: "error"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined };
 
 function QuestionInternal(props: QuestionProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -20,15 +21,18 @@ function QuestionInternal(props: QuestionProps) {
     name: "answering",
     inputEnabled: true,
     nextStep: "submit answer",
+    alternativeNextStep: undefined,
   });
 
-  function setState(newState: QuestionState) {
+  function setState(newState: QuestionState, reason?: string, attributes?: Attributes) {
     activeLifecycleSpan.addLog("state change", {
       "app.question.state": newState.name,
       "app.question.inputEnabled": newState.inputEnabled,
       "app.question.button": newState.nextStep,
       "app.question.prevState": state.name,
       "app.question.response": response,
+      "app.question.stateChangeReason": reason || "unset",
+      ...attributes,
     });
     setStateInternal(newState);
   }
@@ -45,8 +49,11 @@ function QuestionInternal(props: QuestionProps) {
 
   function submitAnswer(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
-    activeLifecycleSpan.addLog("submit answer", { "app.question.answer": answerContent });
-    setState({ name: "loading response", inputEnabled: false, nextStep: "cancel" }); // TODO: make all calls to setState add a log
+    setState(
+      { name: "loading response", inputEnabled: false, nextStep: "cancel", alternativeNextStep: undefined },
+      "submit answer",
+      { "app.question.answer": answerContent }
+    ); // TODO: make all calls to setState add a log
     fetchResponse();
   }
 
@@ -58,12 +65,23 @@ function QuestionInternal(props: QuestionProps) {
       .then((response) => {
         if (response.status === "failure") {
           setResponse(response.error);
-          setState({ name: "error", inputEnabled: true, nextStep: "submit answer" });
+          setState(
+            { name: "error", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
+            "failed to fetch response"
+          );
         } else {
           // success
           const interpretation = `I give that a ${response.response.score}. ${response.response.better_answer}`;
           setResponse(interpretation);
-          setState({ name: "showing response", inputEnabled: false, nextStep: "next question" });
+          setState(
+            {
+              name: "showing response",
+              inputEnabled: false,
+              nextStep: "next question",
+              alternativeNextStep: "try again",
+            },
+            "answer received"
+          );
         }
       });
   }
@@ -79,6 +97,16 @@ function QuestionInternal(props: QuestionProps) {
     event.preventDefault();
     activeLifecycleSpan.addLog("cancel");
     // TODO: not implemented. The response coming back has to check whether we have hit cancel.
+  }
+
+  function tryAgain(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    event.preventDefault();
+    setResponse("");
+    setAnswerContent("");
+    setState(
+      { name: "answering", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
+      "Try again"
+    );
   }
 
   var button: React.ReactNode = undefined;
@@ -101,6 +129,17 @@ function QuestionInternal(props: QuestionProps) {
       button = (
         <button className="" id="question-cancel" type="submit" onClick={cancel}>
           Cancel
+        </button>
+      );
+      break;
+  }
+
+  var lessExcitingButton: React.ReactNode = undefined;
+  switch (state.alternativeNextStep) {
+    case "try again":
+      lessExcitingButton = (
+        <button className="button clear" id="question-tryAgain" type="submit" onClick={tryAgain}>
+          Try Again
         </button>
       );
       break;
@@ -130,6 +169,7 @@ function QuestionInternal(props: QuestionProps) {
       <p className="answer-response">{usefulContent}</p>
       <p>
         {button}
+        {lessExcitingButton}
         <button className="button clear pull-right" onClick={resetQuiz}>
           Reset quiz
         </button>
