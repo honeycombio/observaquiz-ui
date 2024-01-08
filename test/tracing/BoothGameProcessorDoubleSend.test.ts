@@ -47,6 +47,9 @@ describe("booth game processor sending to the customer's team", () => {
     expect(customerProcessor?.onlyStartedSpan().attributes["testAttribute"]).toEqual("does it care");
     expect(customerProcessor?.onlyStartedSpan().attributes["honeycomb.region"]).toEqual("us");
 
+    span.end();
+    expect(customerProcessor?.endedSpans.length).toEqual(1);
+
     boothGameProcessor.clearCustomerTeam(); // for the next test
   });
 
