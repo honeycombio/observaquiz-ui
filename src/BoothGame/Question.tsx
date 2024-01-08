@@ -2,13 +2,20 @@ import React, { ChangeEvent, ChangeEventHandler, Component } from "react";
 import { InteractionTracing } from "../tracing/InteractionTracing";
 import { HowToReset } from "../resetQuiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { fetchResponseToAnswer } from "./respondToAnswer";
+import { ResponseFromAI, fetchResponseToAnswer } from "./respondToAnswer";
 
 type QuestionState =
   | { name: "answering"; inputEnabled: true; nextStep: "submit answer" }
   | { name: "loading response"; inputEnabled: false; nextStep: "cancel" }
   | { name: "showing response"; inputEnabled: false; nextStep: "next question" }
   | { name: "error"; inputEnabled: true; nextStep: "submit answer" };
+
+function weird(response: ResponseFromAI): boolean {
+  if (response.status !== "success") {
+    return true;
+  }
+  return !response.text;
+}
 
 function QuestionInternal(props: QuestionProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -28,6 +35,7 @@ function QuestionInternal(props: QuestionProps) {
       "app.question.inputEnabled": newState.inputEnabled,
       "app.question.button": newState.nextStep,
       "app.question.prevState": state.name,
+      "app.question.response": response,
     });
     setStateInternal(newState);
   }
@@ -55,12 +63,16 @@ function QuestionInternal(props: QuestionProps) {
         fetchResponseToAnswer(activeLifecycleSpan, { questionId, questionText, answerContent })
       )
       .then((response) => {
-        if (response.status === "success") {
+        if (response.status !== "success") {
+          setResponse(response.error);
+          setState({ name: "error", inputEnabled: true, nextStep: "submit answer" });
+        } else if (weird(response)) {
+          setResponse("Well that was a weird response");
+          setState({ name: "error", inputEnabled: true, nextStep: "submit answer" });
+        } else {
+          // success
           setResponse(response.text);
           setState({ name: "showing response", inputEnabled: false, nextStep: "next question" });
-        } else {
-          setResponse(response.error); // TODO: this is cheating, make it a specific-appearing field
-          setState({ name: "error", inputEnabled: true, nextStep: "submit answer" });
         }
       });
   }
