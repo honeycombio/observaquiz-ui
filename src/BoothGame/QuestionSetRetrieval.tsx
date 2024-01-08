@@ -56,7 +56,7 @@ export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
     span.addLog("Unhandled state", {
       "error.message": "trying to ask questions but there was an error loading them",
     });
-    content = <div className="loading error">"DOOOM";</div>;
+    content = <div className="loading error">DOOOM</div>;
   }
 
   return content;
