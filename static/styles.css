@@ -81,6 +81,16 @@ img.small-logo {
   margin-bottom: 0px;
 }
 
+#tracing-tracker a:link {
+  color: white;
+  text-decoration: underline;
+}
+
+#tracing-tracker a:visited {
+  color: white;
+  text-decoration: underline;
+}
+
 /* TODO: get this transition to work */
 #tracing-tracker-placeholder {
   transition: all 0.5s linear;
