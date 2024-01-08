@@ -147,7 +147,7 @@ function QuestionInternal(props: QuestionProps) {
 
   const usefulContent =
     state.name === "loading response" ? (
-      "Loading..."
+      <progress>progress</progress>
     ) : state.name === "error" ? (
       <span className="error">{response}</span>
     ) : (

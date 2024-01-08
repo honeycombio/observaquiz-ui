@@ -51,12 +51,16 @@ export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
 
   var content = null;
   if (questionSetState === "loading") {
-    content = <div className="loading">...</div>;
+    content = (
+      <div className="loading">
+        <progress>progress</progress>
+      </div>
+    );
   } else {
     span.addLog("Unhandled state", {
       "error.message": "trying to ask questions but there was an error loading them",
     });
-    content = <div className="loading error">DOOOM</div>;
+    content = <div className="error">DOOOM</div>;
   }
 
   return content;
