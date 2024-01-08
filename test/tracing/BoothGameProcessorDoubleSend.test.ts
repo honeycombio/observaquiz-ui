@@ -126,5 +126,10 @@ describe("booth game processor sending to the customer's team", () => {
     normalProcessor.clearMemory();
   });
 
+  test("When a span is updated after creation, those updates are applied to the copy sent to the customer team", () => {
+    // we may not catch all of them but let's catch some
+    // hmm I wonder if we should do the opposite: copy it for our team, and send the original to them - so that they get the best copy?
+  });
+
   test("When it gets a team, then it's cleared, then it gets another team, it sends the spans received in between to the new team", () => {});
 });

@@ -1,6 +1,7 @@
 import { ReadableSpan, SpanProcessor, Span as TraceBaseSpan } from "@opentelemetry/sdk-trace-base";
-import { Context, trace, Span } from "@opentelemetry/api";
+import { Context, trace, Span, HrTime } from "@opentelemetry/api";
 import { HONEYCOMB_DATASET_NAME, HoneycombRegion } from "./TracingDestination";
+import { logApi } from "@opentelemetry/api-logs";
 
 export type BoothGameCustomerTeam = {
   region: HoneycombRegion;
@@ -9,7 +10,15 @@ export type BoothGameCustomerTeam = {
   apiKey: string;
 };
 
+type DoubleSendState = {
+  copy: Span;
+  started: boolean;
+  endTime?: HrTime;
+};
+
 export const BOOTH_GAME_TELEMETRY_DESTINATION = "boothGame.telemetry.destination";
+
+const ownLogger = logApi.getLogger("booth game processor");
 
 type SpanId = string;
 
@@ -17,7 +26,7 @@ export class BoothGameProcessor implements SpanProcessor {
   private customerTeam?: BoothGameCustomerTeam = undefined;
   private customerSpanProcessor?: SpanProcessor = undefined;
 
-  private openSpanCopies: Record<SpanId, Span> = {};
+  private openSpanCopies: Record<SpanId, DoubleSendState> = {};
 
   constructor(
     private readonly normalProcessor: SpanProcessor,
@@ -48,7 +57,10 @@ export class BoothGameProcessor implements SpanProcessor {
   onStart(span: TraceBaseSpan, parentContext: Context): void {
     console.log("span received with attributes", JSON.stringify(span.attributes));
     if (span.attributes[BOOTH_GAME_TELEMETRY_DESTINATION] === "customer") {
-      this.customerSpanProcessor?.onStart(span, parentContext);
+      if (this.customerSpanProcessor) {
+        this.customerSpanProcessor.onStart(span, parentContext);
+        this.openSpanCopies[span.spanContext().spanId].started = true;
+      } 
       return;
     }
 
@@ -63,7 +75,7 @@ export class BoothGameProcessor implements SpanProcessor {
     // it will come back through here, and we will process it as a customer span.
     // When its corresponding `span` ends, we will end `copy`.
     const copy = this.copySpanToCustomerTeam(span, parentContext);
-    this.openSpanCopies[span.spanContext().spanId] = copy;
+    this.openSpanCopies[span.spanContext().spanId] = { copy, started: false };
 
     // now the original gets to go on its way, marked as such
     span.setAttribute(BOOTH_GAME_TELEMETRY_DESTINATION, "devrel");
@@ -73,15 +85,28 @@ export class BoothGameProcessor implements SpanProcessor {
   onEnd(span: ReadableSpan): void {
     if (span.attributes[BOOTH_GAME_TELEMETRY_DESTINATION] === "customer") {
       // it has looped back around, send it on
-      this.customerSpanProcessor?.onEnd(span);
+      if (this.customerSpanProcessor) {
+        this.customerSpanProcessor.onEnd(span);
+      } else {
+        ownLogger.warn("No customer span processor for the end of span" + JSON.stringify(span.spanContext()));
+      }
+      delete this.openSpanCopies[span.spanContext().spanId];
       return;
     }
-    if (this.openSpanCopies[span.spanContext().spanId]) {
-      // also end the copy. We'll see it again in this function, just above here
-      this.openSpanCopies[span.spanContext().spanId].end(span.endTime);
-      delete this.openSpanCopies[span.spanContext().spanId];
-    }
     this.normalProcessor.onEnd(span);
+    const copyState = this.openSpanCopies[span.spanContext().spanId]
+    if (!copyState) {
+      ownLogger.warn("No copy found of span " + JSON.stringify(span.spanContext()));
+      return;
+    }
+    // TODO: copy any additions to the span since we copied it
+    if (copyState.started) {
+      // good, we can end it
+      this.openSpanCopies[span.spanContext().spanId].copy.end(span.endTime);
+    } else {
+      // record that it is ready to be ended
+       copyState.endTime = span.endTime;
+    }
   }
 
   shutdown(): Promise<void> {
