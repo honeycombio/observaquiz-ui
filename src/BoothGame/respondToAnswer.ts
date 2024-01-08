@@ -40,11 +40,10 @@ export function fetchResponseToAnswer(
     answerContent: string;
   }
 ): Promise<ResponseFromAI> {
-  const { questionId, questionText, answerContent } = params;
+  const { questionId, answerContent } = params;
   const url = `/api/questions/${questionId}/answer`;
   const body = JSON.stringify({
-    questionText,
-    answerContent,
+    answer: answerContent,
   });
   const logAttributes: Attributes = { "app.questionAnswer.request": body, "app.questionAnswer.url": url };
   return span
