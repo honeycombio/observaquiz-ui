@@ -7,7 +7,7 @@ import SessionGateway from "./SessionGateway";
 
 const { sessionId } = SessionGateway.getSession();
 const SESSION_ID_ATTRIBUTE = "session.id";
-const HONEYCOMB_APIKEY_ATTRIBUTE = "session.honeycomb.apikey";
+const HONEYCOMB_APIKEY_ATTRIBUTE = "app.honeycomb_api_key";
 const HONEYCOMB_TEAM_ATTRIBUTE = "session.honeycomb.team_slug";
 const HONEYCOMB_ENV_ATTRIBUTE = "session.honeycomb.environment_slug";
 
