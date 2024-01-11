@@ -176,6 +176,8 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
             value={enteredApiKey}
             onChange={onApiKeyChange}
           ></input>
+        </p>
+        <p>
           <button
             disabled={!submitIsAvailable} // I don't like this. I want a state that is a function of other state...
             className="button-4 centered-button"
