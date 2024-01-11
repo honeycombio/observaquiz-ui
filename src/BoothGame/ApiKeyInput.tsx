@@ -107,9 +107,8 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
 
     enterStateOfLoading();
     // TODO: add a withActiveSpan method, and put it around this
-    span
-      .inContext(() => callHoneycombAuthEndpoint(config.honeycomb_auth_url, enteredApiKey, span))
-      .then((result) => {
+    span.inContext(() =>
+      callHoneycombAuthEndpoint(config.honeycomb_auth_url, enteredApiKey, span).then((result) => {
         if (result.result === "ok") {
           span.addLog("accepted", {
             "app.honeycomb.apiKey": enteredApiKey,
@@ -131,7 +130,8 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
         } else {
           enterStateOfUtterFailure("auth endpoint response came back error");
         }
-      });
+      })
+    );
   }
 
   function onApiKeyChange(event: React.ChangeEvent<HTMLInputElement>) {
