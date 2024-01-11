@@ -4,28 +4,28 @@ import { BoothGameTracker } from "./Tracker/BoothGameTracker";
 import { ComponentLifecycleTracing } from "./tracing/ComponentLifecycleTracing";
 import { TrackedSteps, initialTrackedSteps } from "./Tracker/trackedSteps";
 import { useDeclareTracedState } from "./tracing/TracedState";
-import { TracingTeam, TracingTracker } from "./Tracker/TracingTracker";
+import { TracingTracker } from "./Tracker/TracingTracker";
 import { HowToReset } from "./resetQuiz";
+import { HoneycombTeamContextProvider } from "./BoothGame/HoneycombTeamContext";
+import { TracingTeam } from "./tracing/TracingDestination";
 
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
-  const [tracingTeam, setTracingTeam] = React.useState<TracingTeam | undefined>(undefined);
+  const [tracingTeam, setTracingTeam] = useDeclareTracedState<TracingTeam | undefined>("tracing team", undefined);
 
-// there will be a useEffect dependent on tracingTeam that updates the fields in the special SPanProcessor
-
+  // there will be a useEffect dependent on tracingTeam that updates the fields in the special SPanProcessor
 
   return (
-    <div id="tracked-booth-game">
+    <HoneycombTeamContextProvider tracingTeam={tracingTeam}>
       <BoothGameTracker trackedSteps={trackedSteps} />
-      <TracingTracker tracingTeam={tracingTeam} />
+      <TracingTracker/>
       <BoothGame
         {...props}
         trackedSteps={trackedSteps}
         setTrackedSteps={setTrackedSteps}
         setTracingTeam={setTracingTeam}
-        tracingTeam={tracingTeam}
       />
-    </div>
+    </HoneycombTeamContextProvider>
   );
 }
 export type TrackedBoothGameProps = {

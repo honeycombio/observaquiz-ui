@@ -4,6 +4,7 @@ import { HowToReset } from "../resetQuiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { fetchResponseToAnswer } from "./respondToAnswer";
 import { Attributes } from "@opentelemetry/api";
+import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 type QuestionState =
   | { name: "answering"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined }
@@ -13,6 +14,7 @@ type QuestionState =
 
 function QuestionInternal(props: QuestionProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
+  const honeycombTeam = React.useContext(HoneycombTeamContext);
   const { questionText, questionId } = props;
 
   const [answerContent, setAnswerContent] = React.useState<string>("");
@@ -60,7 +62,7 @@ function QuestionInternal(props: QuestionProps) {
   function fetchResponse() {
     activeLifecycleSpan
       .inSpanAsync("fetch response", {}, () =>
-        fetchResponseToAnswer(activeLifecycleSpan, { questionId, questionText, answerContent })
+        fetchResponseToAnswer(activeLifecycleSpan, honeycombTeam, { questionId, questionText, answerContent })
       )
       .then((response) => {
         if (response.status === "failure") {

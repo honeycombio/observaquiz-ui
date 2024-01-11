@@ -1,21 +1,21 @@
 // a component that displays where the traces are going
 import React from "react";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { HoneycombRegion } from "../tracing/TracingDestination";
 import { getLinkToCurrentSpan } from "../tracing/activeLifecycleSpan";
+import { HoneycombTeamContext } from "../BoothGame/HoneycombTeamContext";
 
 function TracingTrackerInternal(props: TracingTrackerProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-  const { tracingTeam } = props;
-  if (!tracingTeam) {
+  const honeycombTeam = React.useContext(HoneycombTeamContext);
+  if (!honeycombTeam.populated) {
     return <div id="tracing-tracker-placeholder"></div>;
   }
   return (
     <div id="tracing-tracker">
-      <p>Honeycomb team: {tracingTeam.team.name}</p>
-      <p>Environment: {tracingTeam.environment.name}</p>
+      <p>Honeycomb team: {honeycombTeam.team.name}</p>
+      <p>Environment: {honeycombTeam.environment.name}</p>
       <p>
-        <a target="_blank" href={getLinkToCurrentSpan(tracingTeam, activeLifecycleSpan)}>
+        <a target="_blank" href={getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan)}>
           See current trace
         </a>
       </p>
@@ -23,20 +23,7 @@ function TracingTrackerInternal(props: TracingTrackerProps) {
   );
 }
 
-// move to TracingDestination?
-export type TracingTeam = {
-  region: HoneycombRegion;
-  team: { name: string; slug: string };
-  environment: { name: string; slug: string };
-};
-
-export type TracingTeamAware = {
-  tracingTeam: TracingTeam | undefined;
-};
-
-export type TracingTrackerProps = {
-  tracingTeam: TracingTeam | undefined;
-};
+type TracingTrackerProps = {}
 
 export function TracingTracker(props: TracingTrackerProps) {
   return (

@@ -7,6 +7,13 @@
 
 export const HONEYCOMB_DATASET_NAME = "observaquiz-browser";
 
+export type TracingTeam = {
+  region: HoneycombRegion;
+  team: { name: string; slug: string };
+  environment: { name: string; slug: string };
+  apiKey: string;
+};
+
 export type HoneycombRegion = "us" | "eu"; // could add dogfood if we want to test there
 
 function honeycombUrl(region: HoneycombRegion): string {

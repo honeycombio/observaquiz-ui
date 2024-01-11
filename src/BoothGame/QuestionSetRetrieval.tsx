@@ -1,7 +1,7 @@
 import React from "react";
-import { Configuration } from "../Configuration";
 import { QuestionSet } from "./Quiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 type QuestionSetState = "loading" | "error";
 
@@ -14,7 +14,8 @@ type QuestionSetJson = {
 };
 
 export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
-  const config = React.useContext(Configuration);
+  const { fetchHeaders } = React.useContext(HoneycombTeamContext);
+  const { moveForward } = props;
   const span = React.useContext(ActiveLifecycleSpan);
 
   const [questionSetState, setQuestionSetState] = React.useState<QuestionSetState>("loading");
@@ -22,7 +23,7 @@ export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
   React.useEffect(() => {
     span
       .inSpanAsync("fetch questions", {}, () =>
-        fetch("/api/questions")
+        fetch("/api/questions", { headers: fetchHeaders })
           .then((response) => {
             span.setAttributes({ "app.questions.status": response.status });
             if (response.ok) {
@@ -34,17 +35,15 @@ export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
           .then((json) => {
             span.setAttributes({ "app.questions.response": JSON.stringify(json) });
             /* Here, here is the movement */
-            props.moveForward(json as QuestionSetJson);
+            moveForward(json as QuestionSetJson);
           })
       )
       .catch((e) => {
-        // enter error state?
         setQuestionSetState("error");
-        // TODO: add an error method that adds the exception, and sets the span status
-        span.addLog("error fetching questions", { "error.message": e.message });
+        span.addError("error fetching questions", e);
         console.log("I don't know what to do here!");
       });
-  }, []);
+  }, [fetchHeaders, moveForward, span]);
 
   // note: right now QuestionSetJson and the expected QuestionSet type are the same.
   // That does not have to stay true. When the internal type changes, do a translation here.

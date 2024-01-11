@@ -1,5 +1,6 @@
 import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 import { Attributes } from "@opentelemetry/api";
+import { HoneycombTeamContextType } from "./HoneycombTeamContext";
 
 export type ResponseFromAI =
   | {
@@ -34,6 +35,7 @@ function verifyResponse(response: any): AnswersAPIResponse {
 
 export function fetchResponseToAnswer(
   span: ActiveLifecycleSpanType,
+  honeycombTeam: HoneycombTeamContextType,
   params: {
     questionId: string;
     questionText: string;
@@ -52,6 +54,7 @@ export function fetchResponseToAnswer(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...honeycombTeam.fetchHeaders,
         },
         body,
       })

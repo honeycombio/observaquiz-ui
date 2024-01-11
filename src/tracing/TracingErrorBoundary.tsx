@@ -2,13 +2,14 @@ import React, { ErrorInfo } from "react";
 import { ActiveLifecycleSpan } from "./ComponentLifecycleTracing";
 import { ErrorBoundary } from "react-error-boundary";
 import { HowToReset } from "../resetQuiz";
-import { TracingTeamAware } from "../Tracker/TracingTracker";
 import { getLinkToCurrentSpan } from "./activeLifecycleSpan";
+import { HoneycombTeamContext } from "../BoothGame/HoneycombTeamContext";
 
-export type TracingErrorBoundaryProps = { children: React.ReactNode } & HowToReset & TracingTeamAware;
+export type TracingErrorBoundaryProps = { children: React.ReactNode } & HowToReset;
 
 export function TracingErrorBoundary(props: TracingErrorBoundaryProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
+  const honeycombTeam = React.useContext(HoneycombTeamContext);
 
   function logError(error: Error, errorInfo: ErrorInfo) {
     console.log("Noticed error. Emitting as an error");
@@ -19,8 +20,8 @@ export function TracingErrorBoundary(props: TracingErrorBoundaryProps) {
 
   function linkToErrorSpan() {
     // TODO: combine this class with ComponentLifecycleTracing
-    if (props.tracingTeam) {
-      return getLinkToCurrentSpan(props.tracingTeam, activeLifecycleSpan);
+    if (honeycombTeam) {
+      return getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan);
     }
   }
 

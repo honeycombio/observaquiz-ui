@@ -8,7 +8,8 @@ import { Hello } from "./Hello";
 import { QuestionSet, Quiz } from "./Quiz";
 import { TrackedSteps, advance } from "../Tracker/trackedSteps";
 import { TracedState } from "../tracing/TracedState";
-import { TracingTeam, TracingTeamAware } from "../Tracker/TracingTracker";
+import { TracingTeam } from "../tracing/TracingDestination";
+import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 type QuizState =
   | { name: "hello" }
@@ -81,7 +82,7 @@ function BoothGameInternal(props: BoothGameProps) {
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;
       break;
     case "ask questions":
-      content = <Quiz questionSet={currentState.questionSet} howToReset={props.howToReset} tracingTeam={props.tracingTeam} />;
+      content = <Quiz questionSet={currentState.questionSet} howToReset={props.howToReset}/>;
       break;
     default:
       boothGameLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentState });
@@ -97,7 +98,7 @@ export type BoothGameProps = {
   trackedSteps: TracedState<TrackedSteps>;
   setTrackedSteps: (trackedSteps: TrackedSteps) => void;
   setTracingTeam: (tracingTeam: TracingTeam) => void;
-} & HowToReset & TracingTeamAware;
+} & HowToReset;
 
 export function BoothGame(props: BoothGameProps) {
   return (
