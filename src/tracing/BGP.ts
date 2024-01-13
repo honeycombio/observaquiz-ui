@@ -7,11 +7,21 @@ import { Context, Attributes } from "@opentelemetry/api";
 const FIELD_CONTAINING_APIKEY = "honeycomb.api_key";
 
 export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; normalProcessorDescription: string }) {
-  const boothGameProcessor = new BoothGameProcessorThingie();
-  boothGameProcessor.addProcessor(
-    new WrapSpanProcessorWithDescription(params.normalProcessor, params.normalProcessorDescription)
+  const normalProcessorWithDescription = new WrapSpanProcessorWithDescription(
+    params.normalProcessor,
+    params.normalProcessorDescription
   );
+
+  const boothGameProcessor = new BoothGameProcessorThingie();
+  boothGameProcessor.addProcessor(normalProcessorWithDescription);
   const learnerOfTeam = new LearnerOfTeam(boothGameProcessor);
+  boothGameProcessor.addProcessor(
+    new FilteringSpanProcessor({
+      downstream: normalProcessorWithDescription,
+      filter: (span) => span.attributes[FIELD_CONTAINING_APIKEY] === undefined,
+      filterDescription: "spans without an api key",
+    })
+  );
   return { learnerOfTeam, boothGameProcessor };
 }
 
