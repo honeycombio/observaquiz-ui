@@ -4,6 +4,8 @@ import { ReadableSpan, Span, SpanProcessor } from "@opentelemetry/sdk-trace-base
 import { TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 
+const FIELD_CONTAINING_APIKEY = "honeycomb.api_key";
+
 export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; normalProcessorDescription: string }) {
   const boothGameProcessor = new BoothGameProcessorThingie();
   boothGameProcessor.addProcessor(
@@ -84,12 +86,12 @@ class LearnerOfTeam {
   constructor(private insertProcessorHere: BoothGameProcessorThingie) {}
 
   public learnCustomerTeam(team: TracingTeam) {
-    const attributes = {
+    const attributes: Attributes = {
       "honeycomb.team": team.team.slug,
       "honeycomb.region": team.region,
       "honeycomb.environment": team.environment.slug,
-      "honeycomb.api_key": team.apiKey,
     };
+    attributes[FIELD_CONTAINING_APIKEY] = team.apiKey; // important that this key match other steps
     this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes));
   }
 }
@@ -112,4 +114,42 @@ class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
   onEnd(_span: ReadableSpan): void {}
   async shutdown(): Promise<void> {}
   async forceFlush(): Promise<void> {}
+}
+
+class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
+  constructor(
+    private readonly params: {
+      filter: (span: ReadableSpan) => boolean;
+      filterDescription: string;
+      downstream: SelfDescribingSpanProcessor;
+    }
+  ) {}
+
+  describeSelf(prefixForLinesAfterTheFirst: string): string {
+    return (
+      "I filter spans, choosing " +
+      this.params.filterDescription +
+      "\n" +
+      prefixForLinesAfterTheFirst +
+      " ┗ " +
+      this.params.downstream.describeSelf(prefixForLinesAfterTheFirst + " ┃ ")
+    );
+  }
+
+  onStart(span: Span, parentContext: Context): void {
+    if (this.params.filter(span)) {
+      this.params.downstream.onStart(span, parentContext);
+    }
+  }
+  onEnd(span: ReadableSpan): void {
+    if (this.params.filter(span)) {
+      this.params.downstream.onEnd(span);
+    }
+  }
+  shutdown(): Promise<void> {
+    return this.params.downstream.shutdown();
+  }
+  forceFlush(): Promise<void> {
+    return this.params.downstream.forceFlush();
+  }
 }
