@@ -16,7 +16,13 @@ export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; n
   );
 
   const boothGameProcessor = new BoothGameProcessorThingie();
-  boothGameProcessor.addProcessor(normalProcessorWithDescription);
+  boothGameProcessor.addProcessor(
+    new FilteringSpanProcessor({
+      filter: (span) => !span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
+      filterDescription: "spans that aren't copies",
+      downstream: normalProcessorWithDescription,
+    })
+  );
   const learnerOfTeam = new LearnerOfTeam(boothGameProcessor);
   boothGameProcessor.addProcessor(
     new FilteringSpanProcessor({
@@ -70,13 +76,19 @@ class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
   }
 
   describeSelf(prefixForLinesAfterTheFirst: string = ""): string {
+    // a nested list
     const linePrefix = prefixForLinesAfterTheFirst + " ┣ ";
     const innerPrefix = prefixForLinesAfterTheFirst + " ┃ ";
+    const innerPrefixForTheLastOne = prefixForLinesAfterTheFirst + "   ";
     const lastLinePrefix = prefixForLinesAfterTheFirst + " ┗ ";
     const isLast = (i: number) => i === this.seriesofProcessors.length - 1;
     var result = "Each of: \n";
     this.seriesofProcessors.forEach((p, i) => {
-      result += (isLast(i) ? lastLinePrefix : linePrefix) + p.describeSelf(innerPrefix) + (isLast(i) ? "" : "\n");
+      if (isLast(i)) {
+        result += lastLinePrefix + p.describeSelf(innerPrefixForTheLastOne);
+      } else {
+        result += linePrefix + p.describeSelf(innerPrefix) + "\n";
+      }
     });
     return result;
   }
