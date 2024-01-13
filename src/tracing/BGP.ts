@@ -21,7 +21,8 @@ export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; n
       filter: (span) => !span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
       filterDescription: "spans that aren't copies",
       downstream: normalProcessorWithDescription,
-    })
+    }),
+    "NORMAL"
   );
   const learnerOfTeam = new LearnerOfTeam(boothGameProcessor);
   boothGameProcessor.addProcessor(
@@ -29,7 +30,8 @@ export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; n
       downstream: new SpanCopier(),
       filter: (span) => span.attributes[FIELD_CONTAINING_APIKEY] === undefined,
       filterDescription: "spans without an api key",
-    })
+    }),
+    "COPY"
   );
   return { learnerOfTeam, boothGameProcessor };
 }
@@ -70,9 +72,11 @@ function printList(prefix: string, list: Array<string>): string {
 
 class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
   private seriesofProcessors: Array<SelfDescribingSpanProcessor> = [];
+  private routeDescriptions: Array<string | undefined> = []; // parallel array to seriesofProcessors. guess i should put them in an object together
 
-  public addProcessor(processor: SelfDescribingSpanProcessor) {
+  public addProcessor(processor: SelfDescribingSpanProcessor, routeDescription?: string) {
     this.seriesofProcessors.unshift(processor); // new ones are first
+    this.routeDescriptions.unshift(routeDescription);
   }
 
   describeSelf(prefixForLinesAfterTheFirst: string = ""): string {
@@ -84,10 +88,11 @@ class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
     const isLast = (i: number) => i === this.seriesofProcessors.length - 1;
     var result = "Each of: \n";
     this.seriesofProcessors.forEach((p, i) => {
+      const routeDescription = this.routeDescriptions[i] ? this.routeDescriptions[i] + ": " : "";
       if (isLast(i)) {
-        result += lastLinePrefix + p.describeSelf(innerPrefixForTheLastOne);
+        result += lastLinePrefix + routeDescription + p.describeSelf(innerPrefixForTheLastOne);
       } else {
-        result += linePrefix + p.describeSelf(innerPrefix) + "\n";
+        result += linePrefix + routeDescription + p.describeSelf(innerPrefix) + "\n";
       }
     });
     return result;
@@ -117,7 +122,7 @@ class LearnerOfTeam {
       "honeycomb.environment": team.environment.slug,
     };
     attributes[FIELD_CONTAINING_APIKEY] = team.apiKey; // important that this key match other steps
-    this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes));
+    this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");
   }
 }
 
