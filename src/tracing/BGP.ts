@@ -33,6 +33,14 @@ export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; n
     }),
     "COPY"
   );
+  boothGameProcessor.addProcessor(
+    new FilteringSpanProcessor({
+      filter: (span) => !!span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
+      downstream: new HoldingSpanProcessor(),
+      filterDescription: "copied spans",
+    }),
+    "HOLD"
+  );
   return { learnerOfTeam, boothGameProcessor };
 }
 
@@ -245,6 +253,40 @@ class SpanCopier implements SelfDescribingSpanProcessor {
   }
   forceFlush(): Promise<void> {
     Object.values(this.openSpanCopies).forEach((span) => span.end());
+    return Promise.resolve();
+  }
+}
+
+class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
+  constructor() {}
+
+  private startedSpans: Array<[TraceBaseSpan, Context]> = [];
+  private endedSpans: Array<ReadableSpan> = [];
+
+  describeSelf(prefixForLinesAfterTheFirst: string): string {
+    return (
+      "I hold on to spans\n" +
+      prefixForLinesAfterTheFirst +
+      " ┣ " +
+      `State: accumulating\n` +
+      prefixForLinesAfterTheFirst +
+      " ┗ " +
+      `${this.startedSpans.length} started spans\n` +
+      prefixForLinesAfterTheFirst +
+      " ┗ " +
+      `${this.endedSpans.length} ended spans`
+    );
+  }
+  onStart(span: TraceBaseSpan, parentContext: Context): void {
+    this.startedSpans.push([span, parentContext]);
+  }
+  onEnd(span: ReadableSpan): void {
+    this.endedSpans.push(span);
+  }
+  shutdown(): Promise<void> {
+    return Promise.resolve();
+  }
+  forceFlush(): Promise<void> {
     return Promise.resolve();
   }
 }

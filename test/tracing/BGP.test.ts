@@ -6,7 +6,7 @@ const testProcessor = new TestSpanProcessor();
 
 const { learnerOfTeam, boothGameProcessor } = BGP.ConstructThePipeline({
   normalProcessor: testProcessor,
-  normalProcessorDescription: "I hold the spans so you can test against them",
+  normalProcessorDescription: "I hold on to the spans so you can verify what was started & ended",
 });
 
 console.log(boothGameProcessor.describeSelf(""));
