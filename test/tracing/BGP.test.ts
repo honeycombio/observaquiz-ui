@@ -10,3 +10,13 @@ const { learnerOfTeam, boothGameProcessor } = BGP.ConstructThePipeline({
 });
 
 console.log(boothGameProcessor.describeSelf(""));
+
+learnerOfTeam.learnCustomerTeam({
+  apiKey: "yes",
+  environment: { name: "env name", slug: "env-slug" },
+  region: "us",
+  team: { name: "team-name", slug: "team-slug" },
+});
+
+console.log("After the team is learned:");
+console.log(boothGameProcessor.describeSelf(""));

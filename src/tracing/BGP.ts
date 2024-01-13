@@ -2,7 +2,7 @@
 
 import { ReadableSpan, Span, SpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { TracingTeam } from "./TracingDestination";
-import { Context } from "@opentelemetry/api";
+import { Context, Attributes } from "@opentelemetry/api";
 
 export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; normalProcessorDescription: string }) {
   const boothGameProcessor = new BoothGameProcessorThingie();
@@ -82,17 +82,20 @@ class LearnerOfTeam {
 }
 
 class ProcessorThatInsertsTeamInfo implements SelfDescribingSpanProcessor {
-  constructor(private readonly team: TracingTeam) {}
+  private readonly attributes: Attributes;
+  constructor(team: TracingTeam) {
+    this.attributes = {
+      "honeycomb.team": team.team.slug,
+      "honeycomb.region": team.region,
+      "honeycomb.environment": team.environment.slug,
+      "honeycomb.api_key": team.apiKey,
+    };
+  }
   describeSelf(): string {
-    return "I add fields to the span: " + JSON.stringify(this.team);
+    return "I add fields to the span: " + JSON.stringify(this.attributes);
   }
   onStart(span: Span, _parentContext: Context): void {
-    span.setAttributes({
-      "honeycomb.team": this.team.team.slug,
-      "honeycomb.region": this.team.region,
-      "honeycomb.environment": this.team.environment.slug,
-      "honeycomb.api_key": this.team.apiKey,
-    });
+    span.setAttributes(this.attributes);
   }
 
   onEnd(_span: ReadableSpan): void {}
