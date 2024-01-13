@@ -40,6 +40,13 @@ type SelfDescribingSpanProcessor = SpanProcessor & {
   describeSelf(prefixForLinesAfterTheFirst: string): string;
 };
 
+function printList(prefix: string, list: Array<string>): string {
+  const linePrefix = prefix + " ┣ ";
+  const lastLinePrefix = prefix + " ┗ ";
+  const isLast = (i: number) => i === list.length - 1;
+  return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
+}
+
 class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
   private seriesofProcessors: Array<SelfDescribingSpanProcessor> = [];
 
@@ -77,22 +84,26 @@ class LearnerOfTeam {
   constructor(private insertProcessorHere: BoothGameProcessorThingie) {}
 
   public learnCustomerTeam(team: TracingTeam) {
-    this.insertProcessorHere.addProcessor(new ProcessorThatInsertsTeamInfo(team));
-  }
-}
-
-class ProcessorThatInsertsTeamInfo implements SelfDescribingSpanProcessor {
-  private readonly attributes: Attributes;
-  constructor(team: TracingTeam) {
-    this.attributes = {
+    const attributes = {
       "honeycomb.team": team.team.slug,
       "honeycomb.region": team.region,
       "honeycomb.environment": team.environment.slug,
       "honeycomb.api_key": team.apiKey,
     };
+    this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes));
   }
-  describeSelf(): string {
-    return "I add fields to the span: " + JSON.stringify(this.attributes);
+}
+
+class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
+  constructor(private readonly attributes: Attributes) {}
+  describeSelf(prefix: string): string {
+    return (
+      "I add fields to the span: \n" +
+      printList(
+        prefix,
+        Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString())
+      )
+    );
   }
   onStart(span: Span, _parentContext: Context): void {
     span.setAttributes(this.attributes);
