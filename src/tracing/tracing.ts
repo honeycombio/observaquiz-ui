@@ -62,7 +62,7 @@ function initializeTracing() {
 
   const processorForTeam = (team: TracingTeam) => {
     const exporter = new OTLPTraceExporter({
-      url: honeycombTelemetryUrl(team.region),
+      url: honeycombTelemetryUrl(team.region) + "/v1/traces",
       headers: { "x-honeycomb-team": team.apiKey },
     });
     return new BatchSpanProcessor(exporter, {
@@ -86,7 +86,7 @@ function initializeTracing() {
     instrumentations: [new DocumentLoadInstrumentation(), new FetchInstrumentation()],
   });
 
-  console.log("Tracing initialized, version f");
+  console.log("Tracing initialized, version g");
 
   return { learnerOfTeam };
 }

@@ -1,4 +1,4 @@
-import { ActiveLifecycleSpanType } from "../tracing/ComponentLifecycleTracing";
+import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 
 export type AuthResponse =
   | { result: "ok"; response: HoneycombAuthResponse }
