@@ -1,7 +1,7 @@
 // A second attempt at the booth game processor.
 
 import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor } from "@opentelemetry/sdk-trace-base";
-import { TracingTeam } from "./TracingDestination";
+import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
 
@@ -142,9 +142,10 @@ class LearnerOfTeam {
 
   public learnCustomerTeam(team: TracingTeam) {
     const attributes: Attributes = {
-      "honeycomb.team": team.team.slug,
+      "honeycomb.team.slug": team.team.slug,
       "honeycomb.region": team.region,
-      "honeycomb.environment": team.environment.slug,
+      "honeycomb.env.slug": team.environment.slug,
+      "honeycomb.dataset": HONEYCOMB_DATASET_NAME,
     };
     attributes[FIELD_CONTAINING_APIKEY] = team.apiKey; // important that this key match other steps
     this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");

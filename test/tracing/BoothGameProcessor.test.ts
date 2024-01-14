@@ -1,7 +1,7 @@
-import { BoothGameCustomerTeam, BoothGameProcessor } from "../../src/tracing/BoothGameProcessor";
+import { ConstructThePipeline } from "../../src/tracing/BGP";
 import { TestSpanProcessor, createTestSpan } from "./TestSpanProcessor";
 import { Context } from "@opentelemetry/api";
-import { HONEYCOMB_DATASET_NAME } from "../../src/tracing/TracingDestination";
+import { HONEYCOMB_DATASET_NAME, TracingTeam } from "../../src/tracing/TracingDestination";
 
 /**
  * This part tests the normal stuff that BoothGameProcessor does, adding some fields
@@ -15,10 +15,22 @@ test("something", () => {
   expect(1).toBe(1);
 });
 
+const customerTeam: TracingTeam = {
+  region: "us",
+  team: { name: "whatever name", slug: "modernity" },
+  environment: { slug: "quiz-local", name: "some name" },
+  apiKey: "11222",
+};
+
 describe("booth game processor sending to our team", () => {
   test("It passes every span through to the normal processor", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
+    const teamProcessor = new TestSpanProcessor();
+    const { boothGameProcessor } = ConstructThePipeline({
+      normalProcessor,
+      normalProcessorDescription: "Testy McTesterson",
+      processorForTeam: () => teamProcessor,
+    });
 
     const testSpan = createTestSpan("fake span", { testAttribute: "does it care" });
     const fakeParentContext = { stuff: "things" } as unknown as Context;
@@ -41,15 +53,14 @@ describe("booth game processor sending to our team", () => {
 
   test("When it has the customer team attributes, it sets them on every span to the normal processor", () => {
     const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
+    const teamProcessor = new TestSpanProcessor();
+    const { boothGameProcessor, learnerOfTeam } = ConstructThePipeline({
+      normalProcessor,
+      normalProcessorDescription: "Testy McTesterson",
+      processorForTeam: () => teamProcessor,
+    });
 
-    const customerTeam: BoothGameCustomerTeam = {
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "11222",
-    };
-    boothGameProcessor.learnCustomerTeam(customerTeam);
+    learnerOfTeam.learnCustomerTeam(customerTeam);
 
     const testSpan = createTestSpan("fake span", { testAttribute: "does it care" });
     const fakeParentContext = { stuff: "things" } as unknown as Context;
@@ -61,73 +72,7 @@ describe("booth game processor sending to our team", () => {
     expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.env.slug"]).toEqual("quiz-local");
     expect(normalProcessor.onlyStartedSpan().attributes["honeycomb.dataset"]).toEqual(HONEYCOMB_DATASET_NAME);
   });
-
-  test("To the normal processor, it tells it this is our span for our team", () => {
-    const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
-
-    const customerTeam: BoothGameCustomerTeam = {
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "11222",
-    };
-    boothGameProcessor.learnCustomerTeam(customerTeam);
-
-    const testSpan = createTestSpan("fake span", { testAttribute: "does it care" });
-    const fakeParentContext = { stuff: "things" } as unknown as Context;
-
-    boothGameProcessor.onStart(testSpan, fakeParentContext);
-
-    expect(normalProcessor.onlyStartedSpan().attributes["boothGame.telemetry.destination"]).toEqual("devrel");
-  });
 });
 
-describe("Setting the customer team on the booth game processor", () => {
-  test("You can set the customer team exactly once", () => {
-    const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
-
-    const customerTeam: BoothGameCustomerTeam = {
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "11222",
-    };
-
-    boothGameProcessor.learnCustomerTeam(customerTeam);
-
-    const anotherCustomerTeam: BoothGameCustomerTeam = {
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz" },
-      apiKey: "33444",
-    };
-
-    expect(() => boothGameProcessor.learnCustomerTeam(anotherCustomerTeam)).toThrow();
-  });
-
-  test("You can clear the customer team and then set it again", () => {
-    const normalProcessor = new TestSpanProcessor();
-    const boothGameProcessor = new BoothGameProcessor(normalProcessor, () => new TestSpanProcessor());
-
-    const customerTeam: BoothGameCustomerTeam = {
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "11222",
-    };
-
-    boothGameProcessor.learnCustomerTeam(customerTeam);
-    boothGameProcessor.clearCustomerTeam();
-
-    const anotherCustomerTeam: BoothGameCustomerTeam = {
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz" },
-      apiKey: "33444",
-    };
-
-    boothGameProcessor.learnCustomerTeam(anotherCustomerTeam); // does not throw
-  });
-});
+// TODO: handle resetting the entire pipeline.
+// I want to do that by replacing the entire thing... maybe a SwitcherProcessor except it needs to free the old one.
