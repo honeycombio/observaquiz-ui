@@ -1,160 +1,68 @@
-import { BOOTH_GAME_TELEMETRY_DESTINATION } from "../../src/tracing/BoothGameProcessor";
 import {
-  boothGameProcessor,
-  normalProcessor,
-  customerProcessor,
-  customerApiKey,
-} from "./boothGameProcessorDoubleSend.tracing";
+  ATTRIBUTE_NAME_FOR_APIKEY,
+  ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS,
+  ATTRIBUTE_NAME_FOR_COPIES,
+} from "../../src/tracing/BGP";
+import * as Test from "./boothGameProcessorDoubleSend.tracing";
 import { trace } from "@opentelemetry/api";
+
+/** Run this alone, don't try to combine with other tests.
+ * Do not run the tests in parallel, either!
+ */
 
 const tracer = trace.getTracer("booth game processor double send test");
 
-describe("booth game processor sending to the customer's team", () => {
-  test("Even in this configuration, it sends a created span to the normal processor", () => {
-    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
+describe("booth game processor, sending both to our team and the customer team", () => {
+  test("To start with, it sends spans to the normal processor.", () => {
+    const spanThatEndsBeforeTeamArrives = tracer.startSpan("fake span", {
+      attributes: { testAttribute: "jonny von neumann" },
+    });
+    expect(Test.normalProcessor.onlyStartedSpan().attributes["testAttribute"]).toEqual("jonny von neumann");
 
-    expect(normalProcessor.onlyStartedSpan().attributes["testAttribute"]).toEqual("does it care");
+    spanThatEndsBeforeTeamArrives.end();
+    expect(Test.normalProcessor.endedSpans.length).toEqual(1);
 
-    span.end();
+    // we expect it to be copied.
+    expect(Test.normalProcessor.onlyEndedSpan().attributes[ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS]).toEqual(true);
 
-    expect(normalProcessor.endedSpans.length).toEqual(1);
-  });
+    // This span that is open when the team arrives, it's going to show up in both places.
 
-  test("When it learns about the customer API key, it creates a customer processor", () => {
-    boothGameProcessor.learnCustomerTeam({
+    const spanThatIsOpenWhenTeamArrives = tracer.startSpan("fake span 2", {
+      attributes: { testAttribute: "enrico fermi" },
+    });
+    expect(Test.normalProcessor.startedSpans[1][0].attributes["testAttribute"]).toEqual("enrico fermi");
+
+    // the team arrives!!
+    Test.learnerOfTeam.learnCustomerTeam({
+      apiKey: "customer team api key",
+      environment: { name: "env name", slug: "env-slug" },
       region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "fake api key",
+      team: { name: "team-name", slug: "team-slug" },
     });
 
-    expect(customerProcessor).toBeDefined();
-    expect(customerApiKey).toEqual("fake api key");
+    // The original span now shows up (as a copy) to the copyProcessor.
+    expect(Test.copyProcessor.startedSpans[0][0].attributes[ATTRIBUTE_NAME_FOR_COPIES]).toEqual(true);
+    expect(Test.copyProcessor.startedSpans[0][0].attributes["testAttribute"]).toEqual("jonny von neumann");
 
-    boothGameProcessor.clearCustomerTeam(); // for the next test
-    normalProcessor.clearMemory();
-  });
+    // ok, end the open span. It gets ended in both places.
+    spanThatIsOpenWhenTeamArrives.end();
+    expect(Test.normalProcessor.endedSpans.length).toEqual(2);
+    expect(Test.copyProcessor.endedSpans.length).toEqual(2);
 
-  test("When it has a customer processor, every span goes there WITH the team attributes set", () => {
-    boothGameProcessor.learnCustomerTeam({
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "fake api key",
+    // Finally, a third span goes through after the team has arrived. It lands only at the normal processor.
+    const spanThatStartsAfterTeamArrives = tracer.startSpan("fake span 3", {
+      attributes: { testAttribute: "richard feynman" }, // thank you copilot. Given the previous two Manhattan Project scientists, it says: I was going to go with "robert oppenheimer"
     });
 
-    expect(customerProcessor).toBeDefined();
+    expect(Test.normalProcessor.startedSpans[2][0].attributes["testAttribute"]).toEqual("richard feynman");
+    expect(Test.normalProcessor.startedSpans[2][0].attributes[ATTRIBUTE_NAME_FOR_APIKEY]).toEqual(
+      "customer team api key"
+    );
+    expect(Test.copyProcessor.startedSpans.length).toEqual(2);
 
-    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
-    expect(customerProcessor?.onlyStartedSpan().attributes["testAttribute"]).toEqual("does it care");
-    expect(customerProcessor?.onlyStartedSpan().attributes["honeycomb.region"]).toEqual("us");
+    spanThatStartsAfterTeamArrives.end();
 
-    span.end();
-    expect(customerProcessor?.endedSpans.length).toEqual(1);
-
-    const customerSpan = customerProcessor?.onlyEndedSpan();
-    const normalSpan = normalProcessor.onlyEndedSpan();
-
-    expect(customerSpan?.spanContext()).toEqual(normalSpan.spanContext());
-    expect(customerSpan?.duration).toEqual(normalSpan.duration);
-    expect(customerSpan?.startTime).toEqual(normalSpan.startTime);
-    expect(customerSpan?.endTime).toEqual(normalSpan.endTime);
-    expect(customerSpan?.instrumentationLibrary).toEqual(normalSpan.instrumentationLibrary);
-    expect(customerSpan?.name).toEqual(normalSpan.name);
-    // expect(customerSpan?.status).toEqual(normalSpan.status); this won't be true, hrm, I wonder if I can send the ended span to both most of the time
-
-    boothGameProcessor.clearCustomerTeam(); // for the next test
-    normalProcessor.clearMemory();
+    expect(Test.normalProcessor.endedSpans.length).toEqual(3);
+    expect(Test.copyProcessor.endedSpans.length).toEqual(2);
   });
-
-  test("After the customer API key is cleared, it stops sending anything to the customer processor", () => {
-    // in real life, this is gonna be too subtle a timing. So I'm not gonna worry much about this test
-  });
-
-  test("Spans sent to the customer processor have the destination set to customer, unlike the ones sent to our team", () => {
-    boothGameProcessor.learnCustomerTeam({
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "fake api key",
-    });
-
-    expect(customerProcessor).toBeDefined();
-
-    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
-
-    span.end();
-    expect(customerProcessor?.endedSpans.length).toEqual(1);
-
-    const customerSpan = customerProcessor?.onlyEndedSpan();
-    expect(customerSpan?.attributes[BOOTH_GAME_TELEMETRY_DESTINATION]).toEqual("customer");
-
-    boothGameProcessor.clearCustomerTeam(); // for the next test
-    normalProcessor.clearMemory();
-  });
-
-  test("When it gets spans before the customer processor, and then it gets the customer processor, it sends the spans to the customer processor", () => {
-    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
-    span.end();
-
-    expect(normalProcessor.endedSpans.length).toEqual(1); // there it goes, to the normal one
-    expect(customerProcessor).toBeUndefined; // not yet
-
-    boothGameProcessor.learnCustomerTeam({
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "fake api key",
-    });
-
-    expect(customerProcessor).toBeDefined();
-
-    expect(customerProcessor?.startedSpans.length).toEqual(1);
-    expect(customerProcessor?.endedSpans.length).toEqual(1);
-
-    const customerSpan = customerProcessor?.onlyEndedSpan();
-    const normalSpan = normalProcessor.onlyEndedSpan();
-
-    expect(customerSpan?.spanContext()).toEqual(normalSpan.spanContext());
-    expect(customerSpan?.duration).toEqual(normalSpan.duration);
-    expect(customerSpan?.startTime).toEqual(normalSpan.startTime);
-    expect(customerSpan?.endTime).toEqual(normalSpan.endTime);
-    expect(customerSpan?.instrumentationLibrary).toEqual(normalSpan.instrumentationLibrary);
-    expect(customerSpan?.name).toEqual(normalSpan.name);
-
-    boothGameProcessor.clearCustomerTeam(); // for the next test
-    normalProcessor.clearMemory();
-  });
-
-  test("When it gets spans before the customer processor, and then it gets the customer processor before the span ends, then it starts the spans in the customer processor.", () => {
-    const span = tracer.startSpan("fake span", { attributes: { testAttribute: "does it care" } });
-    
-    expect(normalProcessor.startedSpans.length).toEqual(1); // there it goes, to the normal one
-    expect(customerProcessor).toBeUndefined; // not yet
-    
-    boothGameProcessor.learnCustomerTeam({
-      region: "us",
-      team: { slug: "modernity" },
-      environment: { slug: "quiz-local" },
-      apiKey: "fake api key",
-    });
-    
-    expect(customerProcessor).toBeDefined();
-    expect(customerProcessor?.startedSpans.length).toEqual(1);
-    expect(customerProcessor?.endedSpans.length).toEqual(0);
-    
-    span.end();
-    expect(customerProcessor?.endedSpans.length).toEqual(1);
-
-    boothGameProcessor.clearCustomerTeam(); // for the next test
-    normalProcessor.clearMemory();
-  });
-
-
-  test("When a span is updated after creation, those updates are applied to the copy sent to the customer team", () => {
-    // we may not catch all of them but let's catch some
-    // hmm I wonder if we should do the opposite: copy it for our team, and send the original to them - so that they get the best copy?
-  });
-
-  test("When it gets a team, then it's cleared, then it gets another team, it sends the spans received in between to the new team", () => {});
 });

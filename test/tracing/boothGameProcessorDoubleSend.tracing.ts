@@ -1,31 +1,33 @@
 import { Resource } from "@opentelemetry/resources";
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { HONEYCOMB_DATASET_NAME } from "../../src/tracing/TracingDestination";
 import { TestSpanProcessor } from "./TestSpanProcessor";
-import { BoothGameProcessor } from "../../src/tracing/BoothGameProcessor";
+import * as BGP from "../../src/tracing/BGP";
 
+/** instantiate the classes of interest */
+const normalProcessor = new TestSpanProcessor();
+const copyProcessor = new TestSpanProcessor();
+
+const { learnerOfTeam, boothGameProcessor } = BGP.ConstructThePipeline({
+  normalProcessor,
+  normalProcessorDescription: "I hold on to the spans so you can verify what was started & ended",
+  processorForTeam: (team) => {
+    return copyProcessor;
+  },
+});
+console.log("\n\n---initialized---");
+console.log(boothGameProcessor.describeSelf(""));
+
+/** initialize tracing */
 const resource = new Resource({
   [SemanticResourceAttributes.SERVICE_NAME]: HONEYCOMB_DATASET_NAME,
 });
-// hmm. I'm running in Node. This might not work.
-const provider = new WebTracerProvider({
+// hmm. I'm running in Node for tests, so better do this
+const provider = new NodeTracerProvider({
   resource,
 });
-
-export const normalProcessor = new TestSpanProcessor();
-
-export var customerProcessor: TestSpanProcessor | undefined = undefined;
-export var customerApiKey: string | undefined = undefined;
-
-function spinUpCustomerProcessor(apikey: string) {
-  customerApiKey = apikey;
-  customerProcessor = new TestSpanProcessor();
-  return customerProcessor;
-}
-
-export const boothGameProcessor = new BoothGameProcessor(normalProcessor, spinUpCustomerProcessor);
-
 provider.addSpanProcessor(boothGameProcessor);
-
 provider.register({});
+
+export { learnerOfTeam, normalProcessor, copyProcessor };

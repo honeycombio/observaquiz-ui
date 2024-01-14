@@ -5,9 +5,10 @@ import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
 
-const FIELD_CONTAINING_APIKEY = "honeycomb.api_key";
+export const ATTRIBUTE_NAME_FOR_APIKEY = "honeycomb.api_key";
 
-const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.late_span";
+export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.late_span";
+export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
 
 export function ConstructThePipeline(params: {
   normalProcessor: SpanProcessor;
@@ -32,7 +33,7 @@ export function ConstructThePipeline(params: {
   boothGameProcessor.addProcessor(
     new FilteringSpanProcessor({
       downstream: new SpanCopier(),
-      filter: (span) => span.attributes[FIELD_CONTAINING_APIKEY] === undefined,
+      filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_APIKEY] === undefined,
       filterDescription: "spans without an api key",
     }),
     "COPY"
@@ -147,7 +148,7 @@ class LearnerOfTeam {
       "honeycomb.env.slug": team.environment.slug,
       "honeycomb.dataset": HONEYCOMB_DATASET_NAME,
     };
-    attributes[FIELD_CONTAINING_APIKEY] = team.apiKey; // important that this key match other steps
+    attributes[ATTRIBUTE_NAME_FOR_APIKEY] = team.apiKey; // important that this key match other steps
     this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");
     this.switcher.switchTo(this.whatToSwitchTo(team));
   }
@@ -242,7 +243,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
       },
       itsContext
     );
-    span.setAttribute("boothgame.has_a_copy", true); // note this, it may be useful
+    span.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
     copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
