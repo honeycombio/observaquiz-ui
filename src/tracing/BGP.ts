@@ -241,6 +241,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
       },
       itsContext
     );
+    span.setAttribute("boothgame.has_a_copy", true); // note this, it may be useful
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
     copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
