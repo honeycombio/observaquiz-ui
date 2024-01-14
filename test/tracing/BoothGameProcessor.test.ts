@@ -76,3 +76,4 @@ describe("booth game processor sending to our team", () => {
 
 // TODO: handle resetting the entire pipeline.
 // I want to do that by replacing the entire thing... maybe a SwitcherProcessor except it needs to free the old one.
+//... but this is not urgent. We can live with "if you want to change the API key, reload the page." for now.
