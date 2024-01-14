@@ -18,8 +18,9 @@ import {
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
-import { HONEYCOMB_DATASET_NAME } from "./TracingDestination";
+import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl } from "./TracingDestination";
 import { BaggageSpanProcessor, BatchWithBaggageSpanProcessor } from "./BaggageSpanProcessor";
+import { ConstructThePipeline } from "./BGP";
 
 const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";
@@ -55,11 +56,25 @@ function initializeTracing() {
 
   provider.addSpanProcessor(new BaggageSpanProcessor());
 
-  provider.addSpanProcessor(
-    new BatchSpanProcessor(exporter, {
+  const normalProcessor = new BatchSpanProcessor(exporter, {
+    scheduledDelayMillis: 1000,
+  });
+
+  const processorForTeam = (team: TracingTeam) => {
+    const exporter = new OTLPTraceExporter({
+      url: honeycombTelemetryUrl(team.region),
+      headers: { "x-honeycomb-team": team.apiKey },
+    });
+    return new BatchSpanProcessor(exporter, {
       scheduledDelayMillis: 1000,
-    })
-  );
+    });
+  };
+
+  const { learnerOfTeam, boothGameProcessor } = ConstructThePipeline({
+    normalProcessor,
+    normalProcessorDescription: "Batch OTLP over HTTP to /v1/traces",
+    processorForTeam,
+  });
 
   provider.register({
     contextManager: new ZoneContextManager(),
@@ -69,7 +84,9 @@ function initializeTracing() {
     instrumentations: [new DocumentLoadInstrumentation(), new FetchInstrumentation()],
   });
 
-  console.log("Tracing initialized, version c");
+  console.log("Tracing initialized, version d");
+
+  return { learnerOfTeam };
 }
 
 function initializeLogging() {
@@ -133,6 +150,10 @@ function sendTestSpan() {
   span.end();
 }
 
-initializeTracing();
+const { learnerOfTeam } = initializeTracing();
 initializeLogging();
 instrumentGlobalErrors();
+
+export function learnTeam(team: TracingTeam) {
+  return learnerOfTeam.learnCustomerTeam(team);
+}

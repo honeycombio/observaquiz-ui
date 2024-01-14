@@ -11,14 +11,22 @@ import { TracingTeam } from "./tracing/TracingDestination";
 
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
-  const [tracingTeam, setTracingTeam] = useDeclareTracedState<TracingTeam | undefined>("tracing team", undefined);
+  const [tracingTeam, setTracingTeamInternal] = useDeclareTracedState<TracingTeam | undefined>(
+    "tracing team",
+    undefined
+  );
+
+  const setTracingTeam = (team: TracingTeam) => {
+    props.learnTeam(team);
+    setTracingTeamInternal(team);
+  };
 
   // there will be a useEffect dependent on tracingTeam that updates the fields in the special SPanProcessor
 
   return (
     <HoneycombTeamContextProvider tracingTeam={tracingTeam}>
       <BoothGameTracker trackedSteps={trackedSteps} />
-      <TracingTracker/>
+      <TracingTracker />
       <BoothGame
         {...props}
         trackedSteps={trackedSteps}
@@ -30,6 +38,7 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
 }
 export type TrackedBoothGameProps = {
   resetCount: number;
+  learnTeam: (team: TracingTeam) => void;
 } & HowToReset;
 
 export function TrackedBoothGame(props: TrackedBoothGameProps) {
