@@ -9,16 +9,14 @@ import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-docu
 import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
 import { configureCompositeExporter } from "./composite-exporter";
 import { SessionIdProcessor } from "./SessionIdProcessor";
-import {
-  LoggerProvider,
-  BatchLogRecordProcessor,
-} from "@opentelemetry/sdk-logs";
+import { LoggerProvider, BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl } from "./TracingDestination";
-import { BaggageSpanProcessor, BatchWithBaggageSpanProcessor } from "./BaggageSpanProcessor";
-import { ConstructThePipeline } from "./BGP";
+import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
+import { ConstructThePipeline } from "./BoothGameSpanProcessor";
+import { ConstructLogPipeline } from "./BoothGameLogProcessor";
 
 const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";
@@ -86,7 +84,7 @@ function initializeTracing() {
     instrumentations: [new DocumentLoadInstrumentation(), new FetchInstrumentation()],
   });
 
-  console.log("Tracing initialized, version i");
+  console.log("Tracing initialized, version j");
 
   return { learnerOfTeam, boothGameProcessor };
 }
@@ -96,21 +94,37 @@ function initializeLogging() {
   const loggerProvider = new LoggerProvider({
     resource,
   });
-  // Add a processor to export log record
-  loggerProvider.addLogRecordProcessor(
-    //new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()));
-    new BatchLogRecordProcessor(
-      new OTLPLogExporter({
-        url: "/v1/logs",
-        // headers: {
-        //   "X-Honeycomb-Team": process.env.HONEYCOMB_API_KEY,
-        // },
-      }),
-      { scheduledDelayMillis: 500 }
-    )
+
+  const normalProcessor = new BatchLogRecordProcessor(
+    new OTLPLogExporter({
+      url: "/v1/logs",
+      // headers: {
+      //   "X-Honeycomb-Team": process.env.HONEYCOMB_API_KEY,
+      // },
+    }),
+    { scheduledDelayMillis: 500 }
   );
 
+  const processorForTeam = (team: TracingTeam) => {
+    const exporter = new OTLPLogExporter({
+      url: honeycombTelemetryUrl(team.region) + "/v1/logs",
+      headers: { "x-honeycomb-team": team.apiKey },
+    });
+    return new BatchLogRecordProcessor(exporter, { scheduledDelayMillis: 500 });
+  };
+
+  const { learnerOfTeam, boothGameProcessor } = ConstructLogPipeline({
+    normalProcessor,
+    normalProcessorDescription: "Batch OTLP over HTTP to /v1/logs",
+    processorForTeam,
+  });
+
+  console.log(boothGameProcessor.describeSelf(""));
+
+  loggerProvider.addLogRecordProcessor(boothGameProcessor);
   logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
+
+  return { learnerOfTeam, boothGameProcessor };
 }
 
 function instrumentGlobalErrors() {
@@ -153,11 +167,13 @@ function sendTestSpan() {
 }
 
 const { learnerOfTeam, boothGameProcessor } = initializeTracing();
-initializeLogging();
+const logInit = initializeLogging();
 instrumentGlobalErrors();
 
 export function learnTeam(team: TracingTeam) {
   learnerOfTeam.learnCustomerTeam(team);
+  logInit.learnerOfTeam.learnCustomerTeam(team);
   // you want to see it, it has reconfigured, see.
   console.log(boothGameProcessor.describeSelf(""));
+  console.log(logInit.boothGameProcessor.describeSelf(""));
 }

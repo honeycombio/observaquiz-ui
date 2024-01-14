@@ -2,7 +2,7 @@ import {
   ATTRIBUTE_NAME_FOR_APIKEY,
   ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS,
   ATTRIBUTE_NAME_FOR_COPIES,
-} from "../../src/tracing/BGP";
+} from "../../src/tracing/BoothGameSpanProcessor";
 import * as Test from "./boothGameProcessorDoubleSend.tracing";
 import { trace } from "@opentelemetry/api";
 
