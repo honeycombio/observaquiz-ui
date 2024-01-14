@@ -10,7 +10,13 @@ import {
 } from "@opentelemetry/api";
 import React, { useContext, useState } from "react";
 import * as logsAPI from "@opentelemetry/api-logs";
-import { ActiveLifecycleSpanType, ComponentLifecycleSpans, nilSpan, standardAttributes, wrapAsActiveLifecycleSpan } from "./activeLifecycleSpan";
+import {
+  ActiveLifecycleSpanType,
+  ComponentLifecycleSpans,
+  nilSpan,
+  standardAttributes,
+  wrapAsActiveLifecycleSpan,
+} from "./activeLifecycleSpan";
 
 // only used in this and the other tracing class.
 export const OpentelemetryContext = React.createContext<Context>(context.active()!);
@@ -45,8 +51,8 @@ function beginExistence(
     },
     outerContext,
     (span) => {
-      console.log("cheatily returning the span");
-      console.log("What baggage do we have?", propagation.getBaggage(context.active()));
+      //  console.log("cheatily returning the span");
+      // console.log("What baggage do we have?", propagation.getBaggage(context.active()));
       return { span, context: context.active() };
     }
   );

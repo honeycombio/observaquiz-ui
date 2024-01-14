@@ -1,4 +1,4 @@
-import { WebTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
+import { WebTracerProvider, BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-web";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
@@ -47,7 +47,7 @@ function initializeTracing() {
 
   const exporter = configureCompositeExporter([
     new OTLPTraceExporter({ url: collectorUrl }),
-    //    new ConsoleSpanExporter(),
+    new ConsoleSpanExporter(),
   ]);
 
   // i observe that span processors are not singular, they all get to operate on it.
@@ -76,6 +76,8 @@ function initializeTracing() {
     processorForTeam,
   });
 
+  provider.addSpanProcessor(boothGameProcessor);
+
   provider.register({
     contextManager: new ZoneContextManager(),
   });
@@ -84,7 +86,7 @@ function initializeTracing() {
     instrumentations: [new DocumentLoadInstrumentation(), new FetchInstrumentation()],
   });
 
-  console.log("Tracing initialized, version d");
+  console.log("Tracing initialized, version f");
 
   return { learnerOfTeam };
 }
