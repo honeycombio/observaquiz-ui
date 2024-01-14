@@ -9,7 +9,11 @@ const FIELD_CONTAINING_APIKEY = "honeycomb.api_key";
 
 const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.late_span";
 
-export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; normalProcessorDescription: string }) {
+export function ConstructThePipeline(params: {
+  normalProcessor: SpanProcessor;
+  normalProcessorDescription: string;
+  processorForTeam: (team: TracingTeam) => SpanProcessor;
+}) {
   const normalProcessorWithDescription = new WrapSpanProcessorWithDescription(
     params.normalProcessor,
     params.normalProcessorDescription
@@ -24,7 +28,7 @@ export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; n
     }),
     "NORMAL"
   );
-  const learnerOfTeam = new LearnerOfTeam(boothGameProcessor);
+  const switcher = new SwitcherSpanProcessor(new HoldingSpanProcessor());
   boothGameProcessor.addProcessor(
     new FilteringSpanProcessor({
       downstream: new SpanCopier(),
@@ -36,10 +40,19 @@ export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; n
   boothGameProcessor.addProcessor(
     new FilteringSpanProcessor({
       filter: (span) => !!span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
-      downstream: new SwitcherSpanProcessor(new HoldingSpanProcessor()),
+      downstream: switcher,
       filterDescription: "copied spans",
     }),
     "HOLD"
+  );
+  const learnerOfTeam = new LearnerOfTeam(
+    boothGameProcessor,
+    switcher,
+    (team) =>
+      new WrapSpanProcessorWithDescription(
+        params.processorForTeam(team),
+        "I have been constructed to send to team " + team.team.slug
+      )
   );
   return { learnerOfTeam, boothGameProcessor };
 }
@@ -121,7 +134,11 @@ class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
 }
 
 class LearnerOfTeam {
-  constructor(private insertProcessorHere: BoothGameProcessorThingie) {}
+  constructor(
+    private insertProcessorHere: BoothGameProcessorThingie,
+    private switcher: SwitcherSpanProcessor,
+    private whatToSwitchTo: (team: TracingTeam) => SelfDescribingSpanProcessor
+  ) {}
 
   public learnCustomerTeam(team: TracingTeam) {
     const attributes: Attributes = {
@@ -131,6 +148,7 @@ class LearnerOfTeam {
     };
     attributes[FIELD_CONTAINING_APIKEY] = team.apiKey; // important that this key match other steps
     this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");
+    this.switcher.switchTo(this.whatToSwitchTo(team));
   }
 }
 
