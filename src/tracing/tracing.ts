@@ -12,8 +12,6 @@ import { SessionIdProcessor } from "./SessionIdProcessor";
 import {
   LoggerProvider,
   BatchLogRecordProcessor,
-  ConsoleLogRecordExporter,
-  SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
@@ -47,7 +45,7 @@ function initializeTracing() {
 
   const exporter = configureCompositeExporter([
     new OTLPTraceExporter({ url: collectorUrl }),
-    new ConsoleSpanExporter(),
+    // new ConsoleSpanExporter(),
   ]);
 
   // i observe that span processors are not singular, they all get to operate on it.
@@ -76,6 +74,8 @@ function initializeTracing() {
     processorForTeam,
   });
 
+  console.log(boothGameProcessor.describeSelf(""));
+
   provider.addSpanProcessor(boothGameProcessor);
 
   provider.register({
@@ -86,9 +86,9 @@ function initializeTracing() {
     instrumentations: [new DocumentLoadInstrumentation(), new FetchInstrumentation()],
   });
 
-  console.log("Tracing initialized, version g");
+  console.log("Tracing initialized, version i");
 
-  return { learnerOfTeam };
+  return { learnerOfTeam, boothGameProcessor };
 }
 
 function initializeLogging() {
@@ -152,10 +152,12 @@ function sendTestSpan() {
   span.end();
 }
 
-const { learnerOfTeam } = initializeTracing();
+const { learnerOfTeam, boothGameProcessor } = initializeTracing();
 initializeLogging();
 instrumentGlobalErrors();
 
 export function learnTeam(team: TracingTeam) {
-  return learnerOfTeam.learnCustomerTeam(team);
+  learnerOfTeam.learnCustomerTeam(team);
+  // you want to see it, it has reconfigured, see.
+  console.log(boothGameProcessor.describeSelf(""));
 }

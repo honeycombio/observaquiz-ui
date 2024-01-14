@@ -31,11 +31,13 @@ export function ConstructThePipeline(params: {
   );
   const switcher = new SwitcherSpanProcessor(new HoldingSpanProcessor());
   boothGameProcessor.addProcessor(
-    new FilteringSpanProcessor({
-      downstream: new SpanCopier(),
-      filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_APIKEY] === undefined,
-      filterDescription: "spans without an api key",
-    }),
+    // NOTE: filtering will work in production, but not locally because my collector isn't sending to customers here
+    //  new FilteringSpanProcessor({
+    //    downstream:
+    new SpanCopier(),
+    //   filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_APIKEY] === undefined,
+    //   filterDescription: "spans without an api key",
+    //  }),
     "COPY"
   );
   boothGameProcessor.addProcessor(
