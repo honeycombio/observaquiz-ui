@@ -36,7 +36,7 @@ export function ConstructThePipeline(params: { normalProcessor: SpanProcessor; n
   boothGameProcessor.addProcessor(
     new FilteringSpanProcessor({
       filter: (span) => !!span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
-      downstream: new HoldingSpanProcessor(),
+      downstream: new SwitcherSpanProcessor(new HoldingSpanProcessor()),
       filterDescription: "copied spans",
     }),
     "HOLD"
@@ -263,14 +263,18 @@ class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
   private startedSpans: Array<[TraceBaseSpan, Context]> = [];
   private endedSpans: Array<ReadableSpan> = [];
 
+  flushTo(other: SelfDescribingSpanProcessor) {
+    this.startedSpans.forEach(([span, parentContext]) => other.onStart(span, parentContext));
+    this.startedSpans = []; // make sure we don't hold a reference to a pile of spans forever.
+    this.endedSpans.forEach((span) => other.onEnd(span));
+    this.endedSpans = [];
+  }
+
   describeSelf(prefixForLinesAfterTheFirst: string): string {
     return (
       "I hold on to spans\n" +
       prefixForLinesAfterTheFirst +
       " ┣ " +
-      `State: accumulating\n` +
-      prefixForLinesAfterTheFirst +
-      " ┗ " +
       `${this.startedSpans.length} started spans\n` +
       prefixForLinesAfterTheFirst +
       " ┗ " +
@@ -288,5 +292,46 @@ class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
   }
   forceFlush(): Promise<void> {
     return Promise.resolve();
+  }
+}
+
+/** this one accepts a pile of spans at initialization and sends them. */
+class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
+  private currentDownstream: SelfDescribingSpanProcessor;
+
+  public switchTo(downstream: SelfDescribingSpanProcessor) {
+    this.firstDownstream.flushTo(downstream);
+    this.currentDownstream = downstream;
+  }
+
+  describeSelf(indent: string): string {
+    const describePast =
+      this.firstDownstream === this.currentDownstream
+        ? ""
+        : indent + " ┣ " + "Previously sent to: " + this.firstDownstream.describeSelf(indent + " ┃ ") + "\n";
+    return (
+      "I am a switcher.\n" +
+      describePast +
+      indent +
+      " ┗ " +
+      " Now sending to: " +
+      this.currentDownstream.describeSelf(indent + "   ")
+    );
+  }
+
+  constructor(private readonly firstDownstream: HoldingSpanProcessor) {
+    this.currentDownstream = firstDownstream;
+  }
+  forceFlush(): Promise<void> {
+    return this.currentDownstream.forceFlush();
+  }
+  onStart(span: TraceBaseSpan, parentContext: Context): void {
+    this.currentDownstream.onStart(span, parentContext);
+  }
+  onEnd(span: ReadableSpan): void {
+    this.currentDownstream.onEnd(span);
+  }
+  shutdown(): Promise<void> {
+    return this.currentDownstream.shutdown();
   }
 }
