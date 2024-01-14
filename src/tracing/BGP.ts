@@ -83,6 +83,9 @@ type SelfDescribingSpanProcessor = SpanProcessor & {
   /**
    * Output a string that says everything your processor does.
    * @param prefixForLinesAfterTheFirst If your description has multiple lines, put this in front of all the extra ones.
+   * I could do without the prefix by
+   *  - having them return an array of strings, which you then map the prefix across
+   *  - or splitting the child output on newline and applying the same map.
    */
   describeSelf(prefixForLinesAfterTheFirst: string): string;
 };
