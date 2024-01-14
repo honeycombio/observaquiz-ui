@@ -18,8 +18,8 @@ import {
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
-import { HONEYCOMB_DATASET_NAME } from "./TracingDestination"
-import { BatchWithBaggageSpanProcessor } from "./BaggageSpanProcessor";
+import { HONEYCOMB_DATASET_NAME } from "./TracingDestination";
+import { BaggageSpanProcessor, BatchWithBaggageSpanProcessor } from "./BaggageSpanProcessor";
 
 const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";
@@ -53,8 +53,10 @@ function initializeTracing() {
   // I think the BaggageSpanProcessor could operate here, and not have to incorporate the batch processor.
   provider.addSpanProcessor(new SessionIdProcessor());
 
+  provider.addSpanProcessor(new BaggageSpanProcessor());
+
   provider.addSpanProcessor(
-    new BatchWithBaggageSpanProcessor(exporter, {
+    new BatchSpanProcessor(exporter, {
       scheduledDelayMillis: 1000,
     })
   );
