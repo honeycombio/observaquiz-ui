@@ -7,9 +7,6 @@ import { v4 } from "uuid";
 
 interface ISession {
   sessionId: string;
-  apiKey?: string;
-  teamSlug?: string;
-  environmentSlug?: string;
 }
 
 const sessionKey = "session";

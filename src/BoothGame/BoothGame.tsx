@@ -1,7 +1,6 @@
 import React from "react";
 import { ApiKeyInput, ApiKeyInputSuccess } from "./ApiKeyInput";
 import { QuestionSetRetrieval } from "./QuestionSetRetrieval";
-import SessionGateway from "../tracing/SessionGateway";
 import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/ComponentLifecycleTracing";
 import { HowToReset } from "../resetQuiz";
 import { Hello } from "./Hello";
@@ -9,7 +8,6 @@ import { QuestionSet, Quiz } from "./Quiz";
 import { TrackedSteps, advance } from "../Tracker/trackedSteps";
 import { TracedState } from "../tracing/TracedState";
 import { TracingTeam } from "../tracing/TracingDestination";
-import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 type QuizState =
   | { name: "hello" }
@@ -48,9 +46,6 @@ function BoothGameInternal(props: BoothGameProps) {
 
       // This will put it on any _new_ spans created. But not span events, and not open spans.
       // TODO: replace this with a processor that retains old spans to dual-send.
-      SessionGateway.setSessionValue("apiKey", news.apiKey);
-      SessionGateway.setSessionValue("teamSlug", news.team.slug);
-      SessionGateway.setSessionValue("environmentSlug", news.environment.slug);
 
       props.setTracingTeam(news);
       

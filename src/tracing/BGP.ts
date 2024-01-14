@@ -5,7 +5,7 @@ import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
 
-export const ATTRIBUTE_NAME_FOR_APIKEY = "honeycomb.api_key";
+export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can we change this, I want honeycomb.apikey or boothGame.customer_apikey
 
 export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.late_span";
 export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
