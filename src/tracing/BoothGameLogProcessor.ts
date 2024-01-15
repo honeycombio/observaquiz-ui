@@ -10,12 +10,14 @@ export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can w
 export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.is_a_copy";
 export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
 
+const PROCESSING_REPORT_DELIMITER = " *-* ";
+
 function reportProcessing(logRecord: LogRecord, who: string) {
   const existingProcessingReport = (logRecord.attributes || {})["boothgame.processing_report"];
   if (!existingProcessingReport) {
     logRecord.setAttribute("boothgame.processing_report", who);
   } else {
-    logRecord.setAttribute("boothgame.processing_report", existingProcessingReport + ", " + who);
+    logRecord.setAttribute("boothgame.processing_report", existingProcessingReport + PROCESSING_REPORT_DELIMITER + who);
   }
 }
 
@@ -107,6 +109,10 @@ class GrowingCompositeLogRecordProcessor implements SelfDescribingLogRecordProce
   }
 
   describeSelf(): string {
+    return this.describeSelfInternal(this.seriesofProcessors.map((p) => p.describeSelf()));
+  }
+
+  describeSelfInternal(childDescriptions: string[]): string {
     // a nested list
     const linePrefix = " ┣ ";
     const innerPrefix = " ┃ ";
@@ -114,34 +120,27 @@ class GrowingCompositeLogRecordProcessor implements SelfDescribingLogRecordProce
     const lastLinePrefix = " ┗ ";
     const isLast = (i: number) => i === this.seriesofProcessors.length - 1;
     var result = "Each of: \n";
-    this.seriesofProcessors.forEach((p, i) => {
-      const routeDescription = this.routeDescriptions[i] ? this.routeDescriptions[i] + ": " : "";
-      if (isLast(i)) {
-        result +=
-          lastLinePrefix +
-          routeDescription +
-          p
-            .describeSelf()
-            .split("\n")
-            .join("\n" + innerPrefixForTheLastOne);
-      } else {
-        result +=
-          linePrefix +
-          routeDescription +
-          p
-            .describeSelf()
-            .split("\n")
-            .join("\n" + innerPrefix) +
-          "\n";
-      }
-    });
+    childDescriptions
+      .forEach((pd, i) => {
+        const routeDescription = this.routeDescriptions[i] ? this.routeDescriptions[i] + ": " : "";
+        if (isLast(i)) {
+          result += lastLinePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefixForTheLastOne);
+        } else {
+          result += linePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefix) + "\n";
+        }
+      });
     return result;
   }
 
-  onEmit(LogRecord: LogRecord, parentContext: Context): void {
-    reportProcessing(LogRecord, "Composite LogRecord Processor");
-    this.seriesofProcessors.forEach((processor) => processor.onEmit(LogRecord, parentContext));
-    reportProcessing(LogRecord, "(end Composite LogRecord Processor)");
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    const processingReportBefore = logRecord.attributes["boothgame.processing_report"];
+    const processingReports: Array<string> = [];
+    this.seriesofProcessors.forEach((processor) => {
+      logRecord.attributes["boothgame.processing_report"] = "";
+      processor.onEmit(logRecord, parentContext);
+      processingReports.push(logRecord.attributes["boothgame.processing_report"]);
+    });
+    reportProcessing(logRecord, this.describeSelfInternal(processingReports));
   }
   shutdown(): Promise<void> {
     return Promise.all(this.seriesofProcessors.map((processor) => processor.shutdown())).then(() => {});
@@ -204,21 +203,25 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
   ) {}
 
   describeSelf(): string {
+    return this.describeSelfInternal(this.params.downstream.describeSelf());
+  }
+
+  describeSelfInternal(downstreamDescription: string): string {
     return (
       "I filter LogRecords, choosing " +
       this.params.filterDescription +
       "\n" +
       " ┗ " +
-      this.params.downstream.describeSelf().split("\n").join("\n   ")
+      downstreamDescription.split("\n").join("\n   ")
     );
   }
 
   onEmit(logRecord: LogRecord, parentContext: Context): void {
     if (this.params.filter(logRecord)) {
-      reportProcessing(logRecord, "Filter passed: " + this.params.filterDescription);
       this.params.downstream.onEmit(logRecord, parentContext);
+      reportProcessing(logRecord, "Filter passed: " + this.params.filterDescription);
     } else {
-      reportProcessing(logRecord, "Filter bypassed: " + this.params.filterDescription);
+      reportProcessing(logRecord, "FilterProcessor says no: " + this.params.filterDescription);
     }
   }
   shutdown(): Promise<void> {
