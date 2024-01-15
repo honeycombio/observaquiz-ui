@@ -245,16 +245,12 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
     const attributes: logsAPI.LogAttributes = { ...logRecord.attributes };
     attributes[ATTRIBUTE_NAME_FOR_COPIES] = true;
     attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "Created by the LogRecordCopier";
-    //   setTimeout(
-    // emit the copy, but finish processing this one first
-    // () =>
     logsAPI.logs.getLogger(itsLibraryName).emit({
       ...logRecord,
+      context: itsContext,
       attributes,
-    }),
-      //   0
-      //  );
-      logRecord.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
+    });
+    logRecord.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
   }
 
   onEmit(logRecord: LogRecord, parentContext: Context): void {
