@@ -3,6 +3,7 @@
 import { BatchSpanProcessor, NoopSpanProcessor, SpanExporter } from "@opentelemetry/sdk-trace-web";
 import { Context, Span, propagation } from "@opentelemetry/api";
 import { BufferConfig } from "@opentelemetry/sdk-trace-base";
+import { LogRecord, LogRecordProcessor, NoopLogRecordProcessor } from "@opentelemetry/sdk-logs";
 /**
  * A span processor that behaves like a {@link BatchSpanProcessor} with the
  * addition of {@link BaggageSpanProcessor} behavior during onStart.
@@ -58,6 +59,21 @@ export class BaggageSpanProcessor extends NoopSpanProcessor {
   onStart(span: Span, parentContext: Context): void {
     (propagation.getBaggage(parentContext)?.getAllEntries() ?? []).forEach((entry) => {
       span.setAttribute(entry[0], entry[1].value);
+    });
+  }
+}
+
+export class BaggageLogProcessor extends NoopLogRecordProcessor {
+  /**
+   * Adds an attribute to the `log` for each {@link Baggage} key and {@link BaggageEntry | entry value}
+   * present in the `parentContext`.
+   *
+   * @param logRecord a {@link LogRecord} being emitted
+   * @param parentContext the {@link Context} in which `logRecord` was emitted
+   */
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    (propagation.getBaggage(parentContext)?.getAllEntries() ?? []).forEach((entry) => {
+      logRecord.setAttribute(entry[0], entry[1].value);
     });
   }
 }

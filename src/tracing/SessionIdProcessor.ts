@@ -4,17 +4,13 @@
 import { Context } from "@opentelemetry/api";
 import { ReadableSpan, Span, SpanProcessor } from "@opentelemetry/sdk-trace-web";
 import SessionGateway from "./SessionGateway";
+import { LogRecord, LogRecordProcessor } from "@opentelemetry/sdk-logs";
 
 const { sessionId } = SessionGateway.getSession();
 const SESSION_ID_ATTRIBUTE = "session.id";
 
 export class SessionIdProcessor implements SpanProcessor {
-  forceFlush(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onStart(span: Span, parentContext: Context): void {
+  onStart(span: Span, _parentContext: Context): void {
     span.setAttribute(SESSION_ID_ATTRIBUTE, sessionId);
   }
 
@@ -22,6 +18,22 @@ export class SessionIdProcessor implements SpanProcessor {
   onEnd(span: ReadableSpan): void {}
 
   shutdown(): Promise<void> {
+    return Promise.resolve();
+  }
+  forceFlush(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+export class SessionIdLogProcessor implements LogRecordProcessor {
+  onEmit(span: LogRecord, _parentContext: Context): void {
+    span.setAttribute(SESSION_ID_ATTRIBUTE, sessionId);
+  }
+
+  shutdown(): Promise<void> {
+    return Promise.resolve();
+  }
+  forceFlush(): Promise<void> {
     return Promise.resolve();
   }
 }

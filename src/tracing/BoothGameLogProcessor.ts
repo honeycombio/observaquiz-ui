@@ -4,6 +4,8 @@ import type { LogRecord, LogRecordProcessor } from "@opentelemetry/sdk-logs";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
+import { SessionIdLogProcessor } from "./SessionIdProcessor";
+import { BaggageLogProcessor } from "./BaggageSpanProcessor";
 
 export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can we change this, I want honeycomb.apikey or boothGame.customer_apikey
 
@@ -56,6 +58,14 @@ export function ConstructLogPipeline(params: {
         params.processorForTeam(team),
         "I have been constructed to send to team " + team.team.slug
       )
+  );
+  boothGameProcessor.addProcessor(
+    new WrapLogRecordProcessorWithDescription(new SessionIdLogProcessor(), "I add the session ID attribute"),
+    "SESSION ID"
+  );
+  boothGameProcessor.addProcessor(
+    new WrapLogRecordProcessorWithDescription(new BaggageLogProcessor(), "I add attributes for all the baggage"),
+    "BAGGAGE"
   );
   return { learnerOfTeam, boothGameProcessor };
 }
