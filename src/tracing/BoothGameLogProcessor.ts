@@ -221,7 +221,7 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
         this.describeSelfInternal(childReports[0])
       );
     } else {
-      reportProcessing(logRecord, "FilterProcessor says we only want " + this.params.filterDescription);
+      reportProcessing(logRecord, "FilterProcessor says we only want " + this.params.filterDescription + " X");
     }
   }
   shutdown(): Promise<void> {
@@ -255,7 +255,7 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
 
   onEmit(logRecord: LogRecord, parentContext: Context): void {
     if (logRecord.attributes[ATTRIBUTE_NAME_FOR_COPIES]) {
-      reportProcessing(logRecord, "Copy processor doesn't copy copies");
+      reportProcessing(logRecord, "Copy processor doesn't copy copies X");
       return; // don't copy copies
     }
     reportProcessing(logRecord, this.describeSelf());
@@ -287,7 +287,7 @@ class HoldingLogRecordProcessor implements SelfDescribingLogRecordProcessor {
     return "I hold on to LogRecords\n" + " ┗ " + `${this.emittedLogRecords.length} emitted LogRecords`;
   }
   onEmit(logRecord: LogRecord, parentContext: Context): void {
-    reportProcessing(logRecord, "Holding on to this one");
+    reportProcessing(logRecord, "Holding on to this one...");
     this.emittedLogRecords.push([logRecord, parentContext]);
   }
   shutdown(): Promise<void> {
