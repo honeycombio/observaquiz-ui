@@ -120,15 +120,14 @@ class GrowingCompositeLogRecordProcessor implements SelfDescribingLogRecordProce
     const lastLinePrefix = " ┗ ";
     const isLast = (i: number) => i === this.seriesofProcessors.length - 1;
     var result = "Each of: \n";
-    childDescriptions
-      .forEach((pd, i) => {
-        const routeDescription = this.routeDescriptions[i] ? this.routeDescriptions[i] + ": " : "";
-        if (isLast(i)) {
-          result += lastLinePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefixForTheLastOne);
-        } else {
-          result += linePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefix) + "\n";
-        }
-      });
+    childDescriptions.forEach((pd, i) => {
+      const routeDescription = this.routeDescriptions[i] ? this.routeDescriptions[i] + ": " : "";
+      if (isLast(i)) {
+        result += lastLinePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefixForTheLastOne);
+      } else {
+        result += linePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefix) + "\n";
+      }
+    });
     return result;
   }
 
@@ -318,15 +317,12 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
             .split("\n")
             .join("\n" + " ┃ ") +
           "\n";
+    return this.describeSelfInternal(describePast, this.currentDownstream.describeSelf());
+  }
+
+  describeSelfInternal(describePast: string, describeCurrent: string): string {
     return (
-      "I am a switcher.\n" +
-      describePast +
-      " ┗ " +
-      " Now sending to: " +
-      this.currentDownstream
-        .describeSelf()
-        .split("\n")
-        .join("\n" + "   ")
+      "I am a switcher.\n" + describePast + " ┗ " + " Now sending to: " + describeCurrent.split("\n").join("\n" + "   ")
     );
   }
 
@@ -336,11 +332,32 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
   forceFlush(): Promise<void> {
     return this.currentDownstream.forceFlush();
   }
-  onEmit(LogRecord: LogRecord, parentContext: Context): void {
-    reportProcessing(LogRecord, "Switcher");
-    this.currentDownstream.onEmit(LogRecord, parentContext);
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    recordEmission(logRecord, parentContext, this.currentDownstream, (childReport) =>
+      this.describeSelfInternal("", childReport)
+    );
   }
   shutdown(): Promise<void> {
     return this.currentDownstream.shutdown();
   }
+}
+
+function recordEmission(
+  logRecord: LogRecord,
+  parentContext: Context,
+  logProcessor: LogRecordProcessor,
+  wrapTheChildReport: (childReport: string) => string
+) {
+  var processingRecordBefore = logRecord.attributes["boothgame.processing_report"];
+  if (!!processingRecordBefore) {
+    processingRecordBefore += PROCESSING_REPORT_DELIMITER;
+  }
+  logRecord.attributes["boothgame.processing_report"] = "";
+
+  logProcessor.onEmit(logRecord, parentContext);
+
+  const processingRecordFromChild = logRecord.attributes["boothgame.processing_report"];
+
+  logRecord.attributes["boothgame.processing_report"] =
+    processingRecordBefore + wrapTheChildReport(processingRecordFromChild);
 }
