@@ -20,7 +20,7 @@ export function ConstructThePipeline(params: {
     params.normalProcessorDescription
   );
 
-  const boothGameProcessor = new BoothGameProcessorThingie();
+  const boothGameProcessor = new GrowingCompositeSpanProcessor();
   boothGameProcessor.addProcessor(
     new FilteringSpanProcessor({
       filter: (span) => !span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
@@ -60,6 +60,17 @@ export function ConstructThePipeline(params: {
   return { learnerOfTeam, boothGameProcessor };
 }
 
+type SelfDescribingSpanProcessor = SpanProcessor & {
+  /**
+   * Output a string that says everything your processor does.
+   * @param prefixForLinesAfterTheFirst If your description has multiple lines, put this in front of all the extra ones.
+   * I could do without the prefix by
+   *  - having them return an array of strings, which you then map the prefix across
+   *  - or splitting the child output on newline and applying the same map.
+   */
+  describeSelf(): string;
+};
+
 class WrapSpanProcessorWithDescription implements SelfDescribingSpanProcessor {
   constructor(private readonly processor: SpanProcessor, private readonly description: string) {}
   describeSelf(): string {
@@ -79,25 +90,7 @@ class WrapSpanProcessorWithDescription implements SelfDescribingSpanProcessor {
   }
 }
 
-type SelfDescribingSpanProcessor = SpanProcessor & {
-  /**
-   * Output a string that says everything your processor does.
-   * @param prefixForLinesAfterTheFirst If your description has multiple lines, put this in front of all the extra ones.
-   * I could do without the prefix by
-   *  - having them return an array of strings, which you then map the prefix across
-   *  - or splitting the child output on newline and applying the same map.
-   */
-  describeSelf(prefixForLinesAfterTheFirst: string): string;
-};
-
-function printList(prefix: string, list: Array<string>): string {
-  const linePrefix = prefix + " ┣ ";
-  const lastLinePrefix = prefix + " ┗ ";
-  const isLast = (i: number) => i === list.length - 1;
-  return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
-}
-
-class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
+class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
   private seriesofProcessors: Array<SelfDescribingSpanProcessor> = [];
   private routeDescriptions: Array<string | undefined> = []; // parallel array to seriesofProcessors. guess i should put them in an object together
 
@@ -106,20 +99,24 @@ class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
     this.routeDescriptions.unshift(routeDescription);
   }
 
-  describeSelf(prefixForLinesAfterTheFirst: string = ""): string {
+  describeSelf(): string {
+    return this.describeSelfInternal(this.seriesofProcessors.map((p) => p.describeSelf()));
+  }
+
+  describeSelfInternal(childDescriptions: string[]): string {
     // a nested list
-    const linePrefix = prefixForLinesAfterTheFirst + " ┣ ";
-    const innerPrefix = prefixForLinesAfterTheFirst + " ┃ ";
-    const innerPrefixForTheLastOne = prefixForLinesAfterTheFirst + "   ";
-    const lastLinePrefix = prefixForLinesAfterTheFirst + " ┗ ";
+    const linePrefix = " ┣ ";
+    const innerPrefix = " ┃ ";
+    const innerPrefixForTheLastOne = "   ";
+    const lastLinePrefix = " ┗ ";
     const isLast = (i: number) => i === this.seriesofProcessors.length - 1;
     var result = "Each of: \n";
-    this.seriesofProcessors.forEach((p, i) => {
+    childDescriptions.forEach((pd, i) => {
       const routeDescription = this.routeDescriptions[i] ? this.routeDescriptions[i] + ": " : "";
       if (isLast(i)) {
-        result += lastLinePrefix + routeDescription + p.describeSelf(innerPrefixForTheLastOne);
+        result += lastLinePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefixForTheLastOne);
       } else {
-        result += linePrefix + routeDescription + p.describeSelf(innerPrefix) + "\n";
+        result += linePrefix + routeDescription + pd.split("\n").join("\n" + innerPrefix) + "\n";
       }
     });
     return result;
@@ -141,7 +138,7 @@ class BoothGameProcessorThingie implements SelfDescribingSpanProcessor {
 
 class LearnerOfTeam {
   constructor(
-    private insertProcessorHere: BoothGameProcessorThingie,
+    private insertProcessorHere: GrowingCompositeSpanProcessor,
     private switcher: SwitcherSpanProcessor,
     private whatToSwitchTo: (team: TracingTeam) => SelfDescribingSpanProcessor
   ) {}
@@ -159,15 +156,19 @@ class LearnerOfTeam {
   }
 }
 
+function printList(list: Array<string>): string {
+  const linePrefix = " ┣ ";
+  const lastLinePrefix = " ┗ ";
+  const isLast = (i: number) => i === list.length - 1;
+  return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
+}
+
 class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
   constructor(private readonly attributes: Attributes) {}
-  describeSelf(prefix: string): string {
+  describeSelf(): string {
     return (
       "I add fields to the span: \n" +
-      printList(
-        prefix,
-        Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString())
-      )
+      printList(Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString()))
     );
   }
   onStart(span: TraceBaseSpan, _parentContext: Context): void {
@@ -188,14 +189,17 @@ class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
     }
   ) {}
 
-  describeSelf(prefixForLinesAfterTheFirst: string): string {
+  describeSelf(): string {
+    return this.describeSelfInternal(this.params.downstream.describeSelf());
+  }
+
+  describeSelfInternal(downstreamDescription: string): string {
     return (
       "I filter spans, choosing " +
       this.params.filterDescription +
       "\n" +
-      prefixForLinesAfterTheFirst +
       " ┗ " +
-      this.params.downstream.describeSelf(prefixForLinesAfterTheFirst + "   ")
+      downstreamDescription.split("\n").join("\n   ")
     );
   }
 
@@ -218,13 +222,11 @@ class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
 }
 
 class SpanCopier implements SelfDescribingSpanProcessor {
-  describeSelf(prefixForLinesAfterTheFirst: string): string {
+  describeSelf(): string {
     return (
       "I copy spans, evilly\n" +
-      prefixForLinesAfterTheFirst +
       " ┣ " +
       `So far I have copied ${this.copyCount} spans\n` +
-      prefixForLinesAfterTheFirst +
       " ┗ " +
       `and ${Object.keys(this.openSpanCopies).length} of them are open`
     );
@@ -297,13 +299,11 @@ class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
     this.endedSpans = [];
   }
 
-  describeSelf(prefixForLinesAfterTheFirst: string): string {
+  describeSelf(): string {
     return (
       "I hold on to spans\n" +
-      prefixForLinesAfterTheFirst +
       " ┣ " +
       `${this.startedSpans.length} started spans\n` +
-      prefixForLinesAfterTheFirst +
       " ┗ " +
       `${this.endedSpans.length} ended spans`
     );
@@ -331,18 +331,23 @@ class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
     this.currentDownstream = downstream;
   }
 
-  describeSelf(indent: string): string {
+  describeSelf(): string {
     const describePast =
       this.firstDownstream === this.currentDownstream
         ? ""
-        : indent + " ┣ " + "Previously sent to: " + this.firstDownstream.describeSelf(indent + " ┃ ") + "\n";
+        : " ┣ " +
+          "Previously sent to: " +
+          this.firstDownstream
+            .describeSelf()
+            .split("\n")
+            .join("\n" + " ┃ ") +
+          "\n";
+    return this.describeSelfInternal(describePast, this.currentDownstream.describeSelf());
+  }
+
+  describeSelfInternal(describePast: string, describeCurrent: string): string {
     return (
-      "I am a switcher.\n" +
-      describePast +
-      indent +
-      " ┗ " +
-      " Now sending to: " +
-      this.currentDownstream.describeSelf(indent + "   ")
+      "I am a switcher.\n" + describePast + " ┗ " + " Now sending to: " + describeCurrent.split("\n").join("\n" + "   ")
     );
   }
 

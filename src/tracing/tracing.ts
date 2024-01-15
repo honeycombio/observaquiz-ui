@@ -174,6 +174,6 @@ export function learnTeam(team: TracingTeam) {
   learnerOfTeam.learnCustomerTeam(team);
   logInit.learnerOfTeam.learnCustomerTeam(team);
   // you want to see it, it has reconfigured, see.
-  console.log(boothGameProcessor.describeSelf(""));
+  console.log(boothGameProcessor.describeSelf());
   console.log(logInit.boothGameProcessor.describeSelf());
 }

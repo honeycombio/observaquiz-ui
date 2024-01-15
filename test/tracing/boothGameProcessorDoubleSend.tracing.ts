@@ -17,7 +17,7 @@ const { learnerOfTeam, boothGameProcessor } = BGP.ConstructThePipeline({
   },
 });
 console.log("\n\n---initialized---");
-console.log(boothGameProcessor.describeSelf(""));
+console.log(boothGameProcessor.describeSelf());
 
 /** initialize tracing */
 const resource = new Resource({
