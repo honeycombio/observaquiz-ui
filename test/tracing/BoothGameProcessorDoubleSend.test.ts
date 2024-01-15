@@ -19,8 +19,10 @@ describe("booth game processor, sending both to our team and the customer team",
     });
     expect(Test.normalProcessor.onlyStartedSpan().attributes["testAttribute"]).toEqual("jonny von neumann");
 
+    spanThatEndsBeforeTeamArrives.addEvent("fake event");
     spanThatEndsBeforeTeamArrives.end();
     expect(Test.normalProcessor.endedSpans.length).toEqual(1);
+    expect(Test.normalProcessor.onlyEndedSpan().events[0].name).toEqual("fake event");
 
     // we expect it to be copied.
     expect(Test.normalProcessor.onlyEndedSpan().attributes[ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS]).toEqual(true);
@@ -43,6 +45,7 @@ describe("booth game processor, sending both to our team and the customer team",
     // The original span now shows up (as a copy) to the copyProcessor.
     expect(Test.copyProcessor.startedSpans[0][0].attributes[ATTRIBUTE_NAME_FOR_COPIES]).toEqual(true);
     expect(Test.copyProcessor.startedSpans[0][0].attributes["testAttribute"]).toEqual("jonny von neumann");
+    expect(Test.copyProcessor.startedSpans[0][0].events[0].name).toEqual("fake event");
 
     // ok, end the open span. It gets ended in both places.
     spanThatIsOpenWhenTeamArrives.end();
@@ -58,11 +61,11 @@ describe("booth game processor, sending both to our team and the customer team",
     expect(Test.normalProcessor.startedSpans[2][0].attributes[ATTRIBUTE_NAME_FOR_APIKEY]).toEqual(
       "customer team api key"
     );
-    expect(Test.copyProcessor.startedSpans.length).toEqual(2);
+    expect(Test.copyProcessor.startedSpans.length).toEqual(3); // I started copying them forever
 
     spanThatStartsAfterTeamArrives.end();
 
     expect(Test.normalProcessor.endedSpans.length).toEqual(3);
-    expect(Test.copyProcessor.endedSpans.length).toEqual(2);
+    expect(Test.copyProcessor.endedSpans.length).toEqual(3);
   });
 });

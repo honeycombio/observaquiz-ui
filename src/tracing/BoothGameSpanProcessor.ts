@@ -269,7 +269,8 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     const openSpanCopy = this.openSpanCopies[span.spanContext().spanId];
     if (openSpanCopy) {
       openSpanCopy.setAttributes(span.attributes); // set these at the end, so they're all here
-      // TODO: add span events and links from the other span
+      span.events.forEach((event) => openSpanCopy.addEvent(event.name, event.attributes, event.time));
+      // TODO: copy span links
       openSpanCopy.end(span.endTime);
       delete this.openSpanCopies[span.spanContext().spanId];
     }
