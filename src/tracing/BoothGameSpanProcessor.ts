@@ -71,6 +71,21 @@ type SelfDescribingSpanProcessor = SpanProcessor & {
   describeSelf(): string;
 };
 
+const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "boothgame.processing_report";
+const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
+
+function reportProcessing(span: TraceBaseSpan, who: string) {
+  const existingProcessingReport = span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
+  if (!existingProcessingReport) {
+    span.setAttribute(ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, who);
+  } else {
+    span.setAttribute(
+      ATTRIBUTE_NAME_FOR_PROCESSING_REPORT,
+      existingProcessingReport + PROCESSING_REPORT_DELIMITER + who
+    );
+  }
+}
+
 class WrapSpanProcessorWithDescription implements SelfDescribingSpanProcessor {
   constructor(private readonly processor: SpanProcessor, private readonly description: string) {}
   describeSelf(): string {
@@ -123,7 +138,9 @@ class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
   }
 
   onStart(span: TraceBaseSpan, parentContext: Context): void {
-    this.seriesofProcessors.forEach((processor) => processor.onStart(span, parentContext));
+    recordProcessingOnStart(span, parentContext, this.seriesofProcessors, (processingReports) =>
+      this.describeSelfInternal(processingReports)
+    );
   }
   onEnd(span: ReadableSpan): void {
     this.seriesofProcessors.forEach((processor) => processor.onEnd(span));
@@ -172,6 +189,7 @@ class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
     );
   }
   onStart(span: TraceBaseSpan, _parentContext: Context): void {
+    reportProcessing(span, this.describeSelf());
     span.setAttributes(this.attributes);
   }
 
@@ -205,7 +223,11 @@ class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
 
   onStart(span: TraceBaseSpan, parentContext: Context): void {
     if (this.params.filter(span)) {
-      this.params.downstream.onStart(span, parentContext);
+      recordProcessingOnStart(span, parentContext, [this.params.downstream], (childReports) =>
+        this.describeSelfInternal(childReports[0])
+      );
+    } else {
+      reportProcessing(span, "FilterProcessor says we only want " + this.params.filterDescription + " X");
     }
   }
   onEnd(span: ReadableSpan): void {
@@ -240,6 +262,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     const itsLibraryName = span.instrumentationLibrary.name;
     const attributes: Attributes = {};
     attributes[ATTRIBUTE_NAME_FOR_COPIES] = true;
+    attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "Created by the SpanCopier";
     const copy: Span = trace.getTracer(itsLibraryName).startSpan(
       span.name,
       {
@@ -259,6 +282,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
 
   onStart(span: TraceBaseSpan, parentContext: Context): void {
     if (span.attributes[ATTRIBUTE_NAME_FOR_COPIES]) {
+      reportProcessing(span, "Copy processor doesn't copy copies X");
       return; // don't copy copies
     }
     const copy = this.copySpan(span, parentContext);
@@ -309,6 +333,7 @@ class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
     );
   }
   onStart(span: TraceBaseSpan, parentContext: Context): void {
+    reportProcessing(span, "Holding on to this one...");
     this.startedSpans.push([span, parentContext]);
   }
   onEnd(span: ReadableSpan): void {
@@ -354,11 +379,10 @@ class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
   constructor(private readonly firstDownstream: HoldingSpanProcessor) {
     this.currentDownstream = firstDownstream;
   }
-  forceFlush(): Promise<void> {
-    return this.currentDownstream.forceFlush();
-  }
   onStart(span: TraceBaseSpan, parentContext: Context): void {
-    this.currentDownstream.onStart(span, parentContext);
+    recordProcessingOnStart(span, parentContext, [this.currentDownstream], (childReports) =>
+      this.describeSelfInternal("", childReports[0])
+    );
   }
   onEnd(span: ReadableSpan): void {
     this.currentDownstream.onEnd(span);
@@ -366,4 +390,29 @@ class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
   shutdown(): Promise<void> {
     return this.currentDownstream.shutdown();
   }
+  forceFlush(): Promise<void> {
+    return this.currentDownstream.forceFlush();
+  }
+}
+
+function recordProcessingOnStart(
+  span: TraceBaseSpan,
+  parentContext: Context,
+  spanProcessors: SpanProcessor[],
+  wrapTheChildReport: (childReport: string[]) => string
+) {
+  var processingRecordBefore = span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
+  if (!!processingRecordBefore) {
+    processingRecordBefore += PROCESSING_REPORT_DELIMITER;
+  }
+
+  const processingRecordsFromChildren: string[] = [];
+  spanProcessors.forEach((logProcessor) => {
+    span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "";
+    logProcessor.onStart(span, parentContext);
+    processingRecordsFromChildren.push(span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]);
+  });
+
+  span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] =
+    processingRecordBefore + wrapTheChildReport(processingRecordsFromChildren);
 }

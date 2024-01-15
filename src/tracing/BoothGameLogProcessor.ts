@@ -10,22 +10,6 @@ export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can w
 export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.is_a_copy";
 export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
 
-const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "boothgame.processing_report";
-
-const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
-
-function reportProcessing(logRecord: LogRecord, who: string) {
-  const existingProcessingReport = logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
-  if (!existingProcessingReport) {
-    logRecord.setAttribute(ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, who);
-  } else {
-    logRecord.setAttribute(
-      ATTRIBUTE_NAME_FOR_PROCESSING_REPORT,
-      existingProcessingReport + PROCESSING_REPORT_DELIMITER + who
-    );
-  }
-}
-
 export function ConstructLogPipeline(params: {
   normalProcessor: LogRecordProcessor;
   normalProcessorDescription: string;
@@ -86,6 +70,21 @@ type SelfDescribingLogRecordProcessor = LogRecordProcessor & {
    */
   describeSelf(): string;
 };
+
+const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "boothgame.processing_report";
+const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
+
+function reportProcessing(logRecord: LogRecord, who: string) {
+  const existingProcessingReport = logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
+  if (!existingProcessingReport) {
+    logRecord.setAttribute(ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, who);
+  } else {
+    logRecord.setAttribute(
+      ATTRIBUTE_NAME_FOR_PROCESSING_REPORT,
+      existingProcessingReport + PROCESSING_REPORT_DELIMITER + who
+    );
+  }
+}
 
 class WrapLogRecordProcessorWithDescription implements SelfDescribingLogRecordProcessor {
   constructor(private readonly processor: LogRecordProcessor, private readonly description: string) {}
@@ -330,13 +329,13 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
   constructor(private readonly firstDownstream: HoldingLogRecordProcessor) {
     this.currentDownstream = firstDownstream;
   }
-  forceFlush(): Promise<void> {
-    return this.currentDownstream.forceFlush();
-  }
   onEmit(logRecord: LogRecord, parentContext: Context): void {
     recordEmission(logRecord, parentContext, [this.currentDownstream], (childReports) =>
       this.describeSelfInternal("", childReports[0])
     );
+  }
+  forceFlush(): Promise<void> {
+    return this.currentDownstream.forceFlush();
   }
   shutdown(): Promise<void> {
     return this.currentDownstream.shutdown();
