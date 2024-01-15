@@ -17,7 +17,7 @@ const { learnerOfTeam, boothGameProcessor } = BGP.ConstructLogPipeline({
   },
 });
 console.log("\n\n---initialized---");
-console.log(boothGameProcessor.describeSelf(""));
+console.log(boothGameProcessor.describeSelf());
 
 /** initialize tracing */
 const resource = new Resource({
@@ -35,7 +35,7 @@ const logger = provider.getLogger("test");
 logger.emit({ body: "test log" });
 
 console.log("\n\n---one log was sent---");
-console.log(boothGameProcessor.describeSelf(""));
+console.log(boothGameProcessor.describeSelf());
 
 learnerOfTeam.learnCustomerTeam({
   apiKey: "yes",
@@ -45,9 +45,9 @@ learnerOfTeam.learnCustomerTeam({
 });
 
 console.log("\n\n---team is learned---");
-console.log(boothGameProcessor.describeSelf(""));
+console.log(boothGameProcessor.describeSelf());
 
 logger.emit({ body: "test log 2" });
 
 console.log("\n\n---another log sent---");
-console.log(boothGameProcessor.describeSelf(""));
+console.log(boothGameProcessor.describeSelf());

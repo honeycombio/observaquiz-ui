@@ -77,7 +77,7 @@ type SelfDescribingLogRecordProcessor = LogRecordProcessor & {
    *  - having them return an array of strings, which you then map the prefix across
    *  - or splitting the child output on newline and applying the same map.
    */
-  describeSelf(prefixForLinesAfterTheFirst: string): string;
+  describeSelf(): string;
 };
 
 class WrapLogRecordProcessorWithDescription implements SelfDescribingLogRecordProcessor {
@@ -106,20 +106,33 @@ class GrowingCompositeLogRecordProcessor implements SelfDescribingLogRecordProce
     this.routeDescriptions.unshift(routeDescription);
   }
 
-  describeSelf(prefixForLinesAfterTheFirst: string = ""): string {
+  describeSelf(): string {
     // a nested list
-    const linePrefix = prefixForLinesAfterTheFirst + " ┣ ";
-    const innerPrefix = prefixForLinesAfterTheFirst + " ┃ ";
-    const innerPrefixForTheLastOne = prefixForLinesAfterTheFirst + "   ";
-    const lastLinePrefix = prefixForLinesAfterTheFirst + " ┗ ";
+    const linePrefix = " ┣ ";
+    const innerPrefix = " ┃ ";
+    const innerPrefixForTheLastOne = "   ";
+    const lastLinePrefix = " ┗ ";
     const isLast = (i: number) => i === this.seriesofProcessors.length - 1;
     var result = "Each of: \n";
     this.seriesofProcessors.forEach((p, i) => {
       const routeDescription = this.routeDescriptions[i] ? this.routeDescriptions[i] + ": " : "";
       if (isLast(i)) {
-        result += lastLinePrefix + routeDescription + p.describeSelf(innerPrefixForTheLastOne);
+        result +=
+          lastLinePrefix +
+          routeDescription +
+          p
+            .describeSelf()
+            .split("\n")
+            .join("\n" + innerPrefixForTheLastOne);
       } else {
-        result += linePrefix + routeDescription + p.describeSelf(innerPrefix) + "\n";
+        result +=
+          linePrefix +
+          routeDescription +
+          p
+            .describeSelf()
+            .split("\n")
+            .join("\n" + innerPrefix) +
+          "\n";
       }
     });
     return result;
@@ -158,26 +171,23 @@ class LearnerOfTeam {
   }
 }
 
-function printList(prefix: string, list: Array<string>): string {
-  const linePrefix = prefix + " ┣ ";
-  const lastLinePrefix = prefix + " ┗ ";
+function printList(list: Array<string>): string {
+  const linePrefix = " ┣ ";
+  const lastLinePrefix = " ┗ ";
   const isLast = (i: number) => i === list.length - 1;
   return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
 }
 
 class ProcessorThatInsertsAttributes implements SelfDescribingLogRecordProcessor {
   constructor(private readonly attributes: Attributes) {}
-  describeSelf(prefix: string): string {
+  describeSelf(): string {
     return (
       "I add fields to the LogRecord: \n" +
-      printList(
-        prefix,
-        Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString())
-      )
+      printList(Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString()))
     );
   }
   onEmit(logRecord: LogRecord, _parentContext: Context): void {
-    reportProcessing(logRecord, this.describeSelf(""));
+    reportProcessing(logRecord, this.describeSelf());
     logRecord.setAttributes(this.attributes);
   }
   async shutdown(): Promise<void> {}
@@ -193,14 +203,13 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
     }
   ) {}
 
-  describeSelf(prefixForLinesAfterTheFirst: string): string {
+  describeSelf(): string {
     return (
       "I filter LogRecords, choosing " +
       this.params.filterDescription +
       "\n" +
-      prefixForLinesAfterTheFirst +
       " ┗ " +
-      this.params.downstream.describeSelf(prefixForLinesAfterTheFirst + "   ")
+      this.params.downstream.describeSelf().split("\n").join("\n   ")
     );
   }
 
@@ -221,13 +230,8 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
 }
 
 class LogRecordCopier implements SelfDescribingLogRecordProcessor {
-  describeSelf(prefixForLinesAfterTheFirst: string): string {
-    return (
-      "I copy LogRecords, evilly\n" +
-      prefixForLinesAfterTheFirst +
-      " ┗ " +
-      `So far I have copied ${this.copyCount} LogRecords`
-    );
+  describeSelf(): string {
+    return "I copy LogRecords, evilly\n" + " ┗ " + `So far I have copied ${this.copyCount} LogRecords`;
   }
 
   private copyCount = 0;
@@ -254,7 +258,7 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
       reportProcessing(logRecord, "Copy processor doesn't copy copies");
       return; // don't copy copies
     }
-    reportProcessing(logRecord, this.describeSelf(""));
+    reportProcessing(logRecord, this.describeSelf());
     this.copyLogRecord(logRecord, parentContext);
   }
 
@@ -276,13 +280,8 @@ class HoldingLogRecordProcessor implements SelfDescribingLogRecordProcessor {
     this.emittedLogRecords = []; // make sure we don't hold a reference to a pile of LogRecords forever.
   }
 
-  describeSelf(prefixForLinesAfterTheFirst: string): string {
-    return (
-      "I hold on to LogRecords\n" +
-      prefixForLinesAfterTheFirst +
-      " ┗ " +
-      `${this.emittedLogRecords.length} emitted LogRecords`
-    );
+  describeSelf(): string {
+    return "I hold on to LogRecords\n" + " ┗ " + `${this.emittedLogRecords.length} emitted LogRecords`;
   }
   onEmit(logRecord: LogRecord, parentContext: Context): void {
     reportProcessing(logRecord, "Holding on to this one");
@@ -305,18 +304,26 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
     this.currentDownstream = downstream;
   }
 
-  describeSelf(indent: string): string {
+  describeSelf(): string {
     const describePast =
       this.firstDownstream === this.currentDownstream
         ? ""
-        : indent + " ┣ " + "Previously sent to: " + this.firstDownstream.describeSelf(indent + " ┃ ") + "\n";
+        : " ┣ " +
+          "Previously sent to: " +
+          this.firstDownstream
+            .describeSelf()
+            .split("\n")
+            .join("\n" + " ┃ ") +
+          "\n";
     return (
       "I am a switcher.\n" +
       describePast +
-      indent +
       " ┗ " +
       " Now sending to: " +
-      this.currentDownstream.describeSelf(indent + "   ")
+      this.currentDownstream
+        .describeSelf()
+        .split("\n")
+        .join("\n" + "   ")
     );
   }
 
