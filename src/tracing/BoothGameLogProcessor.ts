@@ -7,8 +7,17 @@ import { Context, Attributes } from "@opentelemetry/api";
 
 export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can we change this, I want honeycomb.apikey or boothGame.customer_apikey
 
-export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.late_LogRecord";
+export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.is_a_copy";
 export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
+
+function reportProcessing(logRecord: LogRecord, who: string) {
+  const existingProcessingReport = (logRecord.attributes || {})["boothgame.processing_report"];
+  if (!existingProcessingReport) {
+    logRecord.setAttribute("boothgame.processing_report", who);
+  } else {
+    logRecord.setAttribute("boothgame.processing_report", existingProcessingReport + ", " + who);
+  }
+}
 
 export function ConstructLogPipeline(params: {
   normalProcessor: LogRecordProcessor;
@@ -76,8 +85,9 @@ class WrapLogRecordProcessorWithDescription implements SelfDescribingLogRecordPr
   describeSelf(): string {
     return this.description;
   }
-  onEmit(LogRecord: LogRecord, parentContext: Context): void {
-    this.processor.onEmit(LogRecord, parentContext);
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    reportProcessing(logRecord, this.description);
+    this.processor.onEmit(logRecord, parentContext);
   }
   async shutdown(): Promise<void> {
     return this.processor.shutdown();
@@ -116,7 +126,9 @@ class GrowingCompositeLogRecordProcessor implements SelfDescribingLogRecordProce
   }
 
   onEmit(LogRecord: LogRecord, parentContext: Context): void {
+    reportProcessing(LogRecord, "Composite LogRecord Processor");
     this.seriesofProcessors.forEach((processor) => processor.onEmit(LogRecord, parentContext));
+    reportProcessing(LogRecord, "(end Composite LogRecord Processor)");
   }
   shutdown(): Promise<void> {
     return Promise.all(this.seriesofProcessors.map((processor) => processor.shutdown())).then(() => {});
@@ -164,8 +176,9 @@ class ProcessorThatInsertsAttributes implements SelfDescribingLogRecordProcessor
       )
     );
   }
-  onEmit(LogRecord: LogRecord, _parentContext: Context): void {
-    LogRecord.setAttributes(this.attributes);
+  onEmit(logRecord: LogRecord, _parentContext: Context): void {
+    reportProcessing(logRecord, this.describeSelf(""));
+    logRecord.setAttributes(this.attributes);
   }
   async shutdown(): Promise<void> {}
   async forceFlush(): Promise<void> {}
@@ -191,9 +204,12 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
     );
   }
 
-  onEmit(LogRecord: LogRecord, parentContext: Context): void {
-    if (this.params.filter(LogRecord)) {
-      this.params.downstream.onEmit(LogRecord, parentContext);
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    if (this.params.filter(logRecord)) {
+      reportProcessing(logRecord, "Filter passed: " + this.params.filterDescription);
+      this.params.downstream.onEmit(logRecord, parentContext);
+    } else {
+      reportProcessing(logRecord, "Filter bypassed: " + this.params.filterDescription);
     }
   }
   shutdown(): Promise<void> {
@@ -219,20 +235,27 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
   private copyLogRecord(logRecord: LogRecord, itsContext: Context) {
     this.copyCount++;
     const itsLibraryName = logRecord.instrumentationScope.name;
-    const attributes: logsAPI.LogAttributes = logRecord.attributes;
+    const attributes: logsAPI.LogAttributes = { ...logRecord.attributes };
     attributes[ATTRIBUTE_NAME_FOR_COPIES] = true;
+    //   setTimeout(
+    // emit the copy, but finish processing this one first
+    // () =>
     logsAPI.logs.getLogger(itsLibraryName).emit({
       ...logRecord,
       attributes,
-    });
-    logRecord.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
+    }),
+      //   0
+      //  );
+      logRecord.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
   }
 
-  onEmit(LogRecord: LogRecord, parentContext: Context): void {
-    if (LogRecord.attributes[ATTRIBUTE_NAME_FOR_COPIES]) {
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    if (logRecord.attributes[ATTRIBUTE_NAME_FOR_COPIES]) {
+      reportProcessing(logRecord, "Copy processor doesn't copy copies");
       return; // don't copy copies
     }
-    this.copyLogRecord(LogRecord, parentContext);
+    reportProcessing(logRecord, this.describeSelf(""));
+    this.copyLogRecord(logRecord, parentContext);
   }
 
   shutdown(): Promise<void> {
@@ -261,8 +284,9 @@ class HoldingLogRecordProcessor implements SelfDescribingLogRecordProcessor {
       `${this.emittedLogRecords.length} emitted LogRecords`
     );
   }
-  onEmit(LogRecord: LogRecord, parentContext: Context): void {
-    this.emittedLogRecords.push([LogRecord, parentContext]);
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    reportProcessing(logRecord, "Holding on to this one");
+    this.emittedLogRecords.push([logRecord, parentContext]);
   }
   shutdown(): Promise<void> {
     return Promise.resolve();
@@ -303,6 +327,7 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
     return this.currentDownstream.forceFlush();
   }
   onEmit(LogRecord: LogRecord, parentContext: Context): void {
+    reportProcessing(LogRecord, "Switcher");
     this.currentDownstream.onEmit(LogRecord, parentContext);
   }
   shutdown(): Promise<void> {

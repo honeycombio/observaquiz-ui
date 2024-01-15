@@ -2,9 +2,8 @@ import {
   ATTRIBUTE_NAME_FOR_APIKEY,
   ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS,
   ATTRIBUTE_NAME_FOR_COPIES,
-} from "../../src/tracing/BoothGameSpanProcessor";
+} from "../../src/tracing/BoothGameLogProcessor";
 import * as Test from "./boothGameLogProcessor.tracing";
-import { trace } from "@opentelemetry/api";
 import * as logsAPI from "@opentelemetry/api-logs";
 
 /** Run this alone, don't try to combine with other tests.
@@ -14,8 +13,8 @@ import * as logsAPI from "@opentelemetry/api-logs";
 const logger = logsAPI.logs.getLogger("booth game processor double send test");
 
 describe("booth game processor, sending both to our team and the customer team", () => {
-  test("To start with, it sends spans to the normal processor.", () => {
-    const spanThatEndsBeforeTeamArrives = logger.emit({
+  test("To start with, it sends logs to the normal processor.", () => {
+    logger.emit({
       body: "fake log",
       attributes: { testAttribute: "jonny von neumann" },
     });
@@ -34,12 +33,14 @@ describe("booth game processor, sending both to our team and the customer team",
       team: { name: "team-name", slug: "team-slug" },
     });
 
+    console.log("Here is what it has: " + JSON.stringify(Test.copyProcessor.emittedLogs, null, 2));
+
     // The original span now shows up (as a copy) to the copyProcessor.
     expect((Test.copyProcessor.emittedLogs[0][0].attributes || {})[ATTRIBUTE_NAME_FOR_COPIES]).toEqual(true);
     expect((Test.copyProcessor.emittedLogs[0][0].attributes || {})["testAttribute"]).toEqual("jonny von neumann");
 
     // Finally, a log goes through after the team has arrived.
-    const spanThatStartsAfterTeamArrives = logger.emit({
+    logger.emit({
       body: "fake log 2",
       attributes: { testAttribute: "richard feynman" },
     });
