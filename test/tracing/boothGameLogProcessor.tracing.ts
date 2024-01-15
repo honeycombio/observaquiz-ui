@@ -18,7 +18,7 @@ const { learnerOfTeam, boothGameProcessor } = ConstructLogPipeline({
   },
 });
 console.log("\n\n---initialized---");
-console.log(boothGameProcessor.describeSelf(""));
+console.log(boothGameProcessor.describeSelf());
 
 /** initialize tracing */
 const resource = new Resource({

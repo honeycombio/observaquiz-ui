@@ -10,14 +10,19 @@ export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can w
 export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.is_a_copy";
 export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
 
-const PROCESSING_REPORT_DELIMITER = " *-* ";
+const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "boothgame.processing_report";
+
+const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
 
 function reportProcessing(logRecord: LogRecord, who: string) {
-  const existingProcessingReport = (logRecord.attributes || {})["boothgame.processing_report"];
+  const existingProcessingReport = logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
   if (!existingProcessingReport) {
-    logRecord.setAttribute("boothgame.processing_report", who);
+    logRecord.setAttribute(ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, who);
   } else {
-    logRecord.setAttribute("boothgame.processing_report", existingProcessingReport + PROCESSING_REPORT_DELIMITER + who);
+    logRecord.setAttribute(
+      ATTRIBUTE_NAME_FOR_PROCESSING_REPORT,
+      existingProcessingReport + PROCESSING_REPORT_DELIMITER + who
+    );
   }
 }
 
@@ -132,14 +137,9 @@ class GrowingCompositeLogRecordProcessor implements SelfDescribingLogRecordProce
   }
 
   onEmit(logRecord: LogRecord, parentContext: Context): void {
-    const processingReportBefore = logRecord.attributes["boothgame.processing_report"];
-    const processingReports: Array<string> = [];
-    this.seriesofProcessors.forEach((processor) => {
-      logRecord.attributes["boothgame.processing_report"] = "";
-      processor.onEmit(logRecord, parentContext);
-      processingReports.push(logRecord.attributes["boothgame.processing_report"]);
-    });
-    reportProcessing(logRecord, this.describeSelfInternal(processingReports));
+    recordEmission(logRecord, parentContext, this.seriesofProcessors, (processingReports) =>
+      this.describeSelfInternal(processingReports)
+    );
   }
   shutdown(): Promise<void> {
     return Promise.all(this.seriesofProcessors.map((processor) => processor.shutdown())).then(() => {});
@@ -217,10 +217,11 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
 
   onEmit(logRecord: LogRecord, parentContext: Context): void {
     if (this.params.filter(logRecord)) {
-      this.params.downstream.onEmit(logRecord, parentContext);
-      reportProcessing(logRecord, "Filter passed: " + this.params.filterDescription);
+      recordEmission(logRecord, parentContext, [this.params.downstream], (childReports) =>
+        this.describeSelfInternal(childReports[0])
+      );
     } else {
-      reportProcessing(logRecord, "FilterProcessor says no: " + this.params.filterDescription);
+      reportProcessing(logRecord, "FilterProcessor says we only want " + this.params.filterDescription);
     }
   }
   shutdown(): Promise<void> {
@@ -243,6 +244,7 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
     const itsLibraryName = logRecord.instrumentationScope.name;
     const attributes: logsAPI.LogAttributes = { ...logRecord.attributes };
     attributes[ATTRIBUTE_NAME_FOR_COPIES] = true;
+    attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "Created by the LogRecordCopier";
     //   setTimeout(
     // emit the copy, but finish processing this one first
     // () =>
@@ -278,7 +280,10 @@ class HoldingLogRecordProcessor implements SelfDescribingLogRecordProcessor {
   private emittedLogRecords: Array<[LogRecord, Context]> = [];
 
   flushTo(other: SelfDescribingLogRecordProcessor) {
-    this.emittedLogRecords.forEach(([LogRecord, parentContext]) => other.onEmit(LogRecord, parentContext));
+    this.emittedLogRecords.forEach(([logRecord, parentContext]) => {
+      // Cannot add to log attributes anymore :-(
+      other.onEmit(logRecord, parentContext);
+    });
     this.emittedLogRecords = []; // make sure we don't hold a reference to a pile of LogRecords forever.
   }
 
@@ -333,8 +338,8 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
     return this.currentDownstream.forceFlush();
   }
   onEmit(logRecord: LogRecord, parentContext: Context): void {
-    recordEmission(logRecord, parentContext, this.currentDownstream, (childReport) =>
-      this.describeSelfInternal("", childReport)
+    recordEmission(logRecord, parentContext, [this.currentDownstream], (childReports) =>
+      this.describeSelfInternal("", childReports[0])
     );
   }
   shutdown(): Promise<void> {
@@ -345,19 +350,21 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
 function recordEmission(
   logRecord: LogRecord,
   parentContext: Context,
-  logProcessor: LogRecordProcessor,
-  wrapTheChildReport: (childReport: string) => string
+  logProcessors: LogRecordProcessor[],
+  wrapTheChildReport: (childReport: string[]) => string
 ) {
-  var processingRecordBefore = logRecord.attributes["boothgame.processing_report"];
+  var processingRecordBefore = logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
   if (!!processingRecordBefore) {
     processingRecordBefore += PROCESSING_REPORT_DELIMITER;
   }
-  logRecord.attributes["boothgame.processing_report"] = "";
 
-  logProcessor.onEmit(logRecord, parentContext);
+  const processingRecordsFromChildren: string[] = [];
+  logProcessors.forEach((logProcessor) => {
+    logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "";
+    logProcessor.onEmit(logRecord, parentContext);
+    processingRecordsFromChildren.push(logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]);
+  });
 
-  const processingRecordFromChild = logRecord.attributes["boothgame.processing_report"];
-
-  logRecord.attributes["boothgame.processing_report"] =
-    processingRecordBefore + wrapTheChildReport(processingRecordFromChild);
+  logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] =
+    processingRecordBefore + wrapTheChildReport(processingRecordsFromChildren);
 }

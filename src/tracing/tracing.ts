@@ -72,7 +72,7 @@ function initializeTracing() {
     processorForTeam,
   });
 
-  console.log(boothGameProcessor.describeSelf(""));
+  console.log(boothGameProcessor.describeSelf());
 
   provider.addSpanProcessor(boothGameProcessor);
 
@@ -84,7 +84,7 @@ function initializeTracing() {
     instrumentations: [new DocumentLoadInstrumentation(), new FetchInstrumentation()],
   });
 
-  console.log("Tracing initialized, version j");
+  console.log("Tracing initialized, version k");
 
   return { learnerOfTeam, boothGameProcessor };
 }
@@ -119,7 +119,7 @@ function initializeLogging() {
     processorForTeam,
   });
 
-  console.log(boothGameProcessor.describeSelf(""));
+  console.log(boothGameProcessor.describeSelf());
 
   loggerProvider.addLogRecordProcessor(boothGameProcessor);
   logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
@@ -175,5 +175,5 @@ export function learnTeam(team: TracingTeam) {
   logInit.learnerOfTeam.learnCustomerTeam(team);
   // you want to see it, it has reconfigured, see.
   console.log(boothGameProcessor.describeSelf(""));
-  console.log(logInit.boothGameProcessor.describeSelf(""));
+  console.log(logInit.boothGameProcessor.describeSelf());
 }
