@@ -92,6 +92,7 @@ class WrapSpanProcessorWithDescription implements SelfDescribingSpanProcessor {
     return this.description;
   }
   onStart(span: TraceBaseSpan, parentContext: Context): void {
+    reportProcessing(span, this.description);
     this.processor.onStart(span, parentContext);
   }
   onEnd(span: ReadableSpan): void {
@@ -273,6 +274,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
       },
       itsContext
     );
+    reportProcessing(span, "Copy made X");
     span.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
@@ -294,9 +296,13 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     }
     const openSpanCopy = this.openSpanCopies[span.spanContext().spanId];
     if (openSpanCopy) {
-      openSpanCopy.setAttributes(span.attributes); // set these at the end, so they're all here
+      const attributes = { ...span.attributes };
+      // now, the things that are particular to the copies -- do not pull these from the originals
+      delete attributes[ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS];
+      delete attributes[ATTRIBUTE_NAME_FOR_COPIES];
+      delete attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
+      openSpanCopy.setAttributes(attributes); // set these at the end, so they're all here
       span.events.forEach((event) => openSpanCopy.addEvent(event.name, event.attributes, event.time));
-      // TODO: copy span links
       openSpanCopy.end(span.endTime);
       delete this.openSpanCopies[span.spanContext().spanId];
     }
@@ -401,7 +407,7 @@ function recordProcessingOnStart(
   spanProcessors: SpanProcessor[],
   wrapTheChildReport: (childReport: string[]) => string
 ) {
-  var processingRecordBefore = span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
+  var processingRecordBefore = span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] || "";
   if (!!processingRecordBefore) {
     processingRecordBefore += PROCESSING_REPORT_DELIMITER;
   }

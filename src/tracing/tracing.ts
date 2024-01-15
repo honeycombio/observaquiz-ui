@@ -84,7 +84,7 @@ function initializeTracing() {
     instrumentations: [new DocumentLoadInstrumentation(), new FetchInstrumentation()],
   });
 
-  console.log("Tracing initialized, version k");
+  console.log("Tracing initialized, version l");
 
   return { learnerOfTeam, boothGameProcessor };
 }
