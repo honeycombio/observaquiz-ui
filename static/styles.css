@@ -98,3 +98,7 @@ img.small-logo {
   border-radius: 2px;
   margin: 1px 0px 16px 0px;
 }
+
+#where-your-answer-goes {
+  font-size: small
+}

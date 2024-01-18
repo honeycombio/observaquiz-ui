@@ -176,6 +176,13 @@ function QuestionInternal(props: QuestionProps) {
           Reset quiz
         </button>
       </p>
+      <p className="where-your-answer-goes">
+        The information you enter will be sent to: 
+        the Observaquiz backend,
+        OpenAI for generating a response, 
+        DeepChecks for evaluating that response, 
+        and Honeycomb for tracing (both your team and our team). It will be retained in Honeycomb for 60 days.
+      </p>
     </div>
   );
 }
