@@ -176,7 +176,7 @@ function QuestionInternal(props: QuestionProps) {
           Reset quiz
         </button>
       </p>
-      <p className="where-your-answer-goes">
+      <p className="fine-print">
         The information you enter will be sent to: 
         the Observaquiz backend,
         OpenAI for generating a response, 

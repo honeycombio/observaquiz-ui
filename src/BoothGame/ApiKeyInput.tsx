@@ -151,10 +151,12 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   }
 
   return (
+    <div>
+      
     <form onSubmit={formSubmit}>
       <div className="question-parent">
         <p className="">
-          First, please sign up (or log in) to{" "}
+          First, please sign up (free) or log in to{" "}
           <a target="_blank" href="https://ui.honeycomb.io">
             Honeycomb
           </a>{" "}
@@ -200,6 +202,12 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
         </p>
       </div>
     </form>
+    <p className="fine-print">
+      This app will send data to your Honeycomb environment. 
+      You will see 2 new datasets: observaquiz-browser and booth-game-backend. As a team owner, you can delete these later.
+      You will get about 200 events. For comparison, a free Honeycomb team can receive 20,000,000 events per month.
+    </p>
+    </div>
   );
 }
 
