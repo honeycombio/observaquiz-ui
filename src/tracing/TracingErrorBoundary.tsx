@@ -20,7 +20,7 @@ export function TracingErrorBoundary(props: TracingErrorBoundaryProps) {
 
   function linkToErrorSpan() {
     // TODO: combine this class with ComponentLifecycleTracing
-    if (honeycombTeam) {
+    if (honeycombTeam.populated) {
       return getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan);
     }
   }

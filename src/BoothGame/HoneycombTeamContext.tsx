@@ -9,6 +9,7 @@ export type HoneycombTeamContextType =
       team: { name: string; slug: string };
       environment: { name: string; slug: string };
       apiKey: string;
+      region: "us" | "eu";
     }
   | {
       populated: false;

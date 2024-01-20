@@ -2,10 +2,10 @@ import React, { FormEvent, useContext } from "react";
 import { Configuration } from "../Configuration";
 import {
   ActiveLifecycleSpan,
-  ActiveLifecycleSpanType,
   ComponentLifecycleTracing,
 } from "../tracing/ComponentLifecycleTracing";
 import { callHoneycombAuthEndpoint } from "./honeycombAuth";
+import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 
 type ApiKeyInputProps = { moveForward: (success: ApiKeyInputSuccess) => void };
 

@@ -1,8 +1,7 @@
 import { trace, Span, Context, context, Attributes, SpanContext, SpanStatusCode } from "@opentelemetry/api";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { v4 as uuidv4 } from "uuid";
-import { TracingTeam } from "../Tracker/TracingTracker";
-import { getUrlToDataset } from "./TracingDestination";
+import { TracingTeam, getUrlToDataset } from "./TracingDestination";
 
 export type ComponentLifecycleSpans = {
   spanThatWeSendRightAway: Span; // use this for logs & as a parent for other spans
