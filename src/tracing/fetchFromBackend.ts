@@ -28,7 +28,6 @@ export function fetchFromBackend(
         span?.setAttributes({
           "response.headers": getTheStupidHeaders(response),
         });
-        setTheStupidBody(span!, response);
         const tracechild = response.headers.get("x-tracechild");
         addSpanLink(tracechild, url);
         return response;
@@ -44,14 +43,6 @@ function getTheStupidHeaders(response: Response) {
     headersObj[name] = value;
   });
   return JSON.stringify(headersObj);
-}
-
-function setTheStupidBody(span: Span, response: Response) {
-  const clonedResponse = response.clone();
-  // Read the body from the cloned response
-  clonedResponse.text().then((bodyText) => {
-    span.setAttributes({ "response.body": bodyText });
-  });
 }
 
 function addSpanLink(tracechild: string | null, url: string) {
