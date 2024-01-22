@@ -1,6 +1,7 @@
 import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 import { Attributes } from "@opentelemetry/api";
 import { HoneycombTeamContextType } from "./HoneycombTeamContext";
+import { fetchFromBackend } from "../tracing/fetchFromBackend";
 
 export type ResponseFromAI =
   | {
@@ -48,17 +49,7 @@ export function fetchResponseToAnswer(
     answer: answerContent,
   });
   const logAttributes: Attributes = { "app.questionAnswer.request": body, "app.questionAnswer.url": url };
-  return span
-    .inContext(() =>
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...honeycombTeam.fetchHeaders,
-        },
-        body,
-      })
-    )
+  return fetchFromBackend(span, honeycombTeam, "POST", url, body)
     .then((response) => {
       logAttributes["app.questionAnswer.response.status"] = response.status;
       logAttributes["app.questionAnswer.response.contentType"] = response.headers.get("Content-Type") || "unset";
