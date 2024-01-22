@@ -60,11 +60,9 @@ function QuestionInternal(props: QuestionProps) {
   }
 
   function fetchResponse() {
-    activeLifecycleSpan
-      .inSpanAsync("fetch response", {}, () =>
-        fetchResponseToAnswer(activeLifecycleSpan, honeycombTeam, { questionId, questionText, answerContent })
-      )
-      .then((response) => {
+    activeLifecycleSpan;
+    fetchResponseToAnswer(activeLifecycleSpan, honeycombTeam, { questionId, questionText, answerContent }).then(
+      (response) => {
         if (response.status === "failure") {
           setResponse(response.error);
           setState(
@@ -85,7 +83,8 @@ function QuestionInternal(props: QuestionProps) {
             "answer received"
           );
         }
-      });
+      }
+    );
   }
 
   function nextQuestion(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -177,11 +176,9 @@ function QuestionInternal(props: QuestionProps) {
         </button>
       </p>
       <p className="fine-print">
-        The information you enter will be sent to: 
-        the Observaquiz backend,
-        OpenAI for generating a response, 
-        DeepChecks for evaluating that response, 
-        and Honeycomb for tracing (both your team and our team). It will be retained in Honeycomb for 60 days.
+        The information you enter will be sent to: the Observaquiz backend, OpenAI for generating a response, DeepChecks
+        for evaluating that response, and Honeycomb for tracing (both your team and our team). It will be retained in
+        Honeycomb for 60 days.
       </p>
     </div>
   );

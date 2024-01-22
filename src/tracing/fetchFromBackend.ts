@@ -3,15 +3,19 @@ import { Attributes, SpanContext, trace } from "@opentelemetry/api";
 
 type ThingWithTheHeaders = {
   fetchHeaders: Record<string, string>;
-}
+};
 
-export function fetchFromBackend(span: ActiveLifecycleSpanType, 
-  honeycombTeam: ThingWithTheHeaders, 
-  method: string, 
-  url: string, 
-  body: string): Promise<Response> {
-  return span
-    .inContext(() =>
+export function fetchFromBackend(
+  span: ActiveLifecycleSpanType,
+  honeycombTeam: ThingWithTheHeaders,
+  method: string,
+  url: string,
+  body: string
+): Promise<Response> {
+  return span.inSpanAsync(
+    "fetch from backend",
+    { "request.url": url, "http.method": method, "request.body": body },
+    () =>
       fetch(url, {
         method,
         headers: {
@@ -20,19 +24,17 @@ export function fetchFromBackend(span: ActiveLifecycleSpanType,
         },
         body,
       }).then((response) => {
-        console.log("JESS IS HERE");
+        console.log("JESS IS HERE 2");
         const headers = JSON.stringify(response.headers);
         trace.getActiveSpan()?.setAttribute("response.headers", headers);
         const tracechild = response.headers.get("x-tracechild");
         addSpanLink(tracechild, url);
         return response;
-      }
-    ))
+      })
+  );
 }
 
-
-
-const tracer = trace.getTracer("Why is adding span links so hard")
+const tracer = trace.getTracer("Why is adding span links so hard");
 
 function addSpanLink(tracechild: string | null, url: string) {
   // if otel ever gets kinder and lets us add a link
@@ -44,7 +46,7 @@ function addSpanLink(tracechild: string | null, url: string) {
       const traceId = match[1];
       const spanId = match[2];
       const to = { traceId, spanId, traceFlags: 1 };
-      tracer.startSpan("links to backend span", { links: [{ context: to, attributes: { "url": url}}]}).end()
+      tracer.startSpan("links to backend span", { links: [{ context: to, attributes: { url: url } }] }).end();
     }
   }
 }
