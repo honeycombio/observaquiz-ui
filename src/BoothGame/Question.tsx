@@ -64,14 +64,14 @@ function QuestionInternal(props: QuestionProps) {
     fetchResponseToAnswer(activeLifecycleSpan, honeycombTeam, { questionId, questionText, answerContent }).then(
       (response) => {
         if (response.status === "failure") {
-          setResponse(response.error);
+          setResponse(response.error || "it didn't even give me an error");
           setState(
             { name: "error", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
             "failed to fetch response"
           );
         } else {
           // success
-          const interpretation = `I give that a ${response.response.score}. ${response.response.better_answer}`;
+          const interpretation = `I give that a ${response.response.score}. ${response.response.response}`;
           setResponse(interpretation);
           setState(
             {
