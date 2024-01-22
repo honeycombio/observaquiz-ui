@@ -1,5 +1,5 @@
 import { ActiveLifecycleSpanType } from "./activeLifecycleSpan";
-import { Attributes, SpanContext, trace } from "@opentelemetry/api";
+import { trace, Span } from "@opentelemetry/api";
 
 type ThingWithTheHeaders = {
   fetchHeaders: Record<string, string>;
@@ -24,8 +24,11 @@ export function fetchFromBackend(
         },
         body,
       }).then((response) => {
-        const headers = JSON.stringify(response.headers);
-        trace.getActiveSpan()?.setAttribute("response.headers", headers);
+        const span = trace.getActiveSpan();
+        span?.setAttributes({
+          "response.headers": getTheStupidHeaders(response),
+        });
+        setTheStupidBody(span!, response);
         const tracechild = response.headers.get("x-tracechild");
         addSpanLink(tracechild, url);
         return response;
@@ -34,6 +37,22 @@ export function fetchFromBackend(
 }
 
 const tracer = trace.getTracer("Why is adding span links so hard");
+
+function getTheStupidHeaders(response: Response) {
+  const headersObj: { [key: string]: string } = {};
+  response.headers.forEach((value, name) => {
+    headersObj[name] = value;
+  });
+  return JSON.stringify(headersObj);
+}
+
+function setTheStupidBody(span: Span, response: Response) {
+  const clonedResponse = response.clone();
+  // Read the body from the cloned response
+  clonedResponse.text().then((bodyText) => {
+    span.setAttributes({ "response.body": bodyText });
+  });
+}
 
 function addSpanLink(tracechild: string | null, url: string) {
   // if otel ever gets kinder and lets us add a link
