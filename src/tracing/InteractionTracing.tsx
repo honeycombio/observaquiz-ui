@@ -61,7 +61,7 @@ export function InteractionTracing(props: { componentName: string; children: Rea
           return { span, context: context.active() };
         }
       );
-      console.log("setting active context to ", interactionSpanAndContext.context);
+    //  console.log("setting active context to ", interactionSpanAndContext.context);
       setInteractionSpanAndContext(interactionSpanAndContext);
       return;
     } else {

@@ -4,6 +4,8 @@ import proxy from "express-http-proxy";
 
 const app = express();
 
+console.log("everything is terrible")
+
 /* Send to the collector that which is the collector's */
 app.use(
   "/v1",
@@ -26,6 +28,9 @@ app.get("/api/questions", (req, res) => {
 // Now for the fake backend
 app.post("/api/questions/:questionId/answer", (req, res) => {
   const randomElement = possibleResponses[Math.floor(Math.random() * possibleResponses.length)];
+  // TODO: make actual traces. Send the actual thing
+  console.log("Setting garbage tracechild header");
+  res.setHeader("x-tracechild", "00-12341324-fafaffaf-01")
   res.send(randomElement);
 });
 
