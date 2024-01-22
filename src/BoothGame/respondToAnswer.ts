@@ -12,7 +12,7 @@ export type ResponseFromAI =
 
 type AnswersAPIResponse = {
   score: string;
-  response: string;
+  response: number;
 };
 
 function verifyResponse(response: any): AnswersAPIResponse {
@@ -22,14 +22,14 @@ function verifyResponse(response: any): AnswersAPIResponse {
   if (!response.score) {
     throw new Error("Response is missing score");
   }
-  if (typeof response.score != "string") {
-    throw new Error("Response score is not a string");
+  if (typeof response.score != "number") {
+    throw new Error("Response score is not a number");
   }
   if (typeof response.response != "string") {
-    throw new Error("Response better_answer is not a string");
+    throw new Error("Response response is not a string");
   }
   if (!response.response) {
-    throw new Error("Response is missing better_answer");
+    throw new Error("Response is missing response");
   }
   return response as AnswersAPIResponse;
 }
