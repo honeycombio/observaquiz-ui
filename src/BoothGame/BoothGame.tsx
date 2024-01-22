@@ -23,7 +23,6 @@ function BoothGameInternal(props: BoothGameProps) {
   const [currentState, setCurrentState] = React.useState<QuizState>({ name: "hello" });
 
   function helloBegin() {
-    console.log("Let us begin");
     setCurrentState({ name: "get api key" });
     boothGameLifecycleSpan.withLog(
       "change state",
@@ -38,7 +37,6 @@ function BoothGameInternal(props: BoothGameProps) {
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
-    console.log("Thank you for the api key", news.apiKey);
     boothGameLifecycleSpan.withLog("change state", {
       "app.boothGame.state": "ask questions",
       "app.boothGame.previousState": "get api key",
@@ -54,7 +52,6 @@ function BoothGameInternal(props: BoothGameProps) {
   }
 
   function acceptQuestionSet(questionSet: QuestionSet) {
-    console.log("Thank you for the question set", questionSet);
     setCurrentState({ name: "ask questions", questionSet });
     boothGameLifecycleSpan.addLog("change state", {
       "app.boothGame.state": "ask questions",

@@ -26,7 +26,6 @@ const SessionGateway = () => ({
   setSessionValue<K extends keyof ISession>(key: K, value: ISession[K]) {
     const session = this.getSession();
 
-    console.log("Setting local storage for ", key);
     localStorage.setItem(sessionKey, JSON.stringify({ ...session, [key]: value }));
   },
 });

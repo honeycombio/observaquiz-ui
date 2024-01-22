@@ -24,7 +24,6 @@ export function fetchFromBackend(
         },
         body,
       }).then((response) => {
-        console.log("JESS IS HERE 2");
         const headers = JSON.stringify(response.headers);
         trace.getActiveSpan()?.setAttribute("response.headers", headers);
         const tracechild = response.headers.get("x-tracechild");

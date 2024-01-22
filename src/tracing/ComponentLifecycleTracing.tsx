@@ -39,7 +39,6 @@ function beginExistence(
   outerContext: Context,
   attributes?: Attributes
 ) {
-  console.log("Existence tracing: beginExistence of ", componentName);
   const { span: spanThatWeSendRightAway, context: innerContext } = componentLifecycleTracer.startActiveSpan(
     `${componentName}`,
     {
@@ -51,12 +50,9 @@ function beginExistence(
     },
     outerContext,
     (span) => {
-      //  console.log("cheatily returning the span");
-      // console.log("What baggage do we have?", propagation.getBaggage(context.active()));
       return { span, context: context.active() };
     }
   );
-  console.log("Ending span right away", spanThatWeSendRightAway.spanContext().spanId);
   spanThatWeSendRightAway.end(); // ship it so something will be there
   const spanThatWeWillTryToEnd = componentLifecycleTracer.startSpan(
     `${componentName} existence`,
@@ -70,7 +66,6 @@ function beginExistence(
     innerContext
   );
 
-  console.log("existence tracing: setting active context to ", innerContext);
   setComponentLifecycleSpans({
     spanThatWeWillTryToEnd,
     spanThatWeSendRightAway,
@@ -79,16 +74,9 @@ function beginExistence(
 }
 
 function endExistence(componentLifecycleSpans: ComponentLifecycleSpans | undefined, componentName: string) {
-  console.log(
-    "Existence tracing: endExistence of ",
-    componentName,
-    "with span",
-    componentLifecycleSpans?.spanThatWeWillTryToEnd.spanContext()
-  );
   if (componentLifecycleSpans) {
     // no, this has to be a log
     componentLifecycleSpans.spanThatWeWillTryToEnd.end();
-    console.log("Emitting a log on unload dammit");
     componentLifecycleLogger.emit({
       body: "Unloaded " + componentName,
       severityNumber: logsAPI.SeverityNumber.INFO,
@@ -102,7 +90,6 @@ function endExistence(componentLifecycleSpans: ComponentLifecycleSpans | undefin
       context: componentLifecycleSpans.contextToUseAsAParent,
     });
   } else {
-    console.log("Ending nonexistence of ", componentName);
   }
 }
 

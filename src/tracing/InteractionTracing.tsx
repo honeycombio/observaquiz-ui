@@ -28,13 +28,6 @@ export function InteractionTracing(props: { componentName: string; children: Rea
   const outerInteractionContext = useContext(OpentelemetryInteractionContext);
   const outerLifecycleContext = useContext(OpentelemetryContext);
 
-  console.log(
-    "Starting interaction tracing. Do we have an interaction context? ",
-    !!outerInteractionContext,
-    "Do we have a lifecycle context?",
-    !!outerLifecycleContext
-  );
-
   const outerContext = outerInteractionContext || outerLifecycleContext;
 
   const [interactionSpanAndContext, setInteractionSpanAndContext] = useState<TracingContext | undefined>(undefined);
@@ -50,7 +43,6 @@ export function InteractionTracing(props: { componentName: string; children: Rea
 
   function beginInteraction(event: React.MouseEvent<HTMLElement, MouseEvent>) {
     if (!interactionSpanAndContext) {
-      console.log(`no span yet, starting ${componentName} span in`, outerContext);
       const interactionSpanAndContext = interactionTracer.startActiveSpan(
         `mouse enters ${componentName}`,
         {
@@ -61,11 +53,9 @@ export function InteractionTracing(props: { componentName: string; children: Rea
           return { span, context: context.active() };
         }
       );
-    //  console.log("setting active context to ", interactionSpanAndContext.context);
       setInteractionSpanAndContext(interactionSpanAndContext);
       return;
     } else {
-      console.log("span already exists");
       interactionSpanAndContext.span.addEvent(`mouse enters ${componentName} again`, attributesOfMouseEvent(event));
     }
   }

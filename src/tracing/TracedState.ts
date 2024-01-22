@@ -29,7 +29,6 @@ export function useDeclareTracedState<T>(name: string, initialState: T) {
 
   function setStateWithProvenance(t: T) {
     // look for the OTel context that this function was called in.
-    console.log("Consider making a 'from' log...");
     setTracedState({
       value: t,
       provenance: {

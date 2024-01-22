@@ -12,7 +12,6 @@ export function TracingErrorBoundary(props: TracingErrorBoundaryProps) {
   const honeycombTeam = React.useContext(HoneycombTeamContext);
 
   function logError(error: Error, errorInfo: ErrorInfo) {
-    console.log("Noticed error. Emitting as an error");
     activeLifecycleSpan.addError("Error boundary snagged", error, {
       "error.componentStack": errorInfo?.componentStack || "unknown error info",
     });

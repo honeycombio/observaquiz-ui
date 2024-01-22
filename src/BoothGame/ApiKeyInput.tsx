@@ -70,7 +70,6 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
       setEnteredApiKey(result.apiKey);
     }
     if (result.saveApiKeyToLocalStorage !== null) {
-      console.log("setting save to local storage to ", result.saveApiKeyToLocalStorage);
       setSaveToLocalStorage(result.saveApiKeyToLocalStorage);
     }
   }, []);
@@ -98,11 +97,9 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   }
 
   const submitIsAvailable = enteredApiKey && !loadingness;
-  console.log("submitIsAvailable", submitIsAvailable);
 
   function formSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); // don't actually submit the form
-    console.log("form submit!");
     span.addLog("form submit", { "app.honeycomb.apiKey": enteredApiKey });
 
     enterStateOfLoading();

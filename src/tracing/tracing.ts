@@ -160,12 +160,6 @@ function instrumentGlobalErrors() {
   });
 }
 
-function sendTestSpan() {
-  const span = trace.getTracer("test span").startSpan("test span");
-  console.log("Sending test span", span.spanContext());
-  span.end();
-}
-
 const { learnerOfTeam, boothGameProcessor } = initializeTracing();
 const logInit = initializeLogging();
 instrumentGlobalErrors();

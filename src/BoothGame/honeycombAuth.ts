@@ -46,7 +46,6 @@ export async function callHoneycombAuthEndpoint(
     },
   })
     .then((response): Promise<AuthResponse> => {
-      console.log("Response: ", response);
       span.setAttributes({
         "app.honeycomb.authResponse": JSON.stringify(response),
         "app.honeycomb.authStatus": response.status,
@@ -54,7 +53,6 @@ export async function callHoneycombAuthEndpoint(
 
       if (response.ok) {
         return response.json().then((json) => {
-          console.log("auth JSON: ", json);
           span.setAttributes({ "app.honeycomb.auth.json": JSON.stringify(json) });
           return convertHoneycombAuthResponse(json);
         });

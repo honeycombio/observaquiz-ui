@@ -4,7 +4,6 @@ import proxy from "express-http-proxy";
 
 const app = express();
 
-console.log("everything is terrible")
 
 /* Send to the collector that which is the collector's */
 app.use(
@@ -21,7 +20,6 @@ app.use(express.json());
 app.use(express.static("../../dist"));
 
 app.get("/api/questions", (req, res) => {
-  console.log("pwd ", __dirname);
   res.sendFile("dist/local-questions.json", { root: __dirname + "/../.." });
 });
 
