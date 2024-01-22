@@ -81,7 +81,7 @@ export function wrapAsActiveLifecycleSpan(
 
     addError: (name: string, error?: Error, attributes?: Attributes) => {
       const uniqueID = uuidv4();
-      const errorDescription = name + error ? ": " + error?.message : "";
+      const errorDescription = name + (error ? ": " + error?.message : "");
       componentLifecycleLogger.emit({
         body: errorDescription,
         severityNumber: logsAPI.SeverityNumber.ERROR,
@@ -91,6 +91,8 @@ export function wrapAsActiveLifecycleSpan(
           excitementLevel: "disturbed",
           "jess.telemetry.intent": "lifecycle error event",
           name,
+          "error.message": error?.message,
+          "error.stack": error?.stack, // does this work? worth a try
           error: true,
           ...standardAttributes(componentName),
           ...componentAttributes,
