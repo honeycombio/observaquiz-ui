@@ -1,5 +1,5 @@
 import { ActiveLifecycleSpanType } from "./activeLifecycleSpan";
-import { trace, Span } from "@opentelemetry/api";
+import { trace, Span, SpanStatusCode } from "@opentelemetry/api";
 
 type ThingWithTheHeaders = {
   fetchHeaders: Record<string, string>;
@@ -27,7 +27,12 @@ export function fetchFromBackend(
         const span = trace.getActiveSpan();
         span?.setAttributes({
           "response.headers": getTheStupidHeaders(response),
+          "response.status_code": response.status,
+          "response.status_text": response.statusText,
         });
+        if (!response.ok) {
+          span?.setStatus({ code: SpanStatusCode.ERROR, message: response.statusText });
+        }
         const tracechild = response.headers.get("x-tracechild");
         addSpanLink(tracechild, url);
         return response;
@@ -35,7 +40,7 @@ export function fetchFromBackend(
   );
 }
 
-const tracer = trace.getTracer("Why is adding span links so hard");
+const tracer = trace.getTracer("I wish we could add span links to an existing span");
 
 function getTheStupidHeaders(response: Response) {
   const headersObj: { [key: string]: string } = {};
