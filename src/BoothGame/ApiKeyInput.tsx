@@ -1,9 +1,6 @@
 import React, { FormEvent, useContext } from "react";
 import { Configuration } from "../Configuration";
-import {
-  ActiveLifecycleSpan,
-  ComponentLifecycleTracing,
-} from "../tracing/ComponentLifecycleTracing";
+import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { callHoneycombAuthEndpoint } from "./honeycombAuth";
 import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 
@@ -149,61 +146,60 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
 
   return (
     <div>
-      
-    <form onSubmit={formSubmit}>
-      <div className="question-parent">
-        <p className="">
-          First, please sign up (free) or log in to{" "}
-          <a target="_blank" href="https://ui.honeycomb.io">
-            Honeycomb
-          </a>{" "}
-          and{" "}
-          <a target="_blank" href="https://docs.honeycomb.io/working-with-your-data/settings/api-keys/#find-api-keys">
-            get an API key
-          </a>
-          .
-        </p>
-        <p>The key needs these permissions: Send Events & Create Datasets.</p>
-        <p>We will send traces from this quiz session to Honeycomb so you can see them!</p>
-        <label htmlFor="apiKey-input">Paste your API key here:</label>
-        <p className="grouped">
-          <input
-            id="apiKey-input"
-            name="apiKey"
-            className="apikey-goes-here"
-            type="password"
-            value={enteredApiKey}
-            onChange={onApiKeyChange}
-          ></input>
-        </p>
-        <p>
-          <button
-            disabled={!submitIsAvailable} // I don't like this. I want a state that is a function of other state...
-            className="button-4 centered-button"
-            id="question-submit"
-            type="submit"
-            autoFocus
-          >
-            {loadingness ? "..." : "Submit"}
-          </button>
-        </p>
-        <p className="error-response">{errorResponse}</p>
-        <p>
-          <input
-            type="checkbox"
-            id="save-api-key"
-            checked={saveToLocalStorage}
-            onChange={onSaveToLocalStorageChange}
-          ></input>
-          <label htmlFor="save-api-key">Save to local storage</label>
-        </p>
-      </div>
-    </form>
-    <p className="fine-print">
-      This app will send data to your Honeycomb environment. 
-      You will see 2 new datasets: observaquiz-browser and booth-game-backend. As a team owner, you can delete these later.
-      You will get about 200 events. For comparison, a free Honeycomb team can receive 20,000,000 events per month.
-    </p>
+      <form onSubmit={formSubmit}>
+        <div className="question-parent">
+          <p className="">
+            First, please sign up (free) or log in to{" "}
+            <a target="_blank" href="https://ui.honeycomb.io">
+              Honeycomb
+            </a>{" "}
+            and{" "}
+            <a target="_blank" href="https://docs.honeycomb.io/working-with-your-data/settings/api-keys/#find-api-keys">
+              get an API key
+            </a>
+            .
+          </p>
+          <p>The key needs these permissions: Send Events & Create Datasets.</p>
+          <p>We will send traces from this quiz session to Honeycomb so you can see them!</p>
+          <label htmlFor="apiKey-input">Paste your API key here:</label>
+          <p className="grouped">
+            <input
+              id="apiKey-input"
+              name="apiKey"
+              className="apikey-goes-here"
+              type="password"
+              value={enteredApiKey}
+              onChange={onApiKeyChange}
+            ></input>
+          </p>
+          <p>
+            <button
+              disabled={!submitIsAvailable} // I don't like this. I want a state that is a function of other state...
+              className="button-4 centered-button"
+              id="question-submit"
+              type="submit"
+              autoFocus
+            >
+              {loadingness ? "..." : "Submit"}
+            </button>
+          </p>
+          <p className="error-response">{errorResponse}</p>
+          <p>
+            <input
+              type="checkbox"
+              id="save-api-key"
+              checked={saveToLocalStorage}
+              onChange={onSaveToLocalStorageChange}
+            ></input>
+            <label htmlFor="save-api-key">Save to local storage</label>
+          </p>
+        </div>
+      </form>
+      <p className="fine-print">
+        This app will send data to your Honeycomb environment. You will see 2 new datasets: observaquiz-browser and
+        observaquiz-bff. As a team owner, you can delete these later. You will get about 200 events. For comparison, a
+        free Honeycomb team can receive 20,000,000 events per month.
+      </p>
     </div>
   );
 }
