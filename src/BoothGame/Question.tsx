@@ -1,5 +1,4 @@
 import React, { ChangeEvent } from "react";
-import { InteractionTracing } from "../tracing/InteractionTracing";
 import { HowToReset } from "../resetQuiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { fetchResponseToAnswer } from "./respondToAnswer";
@@ -194,9 +193,7 @@ type QuestionProps = {
 export function Question(props: QuestionProps) {
   return (
     <ComponentLifecycleTracing componentName="question" attributes={{ "app.questionText": props.questionText }}>
-      <InteractionTracing componentName="question">
-        <QuestionInternal {...props} />
-      </InteractionTracing>
+      <QuestionInternal {...props} />
     </ComponentLifecycleTracing>
   );
 }
