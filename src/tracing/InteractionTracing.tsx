@@ -56,7 +56,7 @@ export function InteractionTracing(props: { componentName: string; children: Rea
       setInteractionSpanAndContext(interactionSpanAndContext);
       return;
     } else {
-      interactionSpanAndContext.span.addEvent(`mouse enters ${componentName} again`, attributesOfMouseEvent(event));
+      interactionSpanAndContext.span.addEvent(`mouse enters ${componentName} again`,attributesOfMouseEvent(event));
     }
   }
 

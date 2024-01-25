@@ -19,7 +19,7 @@ function verifyResponse(response: any): AnswersAPIResponse {
   if (!response) {
     throw new Error("Response is empty");
   }
-  if (!response.score) {
+  if (response.score === undefined) {
     throw new Error("Response is missing score");
   }
   if (typeof response.score != "number") {
@@ -28,7 +28,7 @@ function verifyResponse(response: any): AnswersAPIResponse {
   if (typeof response.response != "string") {
     throw new Error("Response response is not a string");
   }
-  if (!response.response) {
+  if (response.response === undefined) {
     throw new Error("Response is missing response");
   }
   return response as AnswersAPIResponse;
