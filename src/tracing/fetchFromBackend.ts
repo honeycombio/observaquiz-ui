@@ -1,5 +1,5 @@
 import { ActiveLifecycleSpanType } from "./activeLifecycleSpan";
-import { trace, Span, SpanStatusCode } from "@opentelemetry/api";
+import { trace, Attributes, SpanStatusCode } from "@opentelemetry/api";
 
 type ThingWithTheHeaders = {
   fetchHeaders: Record<string, string>;
@@ -10,12 +10,13 @@ export function fetchFromBackend(
   honeycombTeam: ThingWithTheHeaders,
   method: string,
   url: string,
-  body: string
-): Promise<Response> {
+  body: string,
+  attributesFromJson: (json: any) => Attributes
+): Promise<unknown> {
   return span.inSpanAsync(
     "fetch from backend",
     { "request.url": url, "http.method": method, "request.body": body },
-    () =>
+    (span) =>
       fetch(url, {
         method,
         headers: {
@@ -23,20 +24,29 @@ export function fetchFromBackend(
           ...honeycombTeam.fetchHeaders,
         },
         body,
-      }).then((response) => {
-        const span = trace.getActiveSpan();
-        span?.setAttributes({
-          "response.headers": getTheStupidHeaders(response),
-          "response.status_code": response.status,
-          "response.status_text": response.statusText,
-        });
-        if (!response.ok) {
-          span?.setStatus({ code: SpanStatusCode.ERROR, message: response.statusText });
-        }
-        const tracechild = response.headers.get("x-tracechild");
-        addSpanLink(tracechild, url);
-        return response;
       })
+        .then((response) => {
+          span?.setAttributes({
+            "response.headers": getTheStupidHeaders(response),
+            "response.status_code": response.status,
+            "response.status_text": response.statusText,
+            "response.header.contentType": response.headers.get("Content-Type") || "unset",
+          });
+          const tracechild = response.headers.get("x-tracechild");
+          addSpanLink(tracechild, url);
+          if (!response.ok) {
+            span?.setStatus({ code: SpanStatusCode.ERROR, message: response.statusText });
+            throw new Error(`Response not ok: ${response.status} ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then((json) => {
+          span?.setAttributes({
+            "response.body": JSON.stringify(json),
+            ...attributesFromJson(json),
+          });
+          return json;
+        })
   );
 }
 

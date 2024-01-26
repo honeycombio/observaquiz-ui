@@ -15,7 +15,7 @@ export type ActiveLifecycleSpanType = {
   withLog<T>(name: string, attributes: Attributes, fn: () => T): T;
   addError: (name: string, error?: Error, attributes?: Attributes) => void;
   inSpan<T>(name: string, attributes: Attributes, fn: () => T): T;
-  inSpanAsync<T>(name: string, attributes: Attributes, fn: () => Promise<T>): Promise<T>;
+  inSpanAsync<T>(name: string, attributes: Attributes, fn: (span?: Span) => Promise<T>): Promise<T>;
   spanContext(): SpanContext | undefined;
   inContext<T>(fn: () => T): T;
 };
@@ -27,7 +27,7 @@ export const nilSpan: ActiveLifecycleSpanType = {
   addError: (name: string, error?: Error, attributes?: Attributes) => {},
   spanContext: () => undefined,
   inSpan: (name: string, attributes: Attributes, fn: () => any) => fn(),
-  inSpanAsync: (name: string, attributes: Attributes, fn: () => any) => fn(),
+  inSpanAsync: (name: string, attributes: Attributes, fn: (span?: Span) => any) => fn(undefined),
   inContext: (fn: () => any) => fn(),
 };
 
@@ -145,7 +145,7 @@ export function wrapAsActiveLifecycleSpan(
         }
       );
     },
-    inSpanAsync: (name: string, attributes: Attributes, fn: () => any) => {
+    inSpanAsync: (name: string, attributes: Attributes, fn: (span?: Span) => any) => {
       return componentLifecycleTracer.startActiveSpan(
         name,
         {
@@ -158,7 +158,7 @@ export function wrapAsActiveLifecycleSpan(
         componentLifecycleSpans.contextToUseAsAParent,
         async (span) => {
           try {
-            const result = await fn();
+            const result = await fn(span);
             return result;
           } catch (e) {
             if (e instanceof Error) {

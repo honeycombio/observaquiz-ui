@@ -15,23 +15,31 @@ type AnswersAPIResponse = {
   response: number;
 };
 
-function verifyResponse(response: any): AnswersAPIResponse {
+function verifyResponse(
+  response: any
+): { status: "rejected"; reasons: string[] } | { status: "success"; response: AnswersAPIResponse } {
+  const rejections = [];
   if (!response) {
-    throw new Error("Response is empty");
+    rejections.push("Response is empty");
+  } else {
+    if (response.score === undefined) {
+      rejections.push("Response is missing score");
+    }
+    if (typeof response.score != "number") {
+      rejections.push("Response score is not a number");
+    }
+    if (typeof response.response != "string") {
+      rejections.push("Response response is not a string");
+    }
+    if (response.response === undefined) {
+      rejections.push("Response is missing response");
+    }
   }
-  if (response.score === undefined) {
-    throw new Error("Response is missing score");
+  if (rejections.length > 0) {
+    return { status: "rejected", reasons: rejections };
+  } else {
+    return { status: "success", response: response as AnswersAPIResponse };
   }
-  if (typeof response.score != "number") {
-    throw new Error("Response score is not a number");
-  }
-  if (typeof response.response != "string") {
-    throw new Error("Response response is not a string");
-  }
-  if (response.response === undefined) {
-    throw new Error("Response is missing response");
-  }
-  return response as AnswersAPIResponse;
 }
 
 export function fetchResponseToAnswer(
@@ -48,28 +56,21 @@ export function fetchResponseToAnswer(
   const body = JSON.stringify({
     answer: answerContent,
   });
-  const logAttributes: Attributes = { "app.questionAnswer.request": body, "app.questionAnswer.url": url };
-  return fetchFromBackend(span, honeycombTeam, "POST", url, body)
-    .then((response) => {
-      logAttributes["app.questionAnswer.response.status"] = response.status;
-      logAttributes["app.questionAnswer.response.contentType"] = response.headers.get("Content-Type") || "unset";
-      if (!response.ok) {
-        throw new Error(`Response not ok: ${response.status} ${response.statusText}`);
+  return fetchFromBackend(span, honeycombTeam, "POST", url, body, (json: any) => {
+    console.log("I am in the thing");
+    return {
+      "app.question.score": json.score,
+      "app.question.response": json.response,
+    };
+  })
+    .then<ResponseFromAI>((json) => {
+      const result = verifyResponse(json);
+      if (result.status === "rejected") {
+        return { status: "failure", error: result.reasons.join(", ") };
       }
-      return response
-        .json()
-        .then<ResponseFromAI>((json) => {
-          logAttributes["app.questionAnswer.response"] = JSON.stringify(json);
-          const response = verifyResponse(json); // throws on failure
-          return { status: "success", response };
-        })
-        .then((response) => {
-          span.addLog("Response accepted", logAttributes);
-          return response;
-        });
+      return result;
     })
     .catch<ResponseFromAI>((error: Error) => {
-      span.addError("Error received", error, logAttributes);
       return { status: "failure", error: error.message };
     });
 }
