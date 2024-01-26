@@ -5,12 +5,48 @@ import { fetchResponseToAnswer } from "./respondToAnswer";
 import { Attributes } from "@opentelemetry/api";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
+const NoAnswerYet = {
+  name: "no answer yet",
+  inputEnabled: true,
+  nextStep: "submit answer",
+  alternativeNextStep: undefined,
+};
+
+const Answering = {
+  name: "answering",
+  inputEnabled: true,
+  nextStep: "submit answer",
+  alternativeNextStep: undefined,
+};
+
+const LoadingResponse = {
+  name: "loading response",
+  inputEnabled: false,
+  nextStep: "cancel",
+  alternativeNextStep: undefined,
+};
+
+const ShowingResponse = {
+  name: "showing response",
+  inputEnabled: false,
+  nextStep: "next question",
+  alternativeNextStep: "try again",
+};
+
+const ErrorState = {
+  name: "error",
+  inputEnabled: true,
+  nextStep: "submit answer",
+  alternativeNextStep: undefined,
+};
+
+
 type QuestionState =
-  | { name: "no answer yet"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined }
-  | { name: "answering"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined }
-  | { name: "loading response"; inputEnabled: false; nextStep: "cancel"; alternativeNextStep: undefined }
-  | { name: "showing response"; inputEnabled: false; nextStep: "next question"; alternativeNextStep: "try again" }
-  | { name: "error"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined };
+  | typeof NoAnswerYet
+  | typeof Answering
+  | typeof LoadingResponse
+  | typeof ShowingResponse
+  | typeof ErrorState;
 
 function QuestionInternal(props: QuestionProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -43,13 +79,13 @@ function QuestionInternal(props: QuestionProps) {
     const typedContent = event.target.value;
     if (state.name === "no answer yet" && typedContent) {
       setState(
-        { name: "answering", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
+        Answering,
         "typed content"
       );
     }
     if (state.name === "answering" && !!typedContent) {
       setState(
-        { name: "no answer yet", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
+        NoAnswerYet,
         "typed content"
       );
     }
