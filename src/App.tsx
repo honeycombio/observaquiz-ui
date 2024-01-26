@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { Configuration, Local, LocalButRealHoneycomb, Production } from "./Configuration.js";
 import { TrackedBoothGame } from "./TrackedBoothGame.js";
 
-console.log("begin! ai");
+console.log("begin! am");
 
 function QuizApp() {
   const [resets, setResets] = React.useState(0);
@@ -18,7 +18,7 @@ function QuizApp() {
     <Configuration.Provider value={LocalButRealHoneycomb}>
       <TrackedBoothGame key={resets} resetCount={resets} howToReset={reset} learnTeam={learnTeam} />
     </Configuration.Provider>
-  ); 
+  );
 }
 
 const root = createRoot(document.getElementById("root")!);

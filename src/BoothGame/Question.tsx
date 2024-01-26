@@ -76,11 +76,11 @@ function QuestionInternal(props: QuestionProps) {
 
   function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
     const typedContent = event.target.value;
-    if (state.name === "no answer yet" && typedContent) {
+    if (state.name === "no answer yet" && !!typedContent) {
       setState(Answering, "typed content");
     }
-    if (state.name === "answering" && !!typedContent) {
-      setState(NoAnswerYet, "typed content");
+    if (state.name === "answering" && !typedContent) {
+      setState(NoAnswerYet, "removed all content");
     }
     setAnswerContent(typedContent);
   }
@@ -93,7 +93,7 @@ function QuestionInternal(props: QuestionProps) {
 
   function submitAnswer(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
-    setState(LoadingResponse, "submit answer", { "app.question.answer": answerContent }); // TODO: make all calls to setState add a log
+    setState(LoadingResponse, "submit answer", { "app.question.answer": answerContent });
     fetchResponse();
   }
 
@@ -130,12 +130,27 @@ function QuestionInternal(props: QuestionProps) {
   function tryAgain(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
     setResponse("");
-    setAnswerContent("");
+    // leave their answer there so they can modify it
     setState(Answering, "Try again");
   }
 
+  console.log("Shall we enable the button? " + state.nextStepEnabled);
+
   var button: React.ReactNode = undefined;
   switch (state.nextStep) {
+    case "no answer yet":
+      button = (
+        <button
+          className=""
+          id="question-submit"
+          type="submit"
+          onClick={submitAnswer}
+          disabled={!state.nextStepEnabled}
+        >
+          Submit
+        </button>
+      );
+      break;
     case "submit answer":
       button = (
         <button className="" id="question-submit" type="submit" onClick={submitAnswer}>
