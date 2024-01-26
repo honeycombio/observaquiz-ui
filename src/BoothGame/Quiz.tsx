@@ -17,17 +17,18 @@ export type QuestionSet = {
 function QuizInternal(props: QuizProps) {
   const { questionSet } = props;
 
-  const [questionNumber, setQuestionNumber] = React.useState<number>(0);
+  const [questionIndex, setQuestionIndex] = React.useState<number>(0);
 
-  const currentQuestion = questionSet.questions[questionNumber];
+  const currentQuestion = questionSet.questions[questionIndex];
 
   const nextQuestion = () => {
-    setQuestionNumber(questionNumber + 1);
+    setQuestionIndex(questionIndex + 1);
   };
 
   const content = (
     <Question
-      key={questionNumber}
+      key={questionIndex}
+      questionNumber={questionIndex + 1}
       questionId={currentQuestion.id}
       questionText={currentQuestion.question}
       moveForward={nextQuestion}

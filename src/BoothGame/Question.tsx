@@ -223,6 +223,7 @@ function QuestionInternal(props: QuestionProps) {
 }
 
 type QuestionProps = {
+  questionNumber: number;
   questionId: string;
   questionText: string;
   moveForward: () => void;
