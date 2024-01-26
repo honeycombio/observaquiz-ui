@@ -2,6 +2,7 @@ import React from "react";
 import { QuestionSet } from "./Quiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
+import { fetchFromBackend } from "../tracing/fetchFromBackend";
 
 type QuestionSetState = "loading" | "error";
 
@@ -14,36 +15,24 @@ type QuestionSetJson = {
 };
 
 export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
-  const { fetchHeaders } = React.useContext(HoneycombTeamContext);
+  const honeycombTeam = React.useContext(HoneycombTeamContext);
   const { moveForward } = props;
   const span = React.useContext(ActiveLifecycleSpan);
 
   const [questionSetState, setQuestionSetState] = React.useState<QuestionSetState>("loading");
 
   React.useEffect(() => {
-    span
-      .inSpanAsync("fetch questions", {}, () =>
-        fetch("/api/questions", { headers: fetchHeaders })
-          .then((response) => {
-            span.setAttributes({ "app.questions.status": response.status });
-            if (response.ok) {
-              return response.json();
-            } else {
-              throw new Error(`Error fetching questions. Status: ${response.status}`);
-            }
-          })
-          .then((json) => {
-            span.setAttributes({ "app.questions.response": JSON.stringify(json) });
-            /* Here, here is the movement */
-            moveForward(json as QuestionSetJson);
-          })
-      )
+    fetchFromBackend({ url: "/api/questions", honeycombTeam, span, method: "GET" })
+      .then((json) => {
+        /* Here, here is the movement */
+        moveForward(json as QuestionSetJson);
+      })
       .catch((e) => {
         setQuestionSetState("error");
         span.addError("error fetching questions", e);
         console.log("I don't know what to do here!");
       });
-  }, [fetchHeaders, moveForward, span]);
+  }, [honeycombTeam, moveForward, span]);
 
   // note: right now QuestionSetJson and the expected QuestionSet type are the same.
   // That does not have to stay true. When the internal type changes, do a translation here.
