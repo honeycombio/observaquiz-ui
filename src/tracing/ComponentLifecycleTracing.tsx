@@ -28,6 +28,7 @@ const componentLifecycleLogger = logsAPI.logs.getLogger("app/component-lifecycle
 
 export type ComponentLifecycleTracingProps = {
   componentName: string;
+  spanName?: string;
   team?: string;
   attributes?: Attributes;
   children: React.ReactNode;
@@ -36,11 +37,12 @@ export type ComponentLifecycleTracingProps = {
 function beginExistence(
   setComponentLifecycleSpans: (cls: ComponentLifecycleSpans) => void,
   componentName: string,
+  spanName: string | undefined,
   outerContext: Context,
   attributes?: Attributes
 ) {
   const { span: spanThatWeSendRightAway, context: innerContext } = componentLifecycleTracer.startActiveSpan(
-    `${componentName}`,
+    `${spanName || componentName}`,
     {
       attributes: {
         "jess.telemetry.intent": "lifecycle structural span",
@@ -94,7 +96,7 @@ function endExistence(componentLifecycleSpans: ComponentLifecycleSpans | undefin
 }
 
 export function ComponentLifecycleTracing(props: ComponentLifecycleTracingProps) {
-  const { componentName, children, team } = props;
+  const { componentName, spanName, children, team } = props;
   const [componentLifecycleSpans, setComponentLifecycleSpans] = useState<ComponentLifecycleSpans | undefined>(
     undefined
   );
@@ -109,7 +111,7 @@ export function ComponentLifecycleTracing(props: ComponentLifecycleTracingProps)
   // TODO: set team as baggage
 
   if (!componentLifecycleSpans) {
-    beginExistence(setComponentLifecycleSpans, componentName, outerContext, props.attributes);
+    beginExistence(setComponentLifecycleSpans, componentName, spanName, outerContext, props.attributes);
   }
 
   //TODO: if attributes change, add those values to the existing span

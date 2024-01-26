@@ -231,7 +231,11 @@ type QuestionProps = {
 // this displays a question, receives an answer, and then provides a response.
 export function Question(props: QuestionProps) {
   return (
-    <ComponentLifecycleTracing componentName="question" attributes={{ "app.questionText": props.questionText }}>
+    <ComponentLifecycleTracing
+      componentName="question"
+      spanName={"Question: " + props.questionText}
+      attributes={{ "app.questionText": props.questionText }}
+    >
       <QuestionInternal {...props} />
     </ComponentLifecycleTracing>
   );
