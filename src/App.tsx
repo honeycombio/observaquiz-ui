@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { Configuration, Local, LocalButRealHoneycomb, Production } from "./Configuration.js";
 import { TrackedBoothGame } from "./TrackedBoothGame.js";
 
-console.log("begin! am");
+console.log("begin! an");
 
 function QuizApp() {
   const [resets, setResets] = React.useState(0);

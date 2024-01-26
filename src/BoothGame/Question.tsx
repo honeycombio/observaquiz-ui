@@ -138,7 +138,7 @@ function QuestionInternal(props: QuestionProps) {
 
   var button: React.ReactNode = undefined;
   switch (state.nextStep) {
-    case "no answer yet":
+    case "submit answer":
       button = (
         <button
           className=""
@@ -151,23 +151,22 @@ function QuestionInternal(props: QuestionProps) {
         </button>
       );
       break;
-    case "submit answer":
-      button = (
-        <button className="" id="question-submit" type="submit" onClick={submitAnswer}>
-          Submit
-        </button>
-      );
-      break;
     case "next question":
       button = (
-        <button className="" id="question-nextQuestion" type="submit" onClick={nextQuestion}>
+        <button
+          className=""
+          id="question-nextQuestion"
+          type="submit"
+          onClick={nextQuestion}
+          disabled={!state.nextStepEnabled}
+        >
           Next Question
         </button>
       );
       break;
     case "cancel":
       button = (
-        <button className="" id="question-cancel" type="submit" onClick={cancel}>
+        <button className="" id="question-cancel" type="submit" onClick={cancel} disabled={!state.nextStepEnabled}>
           Cancel
         </button>
       );
