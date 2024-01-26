@@ -1,6 +1,6 @@
 import "./fakeTracing";
 // a tiny express app
-import express from "express";
+import express, { Response } from "express";
 import proxy from "express-http-proxy";
 import { trace } from "@opentelemetry/api";
 
@@ -23,17 +23,23 @@ app.use(express.static("../../dist"));
 app.get("/api/questions", (req, res) => {
   const span = trace.getActiveSpan();
   console.log("Active span: " + JSON.stringify(span?.spanContext()));
+  addTracechildHeader(res);
   res.sendFile("dist/local-questions.json", { root: __dirname + "/../.." });
 });
 
 // Now for the fake backend
 app.post("/api/questions/:questionId/answer", (req, res) => {
   const randomElement = possibleResponses[Math.floor(Math.random() * possibleResponses.length)];
-  // TODO: make actual traces. Send the actual thing
   console.log("Setting garbage tracechild header");
-  res.setHeader("x-tracechild", "00-12341324-fafaffaf-01");
+  addTracechildHeader(res);
   res.send(randomElement);
 });
+
+function addTracechildHeader(res: Response) {
+  const currentSpanContext = trace.getActiveSpan()!.spanContext();
+  const traceparent = `00-${currentSpanContext.traceId}-${currentSpanContext.spanId}-01`;
+  res.setHeader("x-tracechild", traceparent);
+}
 
 app.listen(4000, () => {
   console.log("http://localhost:4000/");
