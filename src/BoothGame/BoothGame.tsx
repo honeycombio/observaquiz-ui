@@ -20,7 +20,7 @@ type QuizState =
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-  const { trackedSteps, setTrackedSteps } = props;
+  const { advanceTrackedSteps } = props;
 
   const [currentState, setCurrentStateInternal] = React.useState<QuizState>({ name: "hello" });
 
@@ -47,7 +47,7 @@ function BoothGameInternal(props: BoothGameProps) {
   function helloBegin() {
     setCurrentState({
       newState: { name: "get api key" },
-      action: () => props.setTrackedSteps(advance(trackedSteps.value)),
+      action: () => props.advanceTrackedSteps(),
     });
   }
 
@@ -62,7 +62,7 @@ function BoothGameInternal(props: BoothGameProps) {
   function moveOnToDataAnalysis() {
     setCurrentState({
       newState: { name: "analyze data" },
-      action: () => props.setTrackedSteps(advance(trackedSteps.value)),
+      action: () => props.advanceTrackedSteps(),
     });
   }
 
@@ -99,8 +99,7 @@ function BoothGameInternal(props: BoothGameProps) {
 
 export type BoothGameProps = {
   resetCount: number;
-  trackedSteps: TracedState<TrackedSteps>;
-  setTrackedSteps: (trackedSteps: TrackedSteps) => void;
+  advanceTrackedSteps: () => void;
   setTracingTeam: (tracingTeam: Omit<TracingTeam, "observaquizStartTime">) => void;
 } & HowToReset;
 

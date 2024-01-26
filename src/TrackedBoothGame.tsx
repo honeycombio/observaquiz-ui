@@ -2,7 +2,7 @@ import { BoothGame } from "./BoothGame/BoothGame";
 import React from "react";
 import { BoothGameTracker } from "./Tracker/BoothGameTracker";
 import { ComponentLifecycleTracing } from "./tracing/ComponentLifecycleTracing";
-import { TrackedSteps, initialTrackedSteps } from "./Tracker/trackedSteps";
+import { TrackedSteps, advance, initialTrackedSteps } from "./Tracker/trackedSteps";
 import { useDeclareTracedState } from "./tracing/TracedState";
 import { TracingTracker } from "./Tracker/TracingTracker";
 import { HowToReset } from "./resetQuiz";
@@ -22,7 +22,9 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     setTracingTeamInternal(fullTeam);
   };
 
-  // there will be a useEffect dependent on tracingTeam that updates the fields in the special SPanProcessor
+  const advanceTrackedSteps = () => {
+    setTrackedSteps(advance(trackedSteps.value));
+  };
 
   return (
     <HoneycombTeamContextProvider tracingTeam={tracingTeam}>
@@ -31,8 +33,7 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
       <BoothGame
         {...props}
         resetCount={props.observaquizExecution.resetCount}
-        trackedSteps={trackedSteps}
-        setTrackedSteps={setTrackedSteps}
+        advanceTrackedSteps={advanceTrackedSteps}
         setTracingTeam={setTracingTeam}
       />
     </HoneycombTeamContextProvider>
