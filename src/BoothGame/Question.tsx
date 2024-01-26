@@ -234,7 +234,8 @@ export function Question(props: QuestionProps) {
     <ComponentLifecycleTracing
       componentName="question"
       spanName={"Question: " + props.questionText}
-      attributes={{ "app.questionText": props.questionText }}
+      attributesForAllChildren={{ "app.question.text": props.questionText }}
+      attributes={{ "app.questionId": props.questionId }}
     >
       <QuestionInternal {...props} />
     </ComponentLifecycleTracing>

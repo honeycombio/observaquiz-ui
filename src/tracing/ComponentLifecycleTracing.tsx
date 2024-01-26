@@ -1,13 +1,4 @@
-import {
-  trace,
-  propagation,
-  Span,
-  Context,
-  context,
-  Attributes,
-  SpanContext,
-  SpanStatusCode,
-} from "@opentelemetry/api";
+import { trace, propagation, Context, context, Attributes, BaggageEntry, Baggage } from "@opentelemetry/api";
 import React, { useContext, useState } from "react";
 import * as logsAPI from "@opentelemetry/api-logs";
 import {
@@ -31,6 +22,7 @@ export type ComponentLifecycleTracingProps = {
   spanName?: string;
   team?: string;
   attributes?: Attributes;
+  attributesForAllChildren?: Attributes;
   children: React.ReactNode;
 };
 
@@ -101,17 +93,19 @@ export function ComponentLifecycleTracing(props: ComponentLifecycleTracingProps)
     undefined
   );
   var outerContext = useContext(OpentelemetryContext);
+
   if (team) {
-    outerContext = propagation.setBaggage(
-      outerContext,
-      propagation.createBaggage({ "app.team": { value: team || "unset" } })
-    );
+    outerContext = addBaggageToContext({ "app.team": team }, outerContext);
+  }
+  if (props.attributesForAllChildren) {
+    outerContext = addBaggageToContext(props.attributesForAllChildren, outerContext);
   }
 
-  // TODO: set team as baggage
-
   if (!componentLifecycleSpans) {
-    beginExistence(setComponentLifecycleSpans, componentName, spanName, outerContext, props.attributes);
+    beginExistence(setComponentLifecycleSpans, componentName, spanName, outerContext, {
+      ...props.attributes,
+      ...props.attributesForAllChildren,
+    });
   }
 
   //TODO: if attributes change, add those values to the existing span
@@ -129,4 +123,26 @@ export function ComponentLifecycleTracing(props: ComponentLifecycleTracingProps)
       </ActiveLifecycleSpan.Provider>
     </OpentelemetryContext.Provider>
   );
+}
+
+function attributesToBaggageEntries(attributes: Attributes): Record<string, BaggageEntry> {
+  return Object.entries(attributes).reduce((acc, [key, value]) => {
+    acc[key] = { value: "" + value };
+    return acc;
+  }, {} as Record<string, BaggageEntry>);
+}
+
+function addBaggageToContext(attributes: Attributes, contextToAddBaggageTo: Context = context.active()): Context {
+  const entries = attributesToBaggageEntries(attributes);
+  const existingBaggage = propagation.getBaggage(contextToAddBaggageTo);
+  var newBaggage: Baggage;
+  if (existingBaggage) {
+    newBaggage = existingBaggage;
+    Object.entries(entries).forEach(([key, value]) => {
+      newBaggage = newBaggage.setEntry(key, value);
+    });
+  } else {
+    newBaggage = propagation.createBaggage(entries);
+  }
+  return propagation.setBaggage(contextToAddBaggageTo, newBaggage);
 }
