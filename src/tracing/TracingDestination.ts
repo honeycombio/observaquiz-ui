@@ -12,7 +12,10 @@ export type TracingTeam = {
   team: { name: string; slug: string };
   environment: { name: string; slug: string };
   apiKey: string;
+  observaquizStartTime: SecondsSinceEpoch; // this is the unix timestamp when any tracing for this execution can begin
 };
+
+export type SecondsSinceEpoch = number;
 
 export type HoneycombRegion = "us" | "eu"; // could add dogfood if we want to test there
 

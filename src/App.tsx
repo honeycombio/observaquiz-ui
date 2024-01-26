@@ -14,9 +14,14 @@ function QuizApp() {
     setResets(resets + 1);
   }
 
+  const execution = {
+    resetCount: resets,
+    startTime: Date.now() / 1000, // unix timestamp
+  };
+
   return (
     <Configuration.Provider value={LocalButRealHoneycomb}>
-      <TrackedBoothGame key={resets} resetCount={resets} howToReset={reset} learnTeam={learnTeam} />
+      <TrackedBoothGame key={resets} observaquizExecution={execution} howToReset={reset} learnTeam={learnTeam} />
     </Configuration.Provider>
   );
 }
