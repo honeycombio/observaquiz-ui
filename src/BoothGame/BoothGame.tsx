@@ -60,7 +60,10 @@ function BoothGameInternal(props: BoothGameProps) {
   }
 
   function moveOnToDataAnalysis() {
-    setCurrentState({ newState: { name: "analyze data" } });
+    setCurrentState({
+      newState: { name: "analyze data" },
+      action: () => props.setTrackedSteps(advance(trackedSteps.value)),
+    });
   }
 
   var content = null;

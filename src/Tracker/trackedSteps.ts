@@ -13,7 +13,8 @@ export const initialTrackedSteps: TrackedSteps = {
   steps: [
     { id: "initialstep-letsgo", name: "Begin" },
     { id: "initialstep-play", name: "Play" },
-    { id: "initialstp-winwin", name: "Win" },
+    { id: "initialstep-analyze", name: "Learn" },
+    { id: "initialstep-winwin", name: "Win" },
   ],
   completedSteps: [],
   currentStep: "initialstep-letsgo",

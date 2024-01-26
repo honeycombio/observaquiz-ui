@@ -1,5 +1,5 @@
 import React from "react";
-import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { TrackedSteps } from "./trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 
