@@ -56,12 +56,19 @@ export function fetchResponseToAnswer(
   const body = JSON.stringify({
     answer: answerContent,
   });
-  return fetchFromBackend(span, honeycombTeam, "POST", url, body, (json: any) => {
-    console.log("I am in the thing");
-    return {
-      "app.question.score": json.score,
-      "app.question.response": json.response,
-    };
+  return fetchFromBackend({
+    span,
+    honeycombTeam,
+    method: "POST",
+    url,
+    body,
+    attributesFromJson: (json: any) => {
+      console.log("I am in the thing");
+      return {
+        "app.question.score": json.score,
+        "app.question.response": json.response,
+      };
+    },
   })
     .then<ResponseFromAI>((json) => {
       const result = verifyResponse(json);

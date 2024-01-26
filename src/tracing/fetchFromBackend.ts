@@ -5,14 +5,15 @@ type ThingWithTheHeaders = {
   fetchHeaders: Record<string, string>;
 };
 
-export function fetchFromBackend(
-  span: ActiveLifecycleSpanType,
-  honeycombTeam: ThingWithTheHeaders,
-  method: string,
-  url: string,
-  body: string,
-  attributesFromJson: (json: any) => Attributes
-): Promise<unknown> {
+export function fetchFromBackend(params: {
+  span: ActiveLifecycleSpanType;
+  honeycombTeam: ThingWithTheHeaders;
+  method: string;
+  url: string;
+  body?: string;
+  attributesFromJson?: (json: any) => Attributes;
+}): Promise<unknown> {
+  const { span, honeycombTeam, method, url, body, attributesFromJson } = params;
   return span.inSpanAsync(
     "fetch from backend",
     { "request.url": url, "http.method": method, "request.body": body },
@@ -43,8 +44,10 @@ export function fetchFromBackend(
         .then((json) => {
           span?.setAttributes({
             "response.body": JSON.stringify(json),
-            ...attributesFromJson(json),
           });
+          if (attributesFromJson) {
+            span?.setAttributes(attributesFromJson(json));
+          }
           return json;
         })
   );
