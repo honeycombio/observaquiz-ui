@@ -10,6 +10,7 @@ export type HoneycombTeamContextType =
       environment: { name: string; slug: string };
       apiKey: string;
       region: "us" | "eu";
+      observaquizStartTime: number;
     }
   | {
       populated: false;
