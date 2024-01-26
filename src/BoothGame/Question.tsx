@@ -9,6 +9,7 @@ const NoAnswerYet = {
   name: "no answer yet",
   inputEnabled: true,
   nextStep: "submit answer",
+  nextStepEnabled: false,
   alternativeNextStep: undefined,
 };
 
@@ -16,6 +17,7 @@ const Answering = {
   name: "answering",
   inputEnabled: true,
   nextStep: "submit answer",
+  nextStepEnabled: true,
   alternativeNextStep: undefined,
 };
 
@@ -23,6 +25,7 @@ const LoadingResponse = {
   name: "loading response",
   inputEnabled: false,
   nextStep: "cancel",
+  nextStepEnabled: true,
   alternativeNextStep: undefined,
 };
 
@@ -30,6 +33,7 @@ const ShowingResponse = {
   name: "showing response",
   inputEnabled: false,
   nextStep: "next question",
+  nextStepEnabled: true,
   alternativeNextStep: "try again",
 };
 
@@ -37,9 +41,9 @@ const ErrorState = {
   name: "error",
   inputEnabled: true,
   nextStep: "submit answer",
+  nextStepEnabled: true,
   alternativeNextStep: undefined,
 };
-
 
 type QuestionState =
   | typeof NoAnswerYet
@@ -55,12 +59,7 @@ function QuestionInternal(props: QuestionProps) {
 
   const [answerContent, setAnswerContent] = React.useState<string>("");
   const [response, setResponse] = React.useState<string | undefined>(undefined);
-  const [state, setStateInternal] = React.useState<QuestionState>({
-    name: "no answer yet",
-    inputEnabled: true,
-    nextStep: "submit answer",
-    alternativeNextStep: undefined,
-  });
+  const [state, setStateInternal] = React.useState<QuestionState>(NoAnswerYet);
 
   function setState(newState: QuestionState, reason?: string, attributes?: Attributes) {
     activeLifecycleSpan.addLog("state change", {
@@ -78,16 +77,10 @@ function QuestionInternal(props: QuestionProps) {
   function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
     const typedContent = event.target.value;
     if (state.name === "no answer yet" && typedContent) {
-      setState(
-        Answering,
-        "typed content"
-      );
+      setState(Answering, "typed content");
     }
     if (state.name === "answering" && !!typedContent) {
-      setState(
-        NoAnswerYet,
-        "typed content"
-      );
+      setState(NoAnswerYet, "typed content");
     }
     setAnswerContent(typedContent);
   }
@@ -100,11 +93,7 @@ function QuestionInternal(props: QuestionProps) {
 
   function submitAnswer(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
-    setState(
-      { name: "loading response", inputEnabled: false, nextStep: "cancel", alternativeNextStep: undefined },
-      "submit answer",
-      { "app.question.answer": answerContent }
-    ); // TODO: make all calls to setState add a log
+    setState(LoadingResponse, "submit answer", { "app.question.answer": answerContent }); // TODO: make all calls to setState add a log
     fetchResponse();
   }
 
@@ -114,23 +103,12 @@ function QuestionInternal(props: QuestionProps) {
       (response) => {
         if (response.status === "failure") {
           setResponse(response.error || "it didn't even give me an error");
-          setState(
-            { name: "error", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
-            "failed to fetch response"
-          );
+          setState(ErrorState, "failed to fetch response");
         } else {
           // success
           const interpretation = `I give that a ${response.response.score}. ${response.response.response}`;
           setResponse(interpretation);
-          setState(
-            {
-              name: "showing response",
-              inputEnabled: false,
-              nextStep: "next question",
-              alternativeNextStep: "try again",
-            },
-            "answer received"
-          );
+          setState(ShowingResponse, "answer received");
         }
       }
     );
@@ -153,10 +131,7 @@ function QuestionInternal(props: QuestionProps) {
     event.preventDefault();
     setResponse("");
     setAnswerContent("");
-    setState(
-      { name: "answering", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
-      "Try again"
-    );
+    setState(Answering, "Try again");
   }
 
   var button: React.ReactNode = undefined;
