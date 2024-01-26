@@ -8,58 +8,59 @@ import { QuestionSet, Quiz } from "./Quiz";
 import { TrackedSteps, advance } from "../Tracker/trackedSteps";
 import { TracedState } from "../tracing/TracedState";
 import { TracingTeam } from "../tracing/TracingDestination";
+import { Attributes } from "@opentelemetry/api";
 
 type QuizState =
   | { name: "hello" }
   | { name: "collect email" }
   | { name: "get api key" }
   | { name: "load question set" }
-  | { name: "ask questions"; questionSet: QuestionSet };
+  | { name: "ask questions"; questionSet: QuestionSet }
+  | { name: "analyze data" };
 
 function BoothGameInternal(props: BoothGameProps) {
-  const boothGameLifecycleSpan = React.useContext(ActiveLifecycleSpan);
+  const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const { trackedSteps, setTrackedSteps } = props;
 
-  const [currentState, setCurrentState] = React.useState<QuizState>({ name: "hello" });
+  const [currentState, setCurrentStateInternal] = React.useState<QuizState>({ name: "hello" });
+
+  function setCurrentState(params: {
+    newState: QuizState;
+    reason?: string;
+    attributes?: Attributes;
+    action?: () => void;
+  }) {
+    const { newState, reason, attributes } = params;
+    activeLifecycleSpan.withLog(
+      "state change",
+      {
+        "app.boothGame.state": newState.name,
+        "app.boothGame.prevState": currentState.name,
+        "app.boothGame.stateChangeReason": reason || "unset",
+        ...attributes,
+      },
+      params.action || (() => {})
+    );
+    setCurrentStateInternal(newState);
+  }
 
   function helloBegin() {
-    setCurrentState({ name: "get api key" });
-    boothGameLifecycleSpan.withLog(
-      "change state",
-      {
-        "app.boothGame.state": "get api key",
-        "app.boothGame.previousState": "hello",
-      },
-      () => {
-        setTrackedSteps(advance(trackedSteps.value));
-      }
-    );
+    setCurrentState({
+      newState: { name: "get api key" },
+      action: () => props.setTrackedSteps(advance(trackedSteps.value)),
+    });
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
-    boothGameLifecycleSpan.withLog(
-      "change state",
-      {
-        "app.boothGame.state": "ask questions",
-        "app.boothGame.previousState": "get api key",
-      },
-      () => {
-        // This will put it on any _new_ spans created. But not span events, and not open spans.
-        // TODO: replace this with a processor that retains old spans to dual-send.
-
-        props.setTracingTeam(news);
-
-        setCurrentState({ name: "load question set" });
-      }
-    );
+    setCurrentState({ newState: { name: "load question set" }, action: () => props.setTracingTeam(news) });
   }
 
   function acceptQuestionSet(questionSet: QuestionSet) {
-    setCurrentState({ name: "ask questions", questionSet });
-    boothGameLifecycleSpan.addLog("change state", {
-      "app.boothGame.state": "ask questions",
-      "app.boothGame.previousState": "load question set",
-    });
+    setCurrentState({ newState: { name: "ask questions", questionSet } });
+  }
+
+  function moveOnToDataAnalysis() {
+    setCurrentState({ newState: { name: "analyze data" } });
   }
 
   var content = null;
@@ -77,10 +78,15 @@ function BoothGameInternal(props: BoothGameProps) {
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;
       break;
     case "ask questions":
-      content = <Quiz questionSet={currentState.questionSet} howToReset={props.howToReset} />;
+      content = (
+        <Quiz questionSet={currentState.questionSet} howToReset={props.howToReset} moveOn={moveOnToDataAnalysis} />
+      );
+      break;
+    case "analyze data":
+      content = <div> analyze data goes here </div>;
       break;
     default:
-      boothGameLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentState });
+      activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentState });
       content = <div>FAILURE</div>;
       break;
   }

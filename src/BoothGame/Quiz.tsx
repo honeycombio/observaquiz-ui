@@ -4,7 +4,7 @@ import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing"
 import { HowToReset } from "../resetQuiz";
 import { TracingErrorBoundary } from "../tracing/TracingErrorBoundary";
 
-type QuizProps = { questionSet: QuestionSet } & HowToReset;
+type QuizProps = { questionSet: QuestionSet; moveOn: () => void } & HowToReset;
 
 export type QuestionSet = {
   question_set: string;
@@ -22,7 +22,11 @@ function QuizInternal(props: QuizProps) {
   const currentQuestion = questionSet.questions[questionIndex];
 
   const nextQuestion = () => {
-    setQuestionIndex(questionIndex + 1);
+    if (questionIndex === questionSet.questions.length - 1) {
+      props.moveOn();
+    } else {
+      setQuestionIndex(questionIndex + 1);
+    }
   };
 
   const content = (
