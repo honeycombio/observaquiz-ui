@@ -4,7 +4,7 @@
   "description": "a dumb Express app that fakes the backend the way I want",
   "main": "fake.js",
   "scripts": {
-    "start": "tsc && node fake.js"
+    "start": "tsc && OTEL_SERVICE_NAME=fake-backend node fake.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +13,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^0.40.3",
     "@types/express-http-proxy": "^1.6.6",
     "express": "^4.18.2",
     "express-http-proxy": "^2.0.0"

@@ -1,6 +1,8 @@
+import "./fakeTracing";
 // a tiny express app
 import express from "express";
 import proxy from "express-http-proxy";
+import { trace } from "@opentelemetry/api";
 
 const app = express();
 
@@ -19,6 +21,8 @@ app.use(express.json());
 app.use(express.static("../../dist"));
 
 app.get("/api/questions", (req, res) => {
+  const span = trace.getActiveSpan();
+  console.log("Active span: " + JSON.stringify(span?.spanContext()));
   res.sendFile("dist/local-questions.json", { root: __dirname + "/../.." });
 });
 
