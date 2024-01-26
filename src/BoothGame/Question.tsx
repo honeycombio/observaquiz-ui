@@ -6,6 +6,7 @@ import { Attributes } from "@opentelemetry/api";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 type QuestionState =
+  | { name: "no answer yet"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined }
   | { name: "answering"; inputEnabled: true; nextStep: "submit answer"; alternativeNextStep: undefined }
   | { name: "loading response"; inputEnabled: false; nextStep: "cancel"; alternativeNextStep: undefined }
   | { name: "showing response"; inputEnabled: false; nextStep: "next question"; alternativeNextStep: "try again" }
@@ -19,7 +20,7 @@ function QuestionInternal(props: QuestionProps) {
   const [answerContent, setAnswerContent] = React.useState<string>("");
   const [response, setResponse] = React.useState<string | undefined>(undefined);
   const [state, setStateInternal] = React.useState<QuestionState>({
-    name: "answering",
+    name: "no answer yet",
     inputEnabled: true,
     nextStep: "submit answer",
     alternativeNextStep: undefined,
@@ -39,7 +40,20 @@ function QuestionInternal(props: QuestionProps) {
   }
 
   function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
-    setAnswerContent(event.target.value);
+    const typedContent = event.target.value;
+    if (state.name === "no answer yet" && typedContent) {
+      setState(
+        { name: "answering", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
+        "typed content"
+      );
+    }
+    if (state.name === "answering" && !!typedContent) {
+      setState(
+        { name: "no answer yet", inputEnabled: true, nextStep: "submit answer", alternativeNextStep: undefined },
+        "typed content"
+      );
+    }
+    setAnswerContent(typedContent);
   }
 
   function resetQuiz(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
