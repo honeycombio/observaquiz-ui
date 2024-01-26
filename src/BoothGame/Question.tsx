@@ -236,7 +236,7 @@ export function Question(props: QuestionProps) {
       componentName="question"
       spanName={"Question: " + props.questionText}
       attributesForAllChildren={{ "app.question.text": props.questionText }}
-      attributes={{ "app.questionId": props.questionId }}
+      attributes={{ "app.question.id": props.questionId, "app.question.number": props.questionNumber }}
     >
       <QuestionInternal {...props} />
     </ComponentLifecycleTracing>
