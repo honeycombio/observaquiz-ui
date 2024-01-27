@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect } from "react";
 import { HowToReset } from "../resetQuiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { fetchResponseToAnswer } from "./respondToAnswer";
@@ -11,6 +11,7 @@ const NoAnswerYet = {
   nextStep: "submit answer",
   nextStepEnabled: false,
   alternativeNextStep: undefined,
+  focusOn: "text area",
 };
 
 const Answering = {
@@ -19,6 +20,7 @@ const Answering = {
   nextStep: "submit answer",
   nextStepEnabled: true,
   alternativeNextStep: undefined,
+  focusOn: "nothing",
 };
 
 const LoadingResponse = {
@@ -27,6 +29,7 @@ const LoadingResponse = {
   nextStep: "cancel",
   nextStepEnabled: true,
   alternativeNextStep: undefined,
+  focusOn: "button",
 };
 
 const ShowingResponse = {
@@ -35,6 +38,7 @@ const ShowingResponse = {
   nextStep: "next question",
   nextStepEnabled: true,
   alternativeNextStep: "try again",
+  focusOn: "button",
 };
 
 const ErrorState = {
@@ -43,6 +47,7 @@ const ErrorState = {
   nextStep: "submit answer",
   nextStepEnabled: true,
   alternativeNextStep: undefined,
+  focusOn: "button",
 };
 
 type QuestionState =
@@ -62,6 +67,17 @@ function QuestionInternal(props: QuestionProps) {
   const [state, setStateInternal] = React.useState<QuestionState>(NoAnswerYet);
 
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const textArea = React.useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    // Focus the button when the component renders or updates
+    if (state.focusOn == "button") {
+      buttonRef.current?.focus();
+    }
+    if (state.focusOn == "text area") {
+      textArea.current?.focus();
+    }
+  }, [state]);
 
   function setState(newState: QuestionState, reason?: string, attributes?: Attributes) {
     activeLifecycleSpan.addLog("state change", {
@@ -84,10 +100,13 @@ function QuestionInternal(props: QuestionProps) {
     if (state.name === "answering" && !typedContent) {
       setState(NoAnswerYet, "removed all content");
     }
-    setAnswerContent(typedContent);
     if (typedContent.endsWith("\n")) {
       // there has to be a better way to do this. I don't want to submit if they pressed shift-enter
-      reactToSubmit();
+      console.log("Click the button");
+      setAnswerContent(typedContent.trim());
+      buttonRef.current?.click();
+    } else {
+      setAnswerContent(typedContent);
     }
   }
 
@@ -142,10 +161,8 @@ function QuestionInternal(props: QuestionProps) {
     event.preventDefault();
     setResponse("");
     // leave their answer there so they can modify it
-    setState(Answering, "Try again");
+    setState(NoAnswerYet, "Try again");
   }
-
-  console.log("Shall we enable the button? " + state.nextStepEnabled);
 
   var buttonNextStep =
     state.nextStep === "submit answer"
@@ -195,11 +212,18 @@ function QuestionInternal(props: QuestionProps) {
           className="answer-goes-here"
           value={answerContent}
           onChange={handleInput}
+          ref={textArea}
         />
       </p>
       <p className="answer-response">{usefulContent}</p>
       <p>
-        <button id="question=-go" type="submit" disabled={!state.nextStepEnabled} onClick={buttonNextStep}>
+        <button
+          id="question=-go"
+          type="submit"
+          disabled={!state.nextStepEnabled}
+          onClick={buttonNextStep}
+          ref={buttonRef}
+        >
           {buttonText}
         </button>
         {lessExcitingButton}
