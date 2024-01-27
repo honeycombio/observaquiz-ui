@@ -9,6 +9,7 @@ import { TrackedSteps, advance } from "../Tracker/trackedSteps";
 import { TracedState } from "../tracing/TracedState";
 import { TracingTeam } from "../tracing/TracingDestination";
 import { Attributes } from "@opentelemetry/api";
+import { AnalyzeData } from "./AnalyzeData";
 
 type QuizState =
   | { name: "hello" }
@@ -86,7 +87,7 @@ function BoothGameInternal(props: BoothGameProps) {
       );
       break;
     case "analyze data":
-      content = <div> analyze data goes here </div>;
+      content = <AnalyzeData />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentState });

@@ -30,7 +30,6 @@ app.get("/api/questions", (req, res) => {
 // Now for the fake backend
 app.post("/api/questions/:questionId/answer", (req, res) => {
   const randomElement = possibleResponses[Math.floor(Math.random() * possibleResponses.length)];
-  console.log("Setting garbage tracechild header");
   addTracechildHeader(res);
   res.send(randomElement);
 });
