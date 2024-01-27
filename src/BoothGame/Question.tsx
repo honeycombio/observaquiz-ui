@@ -61,6 +61,8 @@ function QuestionInternal(props: QuestionProps) {
   const [response, setResponse] = React.useState<string | undefined>(undefined);
   const [state, setStateInternal] = React.useState<QuestionState>(NoAnswerYet);
 
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
   function setState(newState: QuestionState, reason?: string, attributes?: Attributes) {
     activeLifecycleSpan.addLog("state change", {
       "app.question.state": newState.name,
@@ -83,6 +85,10 @@ function QuestionInternal(props: QuestionProps) {
       setState(NoAnswerYet, "removed all content");
     }
     setAnswerContent(typedContent);
+    if (typedContent.endsWith("\n")) {
+      // there has to be a better way to do this. I don't want to submit if they pressed shift-enter
+      reactToSubmit();
+    }
   }
 
   function resetQuiz(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -93,6 +99,11 @@ function QuestionInternal(props: QuestionProps) {
 
   function submitAnswer(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
+    reactToSubmit();
+  }
+
+  function reactToSubmit() {
+    // this can be triggered by pressing enter in the text box, or pressing the button
     setState(LoadingResponse, "submit answer", { "app.question.answer": answerContent });
     fetchResponse();
   }
@@ -136,42 +147,23 @@ function QuestionInternal(props: QuestionProps) {
 
   console.log("Shall we enable the button? " + state.nextStepEnabled);
 
-  var button: React.ReactNode = undefined;
-  switch (state.nextStep) {
-    case "submit answer":
-      button = (
-        <button
-          className=""
-          id="question-submit"
-          type="submit"
-          onClick={submitAnswer}
-          disabled={!state.nextStepEnabled}
-        >
-          Submit
-        </button>
-      );
-      break;
-    case "next question":
-      button = (
-        <button
-          className=""
-          id="question-nextQuestion"
-          type="submit"
-          onClick={nextQuestion}
-          disabled={!state.nextStepEnabled}
-        >
-          Next Question
-        </button>
-      );
-      break;
-    case "cancel":
-      button = (
-        <button className="" id="question-cancel" type="submit" onClick={cancel} disabled={!state.nextStepEnabled}>
-          Cancel
-        </button>
-      );
-      break;
-  }
+  var buttonNextStep =
+    state.nextStep === "submit answer"
+      ? submitAnswer
+      : state.nextStep === "next question"
+      ? nextQuestion
+      : state.nextStep === "cancel"
+      ? cancel
+      : () => console.log("Mystery button"); // this should never happen
+
+  var buttonText =
+    state.nextStep === "submit answer"
+      ? "Submit"
+      : state.nextStep === "next question"
+      ? "Next Question"
+      : state.nextStep === "cancel"
+      ? "Cancel"
+      : "Mystery Button";
 
   var lessExcitingButton: React.ReactNode = undefined;
   switch (state.alternativeNextStep) {
@@ -207,7 +199,9 @@ function QuestionInternal(props: QuestionProps) {
       </p>
       <p className="answer-response">{usefulContent}</p>
       <p>
-        {button}
+        <button id="question=-go" type="submit" disabled={!state.nextStepEnabled} onClick={buttonNextStep}>
+          {buttonText}
+        </button>
         {lessExcitingButton}
         <button className="button clear pull-right" onClick={resetQuiz}>
           Reset quiz
