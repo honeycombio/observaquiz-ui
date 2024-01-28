@@ -38,6 +38,7 @@ export function HoneycombTeamContextProvider(props: HoneycombTeamContextProvider
         fetchHeaders: {
           "x-Honeycomb-Api-Key": tracingTeam.apiKey,
           "X-Honeycomb-Region": tracingTeam.region,
+          "X-Observaquiz-Execution-Id": tracingTeam.observaquizExecutionId,
         },
         ...tracingTeam,
       };
