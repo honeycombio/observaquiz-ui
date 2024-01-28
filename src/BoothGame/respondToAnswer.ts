@@ -63,7 +63,6 @@ export function fetchResponseToAnswer(
     url,
     body,
     attributesFromJson: (json: any) => {
-      console.log("I am in the thing");
       return {
         "app.question.score": json.score,
         "app.question.response": json.response,
