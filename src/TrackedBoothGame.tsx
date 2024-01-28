@@ -61,8 +61,10 @@ export function TrackedBoothGame(props: TrackedBoothGameProps) {
       team="shared"
       componentName="TrackedBoothGame"
       attributes={{
-        "app.boothGame.startTime": props.observaquizExecution.startTime,
-        "app.boothGame.executionId": props.observaquizExecution.executionId,
+        "app.observaquiz.start_time": props.observaquizExecution.startTime,
+      }}
+      attributesForAllChildren={{
+        "app.observaquiz.execution_id": props.observaquizExecution.executionId,
       }}
     >
       <TrackedBoothGameInternal {...props} />

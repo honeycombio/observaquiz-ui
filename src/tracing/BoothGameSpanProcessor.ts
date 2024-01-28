@@ -167,8 +167,6 @@ class LearnerOfTeam {
       "honeycomb.region": team.region,
       "honeycomb.env.slug": team.environment.slug,
       "honeycomb.dataset": HONEYCOMB_DATASET_NAME,
-      "honeycomb.observaquiz.execution_id": team.observaquizExecutionId,
-      "honeycomb.observaquiz.start_time": team.observaquizStartTime,
     };
     attributes[ATTRIBUTE_NAME_FOR_APIKEY] = team.apiKey; // important that this key match other steps
     this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");
