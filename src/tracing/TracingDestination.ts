@@ -6,6 +6,7 @@
 // there are dependencies here in TracingComponentLifecycle. not sure how to express those well.
 
 export const HONEYCOMB_DATASET_NAME = "observaquiz-browser";
+export const BACKEND_DATASET_NAME = "observaquiz-bff";
 
 export type TracingTeam = {
   region: HoneycombRegion;

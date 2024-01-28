@@ -8,7 +8,7 @@ export const FakeHoneycomb = {
   honeycomb_auth_url: "/fake-hny-auth",
 };
 
-export const RealHoneyomb = {
+export const RealHoneycomb = {
   honeycomb_auth_url: "https://api.honeycomb.io/1/auth",
 };
 
