@@ -1,6 +1,6 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { useDeclareTracedState } from "../tracing/TracedState";
+import { useLocalTracedState } from "../tracing/LocalTracedState";
 
 // TODO: JESS: when online, download the css from the framework, so I have it on airplanes
 
@@ -10,7 +10,14 @@ const LookedAtTheData = { questionVisible: true };
 type AnalyzeDataState = typeof PleaseLookAtTheData | typeof LookedAtTheData;
 
 function AnalyzeDataInternal() {
-  const [state, setState] = useDeclareTracedState<AnalyzeDataState>("AnalyzeData state", PleaseLookAtTheData);
+  const [state, setState] = useLocalTracedState<AnalyzeDataState>(PleaseLookAtTheData, {
+    componentName: "analyzeData",
+  });
+
+  function lookAtResults() {
+    // do NOT prevent default. It opens a link in a new tab
+    setState(LookedAtTheData);
+  }
 
   const queryLink = "https://honeycomb";
   return (
@@ -24,10 +31,10 @@ function AnalyzeDataInternal() {
         took.
       </p>
       <p>Please look at these results:</p>
-      <a id="see-query" className="button" target="_blank" href={queryLink}>
+      <a id="see-query" className="button" target="_blank" href={queryLink} onClick={lookAtResults}>
         See query results in Honeycomb
       </a>
-      <div id="question-div" hidden={!state.value.questionVisible}>
+      <div id="question-div" hidden={!state.questionVisible}>
         <p id="analysis-question">Which question took the longest?</p>
         <textarea id="analysis-answer"></textarea>
         <button>Submit</button>
