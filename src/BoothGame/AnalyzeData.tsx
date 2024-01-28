@@ -4,7 +4,16 @@ import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing"
 function AnalyzeDataInternal() {
   return (
     <div>
-      <p>Now I shall ask you a question about your data</p>
+      <p>
+        Now it's time to look at the performance of this Observaquiz application. Your Honeycomb team has data about
+        your experience answering those questions just now.
+      </p>
+      <p>
+        We call out to OpenAI to get a response to your answers. Which question took the longest for it to respond to?
+      </p>
+      <a id="see-query" className="button">
+        See query results in Honeycomb
+      </a>
     </div>
   );
 }
