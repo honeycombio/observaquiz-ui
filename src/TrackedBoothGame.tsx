@@ -8,6 +8,7 @@ import { TracingTracker } from "./Tracker/TracingTracker";
 import { HowToReset } from "./resetQuiz";
 import { HoneycombTeamContextProvider } from "./BoothGame/HoneycombTeamContext";
 import { SecondsSinceEpoch, TracingTeam, TracingTeamFromAuth } from "./tracing/TracingDestination";
+import { TracingErrorBoundary } from "./tracing/TracingErrorBoundary";
 
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
@@ -67,7 +68,9 @@ export function TrackedBoothGame(props: TrackedBoothGameProps) {
         "app.observaquiz.execution_id": props.observaquizExecution.executionId,
       }}
     >
-      <TrackedBoothGameInternal {...props} />
+      <TracingErrorBoundary howToReset={props.howToReset}>
+        <TrackedBoothGameInternal {...props} />
+      </TracingErrorBoundary>
     </ComponentLifecycleTracing>
   );
 }
