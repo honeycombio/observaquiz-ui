@@ -76,7 +76,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
     if (result.saveApiKeyToLocalStorage !== null) {
       setSaveToLocalStorage(result.saveApiKeyToLocalStorage);
     }
-  }, []);
+  }, [buttonRef.current]);
 
   function enterStateOfLoading() {
     setLoadingness(true);
