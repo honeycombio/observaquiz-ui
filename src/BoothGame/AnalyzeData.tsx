@@ -19,12 +19,12 @@ function AnalyzeDataInternal() {
     componentName: "analyzeData",
   });
 
-  const linkButton = React.useRef<HTMLAnchorElement>();
+  const linkButton = React.useRef<HTMLAnchorElement>(null);
 
   React.useEffect(() => {
     console.log("Focus on link, please", linkButton);
     linkButton.current?.focus();
-  }, []);
+  }, [linkButton.current]);
 
   function lookAtResults() {
     // do not prevent default. It opens a link in a new tab
