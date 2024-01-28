@@ -4,11 +4,11 @@ export const Production = {
   honeycomb_auth_url: "https://api.honeycomb.io/1/auth",
 };
 
-export const Local = {
+export const FakeHoneycomb = {
   honeycomb_auth_url: "/fake-hny-auth",
 };
 
-export const LocalButRealHoneycomb = {
+export const RealHoneyomb = {
   honeycomb_auth_url: "https://api.honeycomb.io/1/auth",
 };
 

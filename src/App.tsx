@@ -1,7 +1,7 @@
 import { learnTeam } from "./tracing/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Configuration, Local, LocalButRealHoneycomb, Production } from "./Configuration.js";
+import { Configuration, FakeHoneycomb, RealHoneycomb } from "./Configuration.js";
 import { TrackedBoothGame } from "./TrackedBoothGame.js";
 
 console.log("begin! an");
@@ -20,7 +20,7 @@ function QuizApp() {
   };
 
   return (
-    <Configuration.Provider value={LocalButRealHoneycomb}>
+    <Configuration.Provider value={FakeHoneycomb}>
       <TrackedBoothGame key={resets} observaquizExecution={execution} howToReset={reset} learnTeam={learnTeam} />
     </Configuration.Provider>
   );

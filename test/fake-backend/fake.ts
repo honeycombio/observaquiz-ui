@@ -40,6 +40,19 @@ function addTracechildHeader(res: Response) {
   res.setHeader("x-tracechild", traceparent);
 }
 
+app.post("fake-hny-auth", (req, res) => {
+  const fakeAuthSuccess = {
+    team: { slug: "teamity-team", name: "Teamity Team" },
+    environment: { slug: "envity-env", name: "Savannah" },
+    api_key_access: {
+      events: true,
+      markers: true,
+      createDatasets: true,
+    },
+  };
+  res.send(fakeAuthSuccess);
+});
+
 app.listen(4000, () => {
   console.log("http://localhost:4000/");
 });
