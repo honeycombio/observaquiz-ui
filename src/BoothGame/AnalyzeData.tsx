@@ -31,7 +31,11 @@ function AnalyzeDataInternal() {
     setState(LookedAtTheData);
   }
 
-  const queryLink = getQueryTemplateLink(team, queryForLongestLLMReponse("1234"), BACKEND_DATASET_NAME);
+  const queryLink = getQueryTemplateLink(
+    team,
+    queryForLongestLLMReponse(team.observaquizExecutionId),
+    BACKEND_DATASET_NAME
+  );
   return (
     <div>
       <p>
@@ -74,7 +78,7 @@ export function AnalyzeData() {
  * Run this in dataset 'observaquiz-bff'
  *
  */
-function queryForLongestLLMReponse(trace_id: string) {
+function queryForLongestLLMReponse(execution_id: string) {
   return {
     time_range: 600,
     granularity: 0,
@@ -92,9 +96,9 @@ function queryForLongestLLMReponse(trace_id: string) {
         value: "Ask LLM for Response",
       },
       {
-        column: "trace.trace_id",
+        column: "app.observaquiz.execution_id",
         op: "=",
-        value: trace_id,
+        value: execution_id,
       },
     ],
     orders: [

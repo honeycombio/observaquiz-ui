@@ -3,15 +3,10 @@ import { TracedState, useTracedState } from "../tracing/TracedState";
 import { TracingTeam } from "../tracing/TracingDestination";
 
 export type HoneycombTeamContextType =
-  | {
+  | ({
       populated: true;
       fetchHeaders: Record<string, string>;
-      team: { name: string; slug: string };
-      environment: { name: string; slug: string };
-      apiKey: string;
-      region: "us" | "eu";
-      observaquizStartTime: number;
-    }
+    } & TracingTeam)
   | {
       populated: false;
       fetchHeaders: Record<string, string>;
