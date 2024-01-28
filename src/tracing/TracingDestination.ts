@@ -38,13 +38,56 @@ export function honeycombTelemetryUrl(region: HoneycombRegion): string {
   }
 }
 
-export function getUrlToDataset(team: {
-  region: HoneycombRegion;
-  team: { slug: string };
-  environment: { slug: string };
-}): string {
+export function getUrlToDataset(
+  team: {
+    region: HoneycombRegion;
+    team: { slug: string };
+    environment: { slug: string };
+  },
+  dataset: string = HONEYCOMB_DATASET_NAME
+): string {
   // https://ui.honeycomb.io/modernity/environments/quiz-local/datasets/browser/
-  return `${honeycombUrl(team.region)}/${team.team.slug}/environments/${
-    team.environment.slug
-  }/datasets/${HONEYCOMB_DATASET_NAME}`;
+  return `${honeycombUrl(team.region)}/${team.team.slug}/environments/${team.environment.slug}/datasets/${dataset}`;
 }
+
+export function getQueryTemplateLink(
+  team: {
+    region: HoneycombRegion;
+    team: { slug: string };
+    environment: { slug: string };
+  },
+  query: QueryObject,
+  dataset: string = HONEYCOMB_DATASET_NAME
+) {
+  const querystring = encodeURIComponent(JSON.stringify(query));
+  return `${getUrlToDataset(team, dataset)}?query=${querystring}`;
+}
+
+// This does not describe the full of possibilities but it'll do for now
+type Calculation = {
+  op: string;
+  column?: string;
+};
+
+type Filter = {
+  column: string;
+  op: string;
+  value: string;
+};
+
+type Order = {
+  column?: string;
+  op: string;
+  order: string;
+};
+
+export type QueryObject = {
+  time_range: number;
+  granularity: number;
+  breakdowns?: string[];
+  calculations: Calculation[];
+  filters?: Filter[];
+  orders?: Order[];
+  havings?: any[];
+  limit?: number;
+};

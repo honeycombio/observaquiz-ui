@@ -1,8 +1,8 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
-
-// TODO: JESS: when online, download the css from the framework, so I have it on airplanes
+import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../tracing/TracingDestination";
+import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
@@ -10,16 +10,28 @@ const LookedAtTheData = { questionVisible: true };
 type AnalyzeDataState = typeof PleaseLookAtTheData | typeof LookedAtTheData;
 
 function AnalyzeDataInternal() {
+  const team = React.useContext(HoneycombTeamContext);
+  if (!team.populated) {
+    throw new Error("Honeycomb team not populated, not ok");
+  }
+
   const [state, setState] = useLocalTracedState<AnalyzeDataState>(PleaseLookAtTheData, {
     componentName: "analyzeData",
   });
 
+  const linkButton = React.useRef<HTMLAnchorElement>();
+
+  React.useEffect(() => {
+    console.log("Focus on link, please", linkButton);
+    linkButton.current?.focus();
+  }, []);
+
   function lookAtResults() {
-    // do NOT prevent default. It opens a link in a new tab
+    // do not prevent default. It opens a link in a new tab
     setState(LookedAtTheData);
   }
 
-  const queryLink = "https://honeycomb";
+  const queryLink = getQueryTemplateLink(team, queryForLongestLLMReponse("1234"), BACKEND_DATASET_NAME);
   return (
     <div>
       <p>
@@ -31,7 +43,14 @@ function AnalyzeDataInternal() {
         took.
       </p>
       <p>Please look at these results:</p>
-      <a id="see-query" className="button" target="_blank" href={queryLink} onClick={lookAtResults}>
+      <a
+        id="see-query"
+        className="button primary"
+        target="_blank"
+        href={queryLink}
+        onClick={lookAtResults}
+        ref={linkButton}
+      >
         See query results in Honeycomb
       </a>
       <div id="question-div" hidden={!state.questionVisible}>
@@ -75,7 +94,7 @@ function queryForLongestLLMReponse(trace_id: string) {
       {
         column: "trace.trace_id",
         op: "=",
-        value: "${trace_id}",
+        value: trace_id,
       },
     ],
     orders: [
