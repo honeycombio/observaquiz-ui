@@ -7,7 +7,7 @@ import { useDeclareTracedState } from "./tracing/TracedState";
 import { TracingTracker } from "./Tracker/TracingTracker";
 import { HowToReset } from "./resetQuiz";
 import { HoneycombTeamContextProvider } from "./BoothGame/HoneycombTeamContext";
-import { SecondsSinceEpoch, TracingTeam } from "./tracing/TracingDestination";
+import { SecondsSinceEpoch, TracingTeam, TracingTeamFromAuth } from "./tracing/TracingDestination";
 
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
@@ -16,8 +16,12 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     undefined
   );
 
-  const setTracingTeam = (team: Omit<TracingTeam, "observaquizStartTime">) => {
-    const fullTeam = { ...team, observaquizStartTime: props.observaquizExecution.startTime };
+  const setTracingTeam = (team: TracingTeamFromAuth) => {
+    const fullTeam = {
+      ...team,
+      observaquizStartTime: props.observaquizExecution.startTime,
+      observaquizExecutionId: props.observaquizExecution.executionId,
+    };
     props.learnTeam(fullTeam);
     setTracingTeamInternal(fullTeam);
   };
@@ -43,6 +47,7 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
 type ObservaquizExecution = {
   resetCount: number;
   startTime: SecondsSinceEpoch;
+  executionId: string;
 };
 
 export type TrackedBoothGameProps = {
@@ -55,7 +60,10 @@ export function TrackedBoothGame(props: TrackedBoothGameProps) {
     <ComponentLifecycleTracing
       team="shared"
       componentName="TrackedBoothGame"
-      attributes={{ "app.boothGame.startTime": props.observaquizExecution.startTime }}
+      attributes={{
+        "app.boothGame.startTime": props.observaquizExecution.startTime,
+        "app.boothGame.executionId": props.observaquizExecution.executionId,
+      }}
     >
       <TrackedBoothGameInternal {...props} />
     </ComponentLifecycleTracing>
