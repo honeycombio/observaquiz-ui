@@ -201,7 +201,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
         </div>
       </form>
       <p className="fine-print">
-        This app will send data to your Honeycomb environment. You will see 2 new datasets: {HONEYCOMB_DATASET_NAME} and{" "}
+        This app will send data to your Honeycomb environment. You will see 2 new datasets: {HONEYCOMB_DATASET_NAME} and
         {BACKEND_DATASET_NAME}. As a team owner, you can delete these.
       </p>
       <p className="fine-print">
