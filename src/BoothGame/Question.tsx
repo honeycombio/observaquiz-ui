@@ -4,6 +4,7 @@ import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/Compo
 import { fetchResponseToAnswer } from "./respondToAnswer";
 import { Attributes } from "@opentelemetry/api";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
+import { useLocalTracedState } from "../tracing/LocalTracedState";
 
 const NoAnswerYet = {
   name: "no answer yet",
@@ -64,7 +65,14 @@ function QuestionInternal(props: QuestionProps) {
 
   const [answerContent, setAnswerContent] = React.useState<string>("");
   const [response, setResponse] = React.useState<string | undefined>(undefined);
-  const [state, setStateInternal] = React.useState<QuestionState>(NoAnswerYet);
+  const [state, setState] = useLocalTracedState<QuestionState>(NoAnswerYet, {
+    componentName: "question",
+    addAttributes: (newState) => ({
+      "app.question.button": newState.nextStep,
+      "app.question.inputEnabled": newState.inputEnabled,
+      "app.question.state": newState.name,
+    }),
+  });
 
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const textArea = React.useRef<HTMLTextAreaElement>(null);
@@ -79,26 +87,13 @@ function QuestionInternal(props: QuestionProps) {
     }
   }, [state]);
 
-  function setState(newState: QuestionState, reason?: string, attributes?: Attributes) {
-    activeLifecycleSpan.addLog("state change", {
-      "app.question.state": newState.name,
-      "app.question.inputEnabled": newState.inputEnabled,
-      "app.question.button": newState.nextStep,
-      "app.question.prevState": state.name,
-      "app.question.response": response,
-      "app.question.stateChangeReason": reason || "unset",
-      ...attributes,
-    });
-    setStateInternal(newState);
-  }
-
   function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
     const typedContent = event.target.value;
     if (state.name === "no answer yet" && !!typedContent.trim()) {
-      setState(Answering, "typed content");
+      setState(Answering, { reason: "typed content" });
     }
     if (state.name === "answering" && !typedContent) {
-      setState(NoAnswerYet, "removed all content");
+      setState(NoAnswerYet, { reason: "removed all content" });
     }
     if (typedContent.endsWith("\n")) {
       // there has to be a better way to do this. I don't want to submit if they pressed shift-enter
@@ -123,7 +118,7 @@ function QuestionInternal(props: QuestionProps) {
 
   function reactToSubmit() {
     // this can be triggered by pressing enter in the text box, or pressing the button
-    setState(LoadingResponse, "submit answer", { "app.question.answer": answerContent });
+    setState(LoadingResponse, { reason: "submit answer", attributes: { "app.question.answer": answerContent } });
     fetchResponse();
   }
 
@@ -133,12 +128,12 @@ function QuestionInternal(props: QuestionProps) {
       (response) => {
         if (response.status === "failure") {
           setResponse(response.error || "it didn't even give me an error");
-          setState(ErrorState, "failed to fetch response");
+          setState(ErrorState, { reason: "failed to fetch response" });
         } else {
           // success
           const interpretation = `I give that a ${response.response.score}. ${response.response.response}`;
           setResponse(interpretation);
-          setState(ShowingResponse, "answer received");
+          setState(ShowingResponse, { reason: "answer received" });
         }
       }
     );
@@ -161,7 +156,7 @@ function QuestionInternal(props: QuestionProps) {
     event.preventDefault();
     setResponse("");
     // leave their answer there so they can modify it
-    setState(NoAnswerYet, "Try again");
+    setState(NoAnswerYet, { reason: "Try again" });
   }
 
   var buttonNextStep =

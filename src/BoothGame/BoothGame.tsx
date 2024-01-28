@@ -10,6 +10,7 @@ import { TracedState } from "../tracing/TracedState";
 import { TracingTeam } from "../tracing/TracingDestination";
 import { Attributes } from "@opentelemetry/api";
 import { AnalyzeData } from "./AnalyzeData";
+import { useLocalTracedState } from "../tracing/LocalTracedState";
 
 type QuizState =
   | { name: "hello" }
@@ -21,50 +22,33 @@ type QuizState =
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-  const { advanceTrackedSteps } = props;
 
-  const [currentState, setCurrentStateInternal] = React.useState<QuizState>({ name: "hello" });
-
-  function setCurrentState(params: {
-    newState: QuizState;
-    reason?: string;
-    attributes?: Attributes;
-    action?: () => void;
-  }) {
-    const { newState, reason, attributes } = params;
-    activeLifecycleSpan.withLog(
-      "state change",
-      {
-        "app.boothGame.state": newState.name,
-        "app.boothGame.prevState": currentState.name,
-        "app.boothGame.stateChangeReason": reason || "unset",
-        ...attributes,
-      },
-      params.action || (() => {})
-    );
-    setCurrentStateInternal(newState);
-  }
+  const [currentState, setCurrentState] = useLocalTracedState<QuizState>({ name: "hello" });
 
   function helloBegin() {
-    setCurrentState({
-      newState: { name: "get api key" },
-      action: () => props.advanceTrackedSteps(),
-    });
+    setCurrentState(
+      { name: "get api key" },
+      {
+        action: () => props.advanceTrackedSteps(),
+      }
+    );
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
-    setCurrentState({ newState: { name: "load question set" }, action: () => props.setTracingTeam(news) });
+    setCurrentState({ name: "load question set" }, { action: () => props.setTracingTeam(news) });
   }
 
   function acceptQuestionSet(questionSet: QuestionSet) {
-    setCurrentState({ newState: { name: "ask questions", questionSet } });
+    setCurrentState({ name: "ask questions", questionSet });
   }
 
   function moveOnToDataAnalysis() {
-    setCurrentState({
-      newState: { name: "analyze data" },
-      action: () => props.advanceTrackedSteps(),
-    });
+    setCurrentState(
+      { name: "analyze data" },
+      {
+        action: () => props.advanceTrackedSteps(),
+      }
+    );
   }
 
   var content = null;
