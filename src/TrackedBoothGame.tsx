@@ -102,7 +102,7 @@ function retrieveTrackedStateFromLocalStorage(span: ActiveLifecycleSpanType): Sa
     return undefined;
   }
 
-  const [parsed, err] = deserializeSavedState(localStorageStringValue);
+  const [parsed, err] = deserializeTrackedSteps(localStorageStringValue);
   if (err) {
     span.addError("no stored state for you", err, {
       "app.localStorage.trackedState": localStorageStringValue || "undefined",

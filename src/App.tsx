@@ -14,9 +14,7 @@ function QuizApp() {
     console.log("Resetting");
     setResets(resets + 1);
   }
-  // what if I put this part inside TrackedBoothGame, and had it set it once?
-  // Or, I could do all the savedState retrieval here and pass it in if it exists. Ooh I like that, because this
-  // component should not instantiate more than once per execution.
+
   const execution = {
     resetCount: resets,
     executionId: uuidv4(),
@@ -24,7 +22,7 @@ function QuizApp() {
   };
 
   return (
-    <Configuration.Provider value={FakeHoneycomb}>
+    <Configuration.Provider value={RealHoneycomb}>
       <TrackedBoothGame key={resets} observaquizExecution={execution} howToReset={reset} learnTeam={learnTeam} />
     </Configuration.Provider>
   );
