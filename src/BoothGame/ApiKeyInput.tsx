@@ -69,8 +69,6 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
     if (result.apiKey) {
       setEnteredApiKey(result.apiKey);
       // if they already have one, put the focus on submit
-      // TODO: this doesn't work :cry:
-      // console.log("Setting focus. Buttonref is", buttonRef);
       buttonRef.current?.focus();
     }
     if (result.saveApiKeyToLocalStorage !== null) {
