@@ -5,10 +5,7 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/Compo
 import { HowToReset } from "../resetQuiz";
 import { Hello } from "./Hello";
 import { QuestionSet, Quiz } from "./Quiz";
-import { TrackedSteps, advance } from "../Tracker/trackedSteps";
-import { TracedState } from "../tracing/TracedState";
 import { TracingTeam } from "../tracing/TracingDestination";
-import { Attributes } from "@opentelemetry/api";
 import { AnalyzeData } from "./AnalyzeData";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
 

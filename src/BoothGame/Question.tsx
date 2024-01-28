@@ -2,7 +2,6 @@ import React, { ChangeEvent, useEffect } from "react";
 import { HowToReset } from "../resetQuiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { fetchResponseToAnswer } from "./respondToAnswer";
-import { Attributes } from "@opentelemetry/api";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
 
