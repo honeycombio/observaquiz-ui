@@ -61,11 +61,17 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   const [errorResponse, setErrorResponse] = React.useState("");
   const [saveToLocalStorage, setSaveToLocalStorage] = React.useState(true);
 
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
   React.useEffect(() => {
-    // does this need to be in an effect? It is network access so it seems like it.
+    // do this once
     const result = retrieveApiKeyFromLocalStorage(span);
     if (result.apiKey) {
       setEnteredApiKey(result.apiKey);
+      // if they already have one, put the focus on submit
+      // TODO: this doesn't work :cry:
+      // console.log("Setting focus. Buttonref is", buttonRef);
+      buttonRef.current?.focus();
     }
     if (result.saveApiKeyToLocalStorage !== null) {
       setSaveToLocalStorage(result.saveApiKeyToLocalStorage);
@@ -177,9 +183,9 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
             <button
               disabled={!submitIsAvailable} // I don't like this. I want a state that is a function of other state...
               className="button-4 centered-button"
-              id="question-submit"
+              id="apikey-submit"
               type="submit"
-              autoFocus
+              ref={buttonRef}
             >
               {loadingness ? "..." : "Submit"}
             </button>
