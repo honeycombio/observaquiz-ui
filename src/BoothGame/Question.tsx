@@ -94,7 +94,7 @@ function QuestionInternal(props: QuestionProps) {
 
   function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
     const typedContent = event.target.value;
-    if (state.name === "no answer yet" && !!typedContent) {
+    if (state.name === "no answer yet" && !!typedContent.trim()) {
       setState(Answering, "typed content");
     }
     if (state.name === "answering" && !typedContent) {
