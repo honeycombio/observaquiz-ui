@@ -82,7 +82,7 @@ function queryForLongestLLMReponse(execution_id: string) {
   return {
     time_range: 600,
     granularity: 0,
-    breakdowns: ["app.post_answer.question"],
+    breakdowns: ["app.post_answer.question", "app.llm.input", "app.llm.output"],
     calculations: [
       {
         op: "MAX",
