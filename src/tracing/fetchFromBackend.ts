@@ -5,6 +5,11 @@ type ThingWithTheHeaders = {
   fetchHeaders: Record<string, string>;
 };
 
+/**
+ * this does parse the json, jess. But it doesn't cast it to a type
+ * @param params
+ * @returns
+ */
 export function fetchFromBackend(params: {
   span: ActiveLifecycleSpanType;
   honeycombTeam: ThingWithTheHeaders;
@@ -46,6 +51,7 @@ export function fetchFromBackend(params: {
             "response.body": JSON.stringify(json),
           });
           if (attributesFromJson) {
+            // should i catch errors here? yes, later
             span?.setAttributes(attributesFromJson(json));
           }
           return json;

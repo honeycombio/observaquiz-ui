@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTraci
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
-import { MultipleChoice } from "./MultipleChoice";
+import { MultipleChoice, OverviewRowFromQuery } from "./MultipleChoice";
 import { HowToReset } from "../../resetQuiz";
 
 const PleaseLookAtTheData = { questionVisible: false };
@@ -33,13 +33,28 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
     setState(LookedAtTheData);
   }
 
-  const queryLink = getQueryTemplateLink(
-    team,
-    queryForLongestLLMReponse(team.observaquizExecutionId),
-    BACKEND_DATASET_NAME
-  );
+  const queryDefinition = queryForLongestLLMResponse(team.observaquizExecutionId);
 
-  const questionAndAnswer = state.questionVisible ? <MultipleChoice howToReset={props.howToReset} /> : null;
+  const queryLink = getQueryTemplateLink(team, queryDefinition, BACKEND_DATASET_NAME);
+
+  function formatAnswer(row: DataFromLongestLLMResponse): string {
+    return row["app.post_answer.question"];
+  }
+  function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
+    const maxDuration = Math.max(...data.map((row) => row["MAX(duration_ms)"] as number));
+    const maxRow = data.find((row) => row["MAX(duration_ms)"] === maxDuration);
+    // handle a tie? This one is extremely unlikely to tie
+    return maxRow!;
+  }
+
+  const questionAndAnswer = state.questionVisible ? (
+    <MultipleChoice<DataFromLongestLLMResponse>
+      queryDefinition={queryDefinition}
+      formatAnswer={formatAnswer}
+      chooseCorrectAnswer={chooseCorrectAnswer}
+      howToReset={props.howToReset}
+    />
+  ) : null;
 
   return (
     <div>
@@ -75,10 +90,14 @@ export function AnalyzeData(props: AnalyzeDataProps) {
   );
 }
 
+type DataFromLongestLLMResponse = {
+  "MAX(duration_ms)": number;
+  "app.post_answer.question": string;
+};
 /**
  * Run this in dataset 'observaquiz-bff'
  */
-function queryForLongestLLMReponse(execution_id: string) {
+function queryForLongestLLMResponse(execution_id: string) {
   return {
     time_range: 600,
     granularity: 0,

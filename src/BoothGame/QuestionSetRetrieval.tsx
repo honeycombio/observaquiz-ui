@@ -25,7 +25,7 @@ export function QuestionSetRetrievalInternal(props: QuestionSetRetrievalProps) {
     fetchFromBackend({ url: "/api/questions", honeycombTeam, span, method: "GET" })
       .then((json) => {
         /* Here, here is the movement */
-        moveForward(json as QuestionSetJson);
+        moveForward(json as unknown as QuestionSetJson);
       })
       .catch((e) => {
         setQuestionSetState("error");
