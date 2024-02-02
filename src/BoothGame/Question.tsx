@@ -212,7 +212,7 @@ function QuestionInternal(props: QuestionProps) {
       <p className="answer-response">{usefulContent}</p>
       <p>
         <button
-          id="question=-go"
+          id="question-go"
           type="submit"
           disabled={!state.nextStepEnabled}
           onClick={buttonNextStep}

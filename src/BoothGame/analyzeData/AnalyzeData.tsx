@@ -4,13 +4,14 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { MultipleChoice } from "./MultipleChoice";
+import { HowToReset } from "../../resetQuiz";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
 
 type AnalyzeDataState = typeof PleaseLookAtTheData | typeof LookedAtTheData;
 
-function AnalyzeDataInternal() {
+function AnalyzeDataInternal(props: AnalyzeDataProps) {
   const team = React.useContext(HoneycombTeamContext);
   if (!team.populated) {
     throw new Error("Honeycomb team not populated, not ok");
@@ -38,7 +39,7 @@ function AnalyzeDataInternal() {
     BACKEND_DATASET_NAME
   );
 
-  const questionAndAnswer = state.questionVisible ? <MultipleChoice /> : null;
+  const questionAndAnswer = state.questionVisible ? <MultipleChoice howToReset={props.howToReset} /> : null;
 
   return (
     <div>
@@ -65,11 +66,11 @@ function AnalyzeDataInternal() {
     </div>
   );
 }
-
-export function AnalyzeData() {
+export type AnalyzeDataProps = {} & HowToReset;
+export function AnalyzeData(props: AnalyzeDataProps) {
   return (
     <ComponentLifecycleTracing componentName="analyze-data">
-      <AnalyzeDataInternal />
+      <AnalyzeDataInternal howToReset={props.howToReset} />
     </ComponentLifecycleTracing>
   );
 }

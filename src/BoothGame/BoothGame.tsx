@@ -68,7 +68,7 @@ function BoothGameInternal(props: BoothGameProps) {
       );
       break;
     case "analyze data":
-      content = <AnalyzeData />;
+      content = <AnalyzeData howToReset={props.howToReset} />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentState });
