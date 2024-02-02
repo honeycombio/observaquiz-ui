@@ -7,11 +7,18 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 
 const LoadingAnswers = { name: "loading answers" };
 const ErrorLoadingAnswers = { name: "error loading answers" };
-type ShowingAnswers<ParticularQueryData> = { name: "showing answers"; answers: ParticularQueryData[] };
+type WithAnswers<ParticularQueryData> = { answers: ParticularQueryData[] };
+type ShowingAnswers<ParticularQueryData> = { name: "showing answers" } & WithAnswers<ParticularQueryData>;
 function showingAnswers<ParticularQueryData>(answers: ParticularQueryData[]): ShowingAnswers<ParticularQueryData> {
   return { name: "showing answers", answers };
 }
-type PickedOne<ParticularQueryData> = { name: "picked one"; answers: ParticularQueryData[]; picked: string };
+type PickedOne<ParticularQueryData> = { name: "picked one"; picked: string } & WithAnswers<ParticularQueryData>;
+function pickedOne<ParticularQueryData>(
+  state: WithAnswers<ParticularQueryData>,
+  picked: string
+): PickedOne<ParticularQueryData> {
+  return { name: "picked one", picked, answers: state.answers };
+}
 
 type QueryDataResult<ParticularQueryData> = {
   query_id: string;
@@ -20,10 +27,11 @@ type QueryDataResult<ParticularQueryData> = {
   query_data: ParticularQueryData[];
 };
 
-type MultipleChoiceState<ParticularQueryData> =
-  | typeof LoadingAnswers
-  | typeof ErrorLoadingAnswers
-  | ShowingAnswers<ParticularQueryData>;
+type MultipleChoiceState<ParticularQueryData> = {
+  name: string;
+  answers?: ParticularQueryData[];
+  picked?: string;
+};
 
 function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -101,9 +109,9 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
   // showing answers
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
-    activeLifecycleSpan.addLog("Answer clicked: " + event.target.value);
+    // fuck you typescript, i DO NOT CARE just WORK
+    setState(pickedOne(state as WithAnswers<ParticularQueryData>, event.target.value));
   };
-  const selectedOption: string = "optidon1";
 
   function radioButtonFromData(row: ParticularQueryData, index: number) {
     const thisOne = "answer" + index;
@@ -115,7 +123,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
             type="radio"
             value={thisOne}
             key={thisOne}
-            checked={selectedOption === thisOne}
+            checked={state.picked === thisOne}
             onChange={handleSelection}
           />
           {props.formatAnswer(row)}
