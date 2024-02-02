@@ -18,7 +18,6 @@ export function TracingErrorBoundary(props: TracingErrorBoundaryProps) {
   }
 
   function linkToErrorSpan() {
-    // TODO: combine this class with ComponentLifecycleTracing
     if (honeycombTeam.populated) {
       return getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan);
     }
@@ -31,11 +30,15 @@ export function TracingErrorBoundary(props: TracingErrorBoundaryProps) {
   const fallback = (
     <div>
       <p>Whoops! Something broke on our side.</p>
-      <p> If you want to investigate what happened, then: 
-        <a target="_blank" href={linkToErrorSpan()}>
-          See the error in Honeycomb
-        </a>
-      </p>
+      {honeycombTeam.populated && (
+        <p>
+          {" "}
+          If you want to investigate what happened, then:{" "}
+          <a target="_blank" href={linkToErrorSpan()}>
+            See the error in Honeycomb
+          </a>
+        </p>
+      )}
       <p>
         <button className="button error" onClick={resetQuiz}>
           Reset quiz

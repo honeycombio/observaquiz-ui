@@ -33,14 +33,16 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
 
   return (
     <HoneycombTeamContextProvider tracingTeam={tracingTeam}>
-      <BoothGameTracker trackedSteps={trackedSteps} />
-      <TracingTracker />
-      <BoothGame
-        {...props}
-        resetCount={props.observaquizExecution.resetCount}
-        advanceTrackedSteps={advanceTrackedSteps}
-        setTracingTeam={setTracingTeam}
-      />
+      <TracingErrorBoundary howToReset={props.howToReset}>
+        <BoothGameTracker trackedSteps={trackedSteps} />
+        <TracingTracker />
+        <BoothGame
+          {...props}
+          resetCount={props.observaquizExecution.resetCount}
+          advanceTrackedSteps={advanceTrackedSteps}
+          setTracingTeam={setTracingTeam}
+        />
+      </TracingErrorBoundary>
     </HoneycombTeamContextProvider>
   );
 }
@@ -68,9 +70,7 @@ export function TrackedBoothGame(props: TrackedBoothGameProps) {
         "app.observaquiz.execution_id": props.observaquizExecution.executionId,
       }}
     >
-      <TracingErrorBoundary howToReset={props.howToReset}>
-        <TrackedBoothGameInternal {...props} />
-      </TracingErrorBoundary>
+      <TrackedBoothGameInternal {...props} />
     </ComponentLifecycleTracing>
   );
 }
