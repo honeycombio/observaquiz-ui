@@ -3,6 +3,7 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../../tracing/Co
 import { HowToReset } from "../../resetQuiz";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
+import { useLocalTracedState } from "../../tracing/LocalTracedState";
 
 const LoadingAnswers = { name: "loading answers" };
 const ErrorLoadingAnswers = { name: "error loading answers" };
@@ -28,7 +29,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const honeycombTeam = React.useContext(HoneycombTeamContext);
 
-  const [state, setState] = React.useState<MultipleChoiceState<ParticularQueryData>>(LoadingAnswers);
+  const [state, setState] = useLocalTracedState<MultipleChoiceState<ParticularQueryData>>(LoadingAnswers);
 
   React.useEffect(() => {
     const queryDataRequestBody = {
@@ -59,6 +60,13 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
         );
         setState(ErrorLoadingAnswers);
       } else {
+        if (!queryDataReturned.query_data) {
+          activeLifecycleSpan.addError(
+            "no answers fetched",
+            new Error("what even is in here: " + JSON.stringify(queryDataReturned))
+          );
+          setState(ErrorLoadingAnswers);
+        }
         setState(showingAnswers(queryDataReturned.query_data as ParticularQueryData[]));
       }
     });
@@ -72,14 +80,14 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
     props.howToReset(activeLifecycleSpan);
   }
 
-  if (state === LoadingAnswers) {
+  if (state.name === "loading answers") {
     return (
       <div className="loading">
         <progress>progress</progress>
       </div>
     );
   }
-  if (state === ErrorLoadingAnswers) {
+  if ((state.name = "error loading answers")) {
     return (
       <div className="error">
         <p>DOOOM</p>{" "}

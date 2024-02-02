@@ -57,9 +57,20 @@ app.post("/api/queryData", (req, res) => {
   const body = req.body;
   console.log("Here is the body: " + JSON.stringify(body));
 
-  var data: unknown = [{ name: "spannity span", count: 43 }];
-  if (body.name === "Slowest response from LLM") {
-    data = [
+  /* {
+  "query_id": "gsxhrSaAd9u",
+  "result_id": "cQbHaKk7Cxe",
+  "error": "",
+  "query_data": [
+    {
+      "COUNT": 0
+    }
+  ]
+}*/
+
+  var query_data: unknown = [{ name: "spannity span", count: 43 }];
+  if (body.query_name === "Slowest response from LLM") {
+    query_data = [
       {
         "app.post_answer.question": "What is your favorite color?",
         "MAX(duration_ms)": 1005,
@@ -75,7 +86,7 @@ app.post("/api/queryData", (req, res) => {
     ];
   }
 
-  res.send({ data });
+  res.send({ query_id: "queryfoo", result_id: "fooresult", error: "", query_data });
 });
 
 app.listen(4000, () => {
