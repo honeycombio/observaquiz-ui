@@ -53,6 +53,31 @@ app.post("fake-hny-auth", (req, res) => {
   res.send(fakeAuthSuccess);
 });
 
+app.post("/api/queryData", (req, res) => {
+  const body = req.body;
+  console.log("Here is the body: " + JSON.stringify(body));
+
+  var data: unknown = [{ name: "spannity span", count: 43 }];
+  if (body.name === "Slowest response from LLM") {
+    data = [
+      {
+        "app.post_answer.question": "What is your favorite color?",
+        "MAX(duration_ms)": 1005,
+      },
+      {
+        "app.post_answer.question": "Why is this so slow?",
+        "MAX(duration_ms)": 3056,
+      },
+      {
+        "app.post_answer.question": "How much wood would a woodchuck chuck?",
+        "MAX(duration_ms)": 2087,
+      },
+    ];
+  }
+
+  res.send({ data });
+});
+
 app.listen(4000, () => {
   console.log("http://localhost:4000/");
 });

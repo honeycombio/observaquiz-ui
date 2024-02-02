@@ -31,11 +31,17 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
   const [state, setState] = React.useState<MultipleChoiceState<ParticularQueryData>>(LoadingAnswers);
 
   React.useEffect(() => {
+    const queryDataRequestBody = {
+      query: props.queryDefinition,
+      query_name: "Slowest response from LLM",
+    };
+
     fetchFromBackend({
       url: "/api/queryData",
       honeycombTeam: honeycombTeam,
       span: activeLifecycleSpan,
       method: "POST",
+      body: JSON.stringify(queryDataRequestBody),
       attributesFromJson: (json: QueryDataResult<ParticularQueryData>) => {
         return {
           "app.result.queryId": json.query_id,
