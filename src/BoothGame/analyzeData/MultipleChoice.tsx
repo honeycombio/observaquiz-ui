@@ -40,9 +40,15 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
   const [state, setState] = useLocalTracedState<MultipleChoiceState<ParticularQueryData>>(LoadingAnswers);
 
   React.useEffect(() => {
+    if (!honeycombTeam.populated) {
+      setState(ErrorLoadingAnswers, { reason: "honeycomb team not populated" });
+      return;
+    }
     const queryDataRequestBody = {
       query: props.queryDefinition,
       query_name: "Slowest response from LLM",
+      dataset_slug: props.dataset,
+      attendee_api_key: honeycombTeam.apiKey,
     };
 
     fetchFromBackend({
@@ -152,6 +158,7 @@ export type OverviewRowFromQuery = Record<string, string | number>;
 // TODO: make a happy type to represent a query. ChatGPT makes this fast
 type MultipleChoiceProps<ParticularQueryData> = {
   queryDefinition: object;
+  dataset: string;
   chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
   formatAnswer: (row: ParticularQueryData) => string;
 } & HowToReset;

@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTraci
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
-import { MultipleChoice, OverviewRowFromQuery } from "./MultipleChoice";
+import { MultipleChoice } from "./MultipleChoice";
 import { HowToReset } from "../../resetQuiz";
 
 const PleaseLookAtTheData = { questionVisible: false };
@@ -50,6 +50,7 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
   const questionAndAnswer = state.questionVisible ? (
     <MultipleChoice<DataFromLongestLLMResponse>
       queryDefinition={queryDefinition}
+      dataset={BACKEND_DATASET_NAME}
       formatAnswer={formatAnswer}
       chooseCorrectAnswer={chooseCorrectAnswer}
       howToReset={props.howToReset}
