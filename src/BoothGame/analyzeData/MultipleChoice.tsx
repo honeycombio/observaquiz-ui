@@ -87,7 +87,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
       </div>
     );
   }
-  if ((state.name = "error loading answers")) {
+  if (state.name === "error loading answers") {
     return (
       <div className="error">
         <p>DOOOM</p>{" "}
