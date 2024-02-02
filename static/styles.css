@@ -100,5 +100,9 @@ img.small-logo {
 }
 
 .fine-print {
-  font-size: small
+  font-size: small;
+}
+
+#multiple-choice {
+  padding-top: 20px;
 }

@@ -103,25 +103,30 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     activeLifecycleSpan.addLog("Answer clicked: " + event.target.value);
   };
-  const selectedOption = "option1";
+  const selectedOption: string = "optidon1";
 
   function radioButtonFromData(row: ParticularQueryData, index: number) {
+    const thisOne = "answer" + index;
     return (
-      <label>
-        <input
-          type="radio"
-          value={"answer" + index}
-          checked={selectedOption === "option1"}
-          onChange={handleSelection}
-        />
-        formatAnswer(row)
-      </label>
+      <li>
+        <label>
+          <input
+            className="radio"
+            type="radio"
+            value={thisOne}
+            key={thisOne}
+            checked={selectedOption === thisOne}
+            onChange={handleSelection}
+          />
+          {props.formatAnswer(row)}
+        </label>
+      </li>
     );
   }
   return (
     <div id="multiple-choice">
       <p className="question-text">{questionText}</p>
-      <p>{(state as ShowingAnswers<ParticularQueryData>).answers.map(radioButtonFromData)}</p>
+      <ul>{(state as ShowingAnswers<ParticularQueryData>).answers.map(radioButtonFromData)}</ul>
       <p>
         <button id="question-go" type="submit">
           Submit
