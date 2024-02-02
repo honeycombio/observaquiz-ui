@@ -1,8 +1,8 @@
 import React from "react";
-import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { useLocalTracedState } from "../tracing/LocalTracedState";
-import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../tracing/TracingDestination";
-import { HoneycombTeamContext } from "./HoneycombTeamContext";
+import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
+import { useLocalTracedState } from "../../tracing/LocalTracedState";
+import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
+import { HoneycombTeamContext } from "../HoneycombTeamContext";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };

@@ -5,8 +5,8 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/Compo
 import { HowToReset } from "../resetQuiz";
 import { Hello } from "./Hello";
 import { QuestionSet, Quiz } from "./Quiz";
-import { TracingTeam } from "../tracing/TracingDestination";
-import { AnalyzeData } from "./AnalyzeData";
+import { TracingTeamFromAuth } from "../tracing/TracingDestination";
+import { AnalyzeData } from "./analyzeData/AnalyzeData";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
 
 type QuizState =
@@ -82,7 +82,7 @@ function BoothGameInternal(props: BoothGameProps) {
 export type BoothGameProps = {
   resetCount: number;
   advanceTrackedSteps: () => void;
-  setTracingTeam: (tracingTeam: Omit<TracingTeam, "observaquizStartTime">) => void;
+  setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
 } & HowToReset;
 
 export function BoothGame(props: BoothGameProps) {
