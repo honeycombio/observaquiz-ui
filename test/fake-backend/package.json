@@ -4,7 +4,7 @@
   "description": "a dumb Express app that fakes the backend the way I want",
   "main": "fake.js",
   "scripts": {
-    "start": "tsc && OTEL_SERVICE_NAME=fake-backend node fake.js"
+    "start": "tsc && OTEL_SERVICE_NAME=observaquiz-bff node fake.js"
   },
   "author": "",
   "license": "ISC",

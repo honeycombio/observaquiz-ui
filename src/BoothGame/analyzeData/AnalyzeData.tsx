@@ -3,6 +3,7 @@ import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTraci
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
+import { MultipleChoice } from "./MultipleChoice";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
@@ -36,6 +37,9 @@ function AnalyzeDataInternal() {
     queryForLongestLLMReponse(team.observaquizExecutionId),
     BACKEND_DATASET_NAME
   );
+
+  const questionAndAnswer = state.questionVisible ? <MultipleChoice /> : null;
+
   return (
     <div>
       <p>
@@ -57,11 +61,7 @@ function AnalyzeDataInternal() {
       >
         See query results in Honeycomb
       </a>
-      <div id="question-div" hidden={!state.questionVisible}>
-        <p id="analysis-question">Which question took the longest?</p>
-        <textarea id="analysis-answer"></textarea>
-        <button>Submit</button>
-      </div>
+      {questionAndAnswer}
     </div>
   );
 }
