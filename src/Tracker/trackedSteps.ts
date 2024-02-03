@@ -102,7 +102,7 @@ export function advance(trackedSteps: TrackedSteps, completionResults?: object) 
  * @param trackedSteps
  * @returns a path to the current step, as indexes into 'steps' and then 'substeps' arrays
  */
-export function indexToCurrentStep(trackedSteps: TrackedSteps): number[] {
+function indexToCurrentStep(trackedSteps: TrackedSteps): number[] {
   var steps = trackedSteps.steps;
   var indexes = [];
   for (const currentStepId of trackedSteps.currentStepPath.split("/")) {
@@ -112,90 +112,4 @@ export function indexToCurrentStep(trackedSteps: TrackedSteps): number[] {
     indexes.push(index);
   }
   return indexes;
-}
-
-function chatGPTfindCurrentStep(trackedSteps: TrackedSteps): {
-  step: TrackedStep;
-  substep: TrackedStep | null;
-  stepIndex: number;
-  substepIndex: number | null;
-} {
-  const pathParts = trackedSteps.currentStepPath.split("/");
-  const currentStepId = pathParts[0];
-  const currentSubStepId = pathParts.length > 1 ? pathParts[1] : null;
-
-  const stepIndex = trackedSteps.steps.findIndex((step) => step.id === currentStepId);
-  if (stepIndex === -1) throw new Error("Current step not found");
-
-  const currentStep = trackedSteps.steps[stepIndex];
-  let substep: TrackedStep | null = null;
-  let substepIndex: number | null = null;
-
-  if (currentSubStepId && currentStep.substeps) {
-    substepIndex = currentStep.substeps.findIndex((substep) => substep.id === currentSubStepId);
-    if (substepIndex === -1) throw new Error("Current substep not found");
-    substep = currentStep.substeps[substepIndex];
-  }
-
-  return { step: currentStep, substep, stepIndex, substepIndex };
-}
-
-export function advance1(trackedSteps: TrackedSteps): void {
-  const { step, substep, stepIndex, substepIndex } = chatGPTfindCurrentStep(trackedSteps);
-
-  if (substep && substepIndex !== null) {
-    if (step.substeps && substepIndex < step.substeps.length - 1) {
-      trackedSteps.currentStepPath = `${step.id}/${step.substeps[substepIndex + 1].id}`;
-    } else {
-      if (stepIndex < trackedSteps.steps.length - 1) {
-        trackedSteps.currentStepPath = trackedSteps.steps[stepIndex + 1].id;
-      } else {
-        throw new Error("No more steps");
-      }
-    }
-  } else {
-    if (step.substeps && step.substeps.length > 0) {
-      trackedSteps.currentStepPath = `${step.id}/${step.substeps[0].id}`;
-    } else if (stepIndex < trackedSteps.steps.length - 1) {
-      trackedSteps.currentStepPath = trackedSteps.steps[stepIndex + 1].id;
-    } else {
-      throw new Error("No more steps or substeps");
-    }
-  }
-}
-
-export function advance2(trackedSteps: TrackedSteps): void {
-  const indices = indexToCurrentStep(trackedSteps);
-  let currentContext = trackedSteps.steps;
-
-  // Navigate to the current step/substep based on indices
-  for (let i = 0; i < indices.length - 1; i++) {
-    if (!currentContext[indices[i]].substeps) {
-      throw new Error("Invalid step path");
-    }
-    currentContext = currentContext[indices[i]].substeps!;
-  }
-
-  const currentStepIndex = indices[indices.length - 1];
-
-  // If there's a next substep in the current step
-  if (currentContext[currentStepIndex].substeps && currentContext[currentStepIndex].substeps!.length > 0) {
-    trackedSteps.currentStepPath += `/${currentContext[currentStepIndex].substeps![0].id}`;
-  } else {
-    // Move up the hierarchy to find the next step/substep
-    while (indices.length > 0) {
-      const lastIndex = indices.pop()!;
-      const parentContext = indices.reduce((acc, curr) => acc[curr].substeps!, trackedSteps.steps);
-      if (lastIndex + 1 < parentContext.length) {
-        // Found the next step/substep
-        const nextStep = parentContext[lastIndex + 1];
-        const newPathParts = indices.concat(lastIndex + 1).map((idx) => parentContext[idx].id);
-        trackedSteps.currentStepPath = newPathParts.join("/");
-        return;
-      }
-    }
-
-    // If the loop completes without finding a next step, there are no more steps
-    throw new Error("No more steps");
-  }
 }
