@@ -84,7 +84,7 @@ function findPathFromIndexes(trackedSteps: TrackedSteps, indexes: number[]): str
   return currentPath.slice(1); // remove the leading slash
 }
 
-export function advance(trackedSteps: TrackedSteps, completionResults?: object) {
+export function advance(trackedSteps: TrackedSteps, completionResults?: object): TrackedSteps {
   // complete the current step
   const currentStep = findCurrentStep(trackedSteps);
   currentStep.completionResults = { complete: true, ...completionResults };
@@ -96,7 +96,10 @@ export function advance(trackedSteps: TrackedSteps, completionResults?: object) 
   const indexesToNextStep = advanceIndex(indexToCurrentStep(trackedSteps), lengthsOfArrays);
   const newCurrentPath = findPathFromIndexes(trackedSteps, indexesToNextStep);
 
-  trackedSteps.currentStepPath = newCurrentPath;
+  return {
+    ...trackedSteps,
+    currentStepPath: newCurrentPath,
+  };
 }
 
 /**

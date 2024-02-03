@@ -28,6 +28,7 @@ export function useDeclareTracedState<T>(name: string, initialState: T) {
   const [tracedState, setTracedState] = React.useState<TracedState<T>>(initialTracedState);
 
   function setStateWithProvenance(t: T) {
+    console.log("setting state with provenance", t);
     // look for the OTel context that this function was called in.
     setTracedState({
       value: t,

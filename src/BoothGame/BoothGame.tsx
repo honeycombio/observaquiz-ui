@@ -8,11 +8,13 @@ import { QuestionSet, Quiz } from "./Quiz";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
 import { TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
+import { TracedState, useTracedState } from "../tracing/TracedState";
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-  const { trackedSteps, advanceTrackedSteps } = props;
+  const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
+  const { advanceTrackedSteps } = props;
 
   function helloBegin() {
     console.log("You pushed begin");
@@ -61,7 +63,7 @@ function BoothGameInternal(props: BoothGameProps) {
 export type BoothGameProps = {
   resetCount: number;
   advanceTrackedSteps: () => void;
-  trackedSteps: TrackedSteps;
+  trackedSteps: TracedState<TrackedSteps>;
   setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
 } & HowToReset;
 

@@ -17,6 +17,8 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     undefined
   );
 
+  console.log(trackedSteps.value.currentStepPath);
+
   const setTracingTeam = (team: TracingTeamFromAuth) => {
     const fullTeam = {
       ...team,
@@ -38,9 +40,9 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
         <TracingTracker />
         <BoothGame
           {...props}
-          resetCount={props.observaquizExecution.resetCount}
           advanceTrackedSteps={advanceTrackedSteps}
-          trackedSteps={trackedSteps.value}
+          resetCount={props.observaquizExecution.resetCount}
+          trackedSteps={trackedSteps}
           setTracingTeam={setTracingTeam}
         />
       </TracingErrorBoundary>
