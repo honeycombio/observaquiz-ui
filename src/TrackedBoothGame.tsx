@@ -27,8 +27,8 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     setTracingTeamInternal(fullTeam);
   };
 
-  const advanceTrackedSteps = () => {
-    setTrackedSteps(advance(trackedSteps.value));
+  const advanceTrackedSteps = (completionResults?: object) => {
+    setTrackedSteps(advance(trackedSteps.value, completionResults));
   };
 
   return (

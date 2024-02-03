@@ -23,7 +23,9 @@ export const initialTrackedSteps: TrackedSteps = {
       id: TopLevelSteps.BEGIN,
       name: "Begin",
       substeps: [
-        { id: "begin-email", name: "Identify Yourself" },
+        // we don't show substeps yet, so whatevs.
+        { id: "begin-hello", name: "Hello" },
+        //  { id: "begin-email", name: "Identify Yourself" },
         { id: "begin-apikey", name: "Start Tracing" },
       ],
     },

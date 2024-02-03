@@ -7,7 +7,7 @@ import { Hello } from "./Hello";
 import { QuestionSet, Quiz } from "./Quiz";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
-import { TopLevelSteps, TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
+import { TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -15,8 +15,8 @@ function BoothGameInternal(props: BoothGameProps) {
   const currentStep = findCurrentStep(trackedSteps);
 
   function helloBegin() {
-    // expand the "Begin step to include collecting the API key. Make that the current step.
     console.log("You pushed begin");
+    advanceTrackedSteps();
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
@@ -33,10 +33,10 @@ function BoothGameInternal(props: BoothGameProps) {
 
   var content = null;
   switch (currentStep.id) {
-    case TopLevelSteps.BEGIN:
+    case "begin-hello":
       content = <Hello moveForward={helloBegin} />;
       break;
-    case "get api key":
+    case "begin-apikey":
       content = <ApiKeyInput moveForward={acceptApiKey} />;
       break;
     case "load question set":
@@ -50,6 +50,7 @@ function BoothGameInternal(props: BoothGameProps) {
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
+      console.log("Unhandled state", currentStep.id);
       content = <div>FAILURE</div>;
       break;
   }
