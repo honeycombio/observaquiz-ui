@@ -97,7 +97,7 @@ function chatGPTfindCurrentStep(trackedSteps: TrackedSteps): {
   return { step: currentStep, substep, stepIndex, substepIndex };
 }
 
-export function advance(trackedSteps: TrackedSteps): void {
+export function advance1(trackedSteps: TrackedSteps): void {
   const { step, substep, stepIndex, substepIndex } = chatGPTfindCurrentStep(trackedSteps);
 
   if (substep && substepIndex !== null) {
@@ -118,5 +118,42 @@ export function advance(trackedSteps: TrackedSteps): void {
     } else {
       throw new Error("No more steps or substeps");
     }
+  }
+}
+
+
+export function advance(trackedSteps: TrackedSteps): void {
+  const indices = indexToCurrentStep(trackedSteps);
+  let currentContext = trackedSteps.steps;
+
+  // Navigate to the current step/substep based on indices
+  for (let i = 0; i < indices.length - 1; i++) {
+    if (!currentContext[indices[i]].substeps) {
+      throw new Error("Invalid step path");
+    }
+    currentContext = currentContext[indices[i]].substeps!;
+  }
+
+  const currentStepIndex = indices[indices.length - 1];
+
+  // If there's a next substep in the current step
+  if (currentContext[currentStepIndex].substeps && currentContext[currentStepIndex].substeps!.length > 0) {
+    trackedSteps.currentStepPath += `/${currentContext[currentStepIndex].substeps![0].id}`;
+  } else {
+    // Move up the hierarchy to find the next step/substep
+    while (indices.length > 0) {
+      const lastIndex = indices.pop()!;
+      const parentContext = indices.reduce((acc, curr) => acc[curr].substeps!, trackedSteps.steps);
+      if (lastIndex + 1 < parentContext.length) {
+        // Found the next step/substep
+        const nextStep = parentContext[lastIndex + 1];
+        const newPathParts = indices.concat(lastIndex + 1).map(idx => parentContext[idx].id);
+        trackedSteps.currentStepPath = newPathParts.join('/');
+        return;
+      }
+    }
+
+    // If the loop completes without finding a next step, there are no more steps
+    throw new Error("No more steps");
   }
 }
