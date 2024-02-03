@@ -5,7 +5,6 @@ export type TrackedStep = {
 
 export type TrackedSteps = {
   steps: TrackedStep[]; // in order, each with a unique ID
-  completedSteps: string[]; // ids
   currentStep: string; // it is an ID
 };
 
@@ -16,7 +15,6 @@ export const initialTrackedSteps: TrackedSteps = {
     { id: "initialstep-analyze", name: "Learn" },
     { id: "initialstep-winwin", name: "Win" },
   ],
-  completedSteps: [],
   currentStep: "initialstep-letsgo",
 };
 
@@ -26,7 +24,6 @@ export function advance(trackedSteps: TrackedSteps): TrackedSteps {
   const nextStepIndex = currentStepIndex == steps.length - 1 ? currentStepIndex : currentStepIndex + 1;
   return {
     ...trackedSteps,
-    completedSteps: [...trackedSteps.completedSteps, currentStep],
     currentStep: steps[nextStepIndex].id,
   };
 }

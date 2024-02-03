@@ -8,6 +8,7 @@ import { QuestionSet, Quiz } from "./Quiz";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
+import { TrackedSteps } from "../Tracker/trackedSteps";
 
 type QuizState =
   | { name: "hello" }
@@ -82,6 +83,7 @@ function BoothGameInternal(props: BoothGameProps) {
 export type BoothGameProps = {
   resetCount: number;
   advanceTrackedSteps: () => void;
+  trackedSteps: TrackedSteps
   setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
 } & HowToReset;
 

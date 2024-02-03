@@ -40,6 +40,7 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
           {...props}
           resetCount={props.observaquizExecution.resetCount}
           advanceTrackedSteps={advanceTrackedSteps}
+          trackedSteps={trackedSteps.value}
           setTracingTeam={setTracingTeam}
         />
       </TracingErrorBoundary>

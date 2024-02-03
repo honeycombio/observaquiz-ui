@@ -5,9 +5,19 @@ import { TracedState, useTracedState } from "../tracing/TracedState";
 
 function BoothGameTrackerInternal(props: BoothGameTrackerProps) {
   const { trackedSteps } = props;
-  const { steps, completedSteps, currentStep } = useTracedState(trackedSteps, (ts) => ({
+  const { steps, currentStep } = useTracedState(trackedSteps, (ts) => ({
     "app.tracker.currentStep": ts.currentStep,
   }));
+
+  // minimal change to derive completedSteps from the rest of the data structure.
+  // When we start marking steps as completed, we won't need this, we can check that instead.
+  var completedSteps: string[] = [];
+  for (const s of steps) {
+    if (s.id === currentStep) {
+      break;
+    }
+    completedSteps.push(s.id);
+  }
 
   const paintedSteps = steps.map((step, index) => {
     const className =
