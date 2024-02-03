@@ -1,10 +1,17 @@
 import React from "react";
-import { QuestionSet } from "./Quiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { fetchFromBackend } from "../tracing/fetchFromBackend";
 
 type QuestionSetState = "loading" | "error";
+
+export type QuestionSet = {
+  question_set: string;
+  questions: Array<{
+    question: string;
+    id: string;
+  }>;
+};
 
 type QuestionSetJson = {
   question_set: string;

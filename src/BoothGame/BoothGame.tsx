@@ -1,10 +1,9 @@
 import React from "react";
 import { ApiKeyInput, ApiKeyInputSuccess } from "./ApiKeyInput";
-import { QuestionSetRetrieval } from "./QuestionSetRetrieval";
+import { QuestionSet, QuestionSetRetrieval } from "./QuestionSetRetrieval";
 import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/ComponentLifecycleTracing";
 import { HowToReset } from "../resetQuiz";
 import { Hello } from "./Hello";
-import { QuestionSet, Quiz } from "./Quiz";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
 import { TopLevelSteps, TrackedStep, TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
@@ -41,11 +40,7 @@ function BoothGameInternal(props: BoothGameProps) {
       })),
     ]);
   }
-
-  function moveOnToDataAnalysis() {
-    advanceTrackedSteps();
-  }
-
+  
   type QuestionParameters = {
     questionId: string;
     questionText: string;
