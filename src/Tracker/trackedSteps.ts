@@ -8,15 +8,28 @@ export type TrackedSteps = {
   currentStep: string; // it is an ID
 };
 
+export const TopLevelSteps = {
+  BEGIN: "initialstep-letsgo",
+  PLAY: "initialstep-play",
+  LEARN: "initialstep-analyze",
+  WIN: "initialstep-winwin",
+};
+
 export const initialTrackedSteps: TrackedSteps = {
   steps: [
-    { id: "initialstep-letsgo", name: "Begin" },
-    { id: "initialstep-play", name: "Play" },
-    { id: "initialstep-analyze", name: "Learn" },
-    { id: "initialstep-winwin", name: "Win" },
+    { id: TopLevelSteps.BEGIN, name: "Begin" },
+    { id: TopLevelSteps.PLAY, name: "Play" },
+    { id: TopLevelSteps.LEARN, name: "Learn" },
+    { id: TopLevelSteps.WIN, name: "Win" },
   ],
   currentStep: "initialstep-letsgo",
 };
+
+export function findCurrentStep(trackedSteps: TrackedSteps): TrackedStep {
+  const result = trackedSteps.steps.find((s) => s.id === trackedSteps.currentStep);
+  if (!result) throw new Error(`TrackedSteps is invalid! What is this step? ${trackedSteps.currentStep}`);
+  return result;
+}
 
 export function advance(trackedSteps: TrackedSteps): TrackedSteps {
   const { steps, currentStep } = trackedSteps;

@@ -7,55 +7,34 @@ import { Hello } from "./Hello";
 import { QuestionSet, Quiz } from "./Quiz";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
-import { useLocalTracedState } from "../tracing/LocalTracedState";
-import { TrackedSteps } from "../Tracker/trackedSteps";
-
-type QuizState =
-  | { name: "hello" }
-  | { name: "collect email" }
-  | { name: "get api key" }
-  | { name: "load question set" }
-  | { name: "ask questions"; questionSet: QuestionSet }
-  | { name: "analyze data" };
+import { TopLevelSteps, TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-
-  const [currentState, setCurrentState] = useLocalTracedState<QuizState>({ name: "hello" });
+  const { trackedSteps, advanceTrackedSteps } = props;
+  const currentStep = findCurrentStep(trackedSteps);
 
   function helloBegin() {
-    setCurrentState(
-      { name: "get api key" },
-      {
-        action: () => props.advanceTrackedSteps(),
-      }
-    );
+    // expand the "Begin step to include collecting the API key. Make that the current step.
+    console.log("You pushed begin");
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
-    setCurrentState({ name: "load question set" }, { action: () => props.setTracingTeam(news) });
+    advanceTrackedSteps();
   }
 
   function acceptQuestionSet(questionSet: QuestionSet) {
-    setCurrentState({ name: "ask questions", questionSet });
+    advanceTrackedSteps(); //{ questionSet });
   }
 
   function moveOnToDataAnalysis() {
-    setCurrentState(
-      { name: "analyze data" },
-      {
-        action: () => props.advanceTrackedSteps(),
-      }
-    );
+    advanceTrackedSteps();
   }
 
   var content = null;
-  switch (currentState.name) {
-    case "hello":
+  switch (currentStep.id) {
+    case TopLevelSteps.BEGIN:
       content = <Hello moveForward={helloBegin} />;
-      break;
-    case "collect email":
-      content = <div> collect email goes here </div>;
       break;
     case "get api key":
       content = <ApiKeyInput moveForward={acceptApiKey} />;
@@ -64,15 +43,13 @@ function BoothGameInternal(props: BoothGameProps) {
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;
       break;
     case "ask questions":
-      content = (
-        <Quiz questionSet={currentState.questionSet} howToReset={props.howToReset} moveOn={moveOnToDataAnalysis} />
-      );
+      content = <Quiz questionSet={{} as any} howToReset={props.howToReset} moveOn={moveOnToDataAnalysis} />;
       break;
     case "analyze data":
       content = <AnalyzeData howToReset={props.howToReset} />;
       break;
     default:
-      activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentState });
+      activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
       content = <div>FAILURE</div>;
       break;
   }
@@ -83,7 +60,7 @@ function BoothGameInternal(props: BoothGameProps) {
 export type BoothGameProps = {
   resetCount: number;
   advanceTrackedSteps: () => void;
-  trackedSteps: TrackedSteps
+  trackedSteps: TrackedSteps;
   setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
 } & HowToReset;
 
