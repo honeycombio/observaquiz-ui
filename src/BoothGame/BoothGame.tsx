@@ -15,7 +15,7 @@ function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
-  const { advanceTrackedSteps, advanceIntoNewSubsteps } = props;
+  const { advanceTrackedSteps, advanceIntoNewSubsteps, setTracingTeam } = props;
 
   function helloBegin() {
     console.log("You pushed begin");
@@ -23,6 +23,7 @@ function BoothGameInternal(props: BoothGameProps) {
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
+    setTracingTeam(news);
     advanceTrackedSteps();
   }
 
