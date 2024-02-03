@@ -7,14 +7,15 @@ import { Hello } from "./Hello";
 import { QuestionSet, Quiz } from "./Quiz";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
-import { TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
+import { TopLevelSteps, TrackedStep, TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
+import { Question } from "./Question";
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
-  const { advanceTrackedSteps } = props;
+  const { advanceTrackedSteps, advanceIntoNewSubsteps } = props;
 
   function helloBegin() {
     console.log("You pushed begin");
@@ -26,12 +27,29 @@ function BoothGameInternal(props: BoothGameProps) {
   }
 
   function acceptQuestionSet(questionSet: QuestionSet) {
-    advanceTrackedSteps(); //{ questionSet });
+    advanceIntoNewSubsteps([
+      {
+        id: "retrieve-questions",
+        invisible: true,
+        completionResults: { questionSetId: questionSet.question_set },
+      },
+      ...questionSet.questions.map((q, i) => ({
+        id: `question-${i + 1}`,
+        name: "Question",
+        parameters: { questionId: q.id, questionText: q.question, questionNumber: i + 1 },
+      })),
+    ]);
   }
 
   function moveOnToDataAnalysis() {
     advanceTrackedSteps();
   }
+
+  type QuestionParameters = {
+    questionId: string;
+    questionText: string;
+    questionNumber: number;
+  };
 
   var content = null;
   switch (currentStep.id) {
@@ -41,13 +59,25 @@ function BoothGameInternal(props: BoothGameProps) {
     case "begin-apikey":
       content = <ApiKeyInput moveForward={acceptApiKey} />;
       break;
-    case "load question set":
+    case TopLevelSteps.PLAY:
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;
       break;
-    case "ask questions":
-      content = <Quiz questionSet={{} as any} howToReset={props.howToReset} moveOn={moveOnToDataAnalysis} />;
+    case "question-1": // really, any question
+    case "question-2":
+    case "question-3":
+      const parameters = currentStep.parameters! as QuestionParameters;
+      content = (
+        <Question
+          key={parameters.questionNumber}
+          questionNumber={parameters.questionNumber}
+          questionId={parameters.questionId}
+          questionText={parameters.questionText}
+          moveForward={advanceTrackedSteps}
+          howToReset={props.howToReset}
+        />
+      );
       break;
-    case "analyze data":
+    case TopLevelSteps.LEARN:
       content = <AnalyzeData howToReset={props.howToReset} />;
       break;
     default:
@@ -63,6 +93,7 @@ function BoothGameInternal(props: BoothGameProps) {
 export type BoothGameProps = {
   resetCount: number;
   advanceTrackedSteps: () => void;
+  advanceIntoNewSubsteps: (substeps: TrackedStep[]) => void;
   trackedSteps: TracedState<TrackedSteps>;
   setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
 } & HowToReset;

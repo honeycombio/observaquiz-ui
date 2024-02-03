@@ -1,8 +1,10 @@
 export type TrackedStep = {
-  id: string;
-  name: string; // could be duplicated
+  id: string; // must be unique, at least in this array
+  name?: string; // could be duplicated
+  invisible?: boolean; // if it's not a step that the user should see
   substeps?: TrackedStep[];
   completionResults?: object;
+  parameters?: object
 };
 
 export type TrackedSteps = {
@@ -17,6 +19,9 @@ export const TopLevelSteps = {
   WIN: "initialstep-winwin",
 };
 
+/**
+ * This describes the flow of the whole program
+ */
 export const initialTrackedSteps: TrackedSteps = {
   steps: [
     {
@@ -46,6 +51,25 @@ export function findCurrentStep(trackedSteps: TrackedSteps): TrackedStep {
   }
   if (!currentStep) throw new Error(`TrackedSteps is invalid! What is this step? ${trackedSteps.currentStepPath}`);
   return currentStep;
+}
+
+/**
+ * The idea here is, when we retrieve the question set, suddenly we know how many substeps PLAY has.
+ * We add one for the question set loading which is already complete; and then one for each question.
+ * We can then proceed with the next incomplete substep, Question 1.
+ * @param trackedSteps 
+ * @param newSubsteps 
+ * @returns 
+ */
+export function advanceIntoNewSubsteps(trackedSteps: TrackedSteps, newSubsteps: TrackedStep[]): TrackedSteps {
+  const currentStep = findCurrentStep(trackedSteps);
+  currentStep.substeps = newSubsteps;
+
+  const firstIncompleteSubstep = newSubsteps.findIndex(s => !s.completionResults);
+  return {
+    ...trackedSteps,
+    currentStepPath: `${trackedSteps.currentStepPath}/${newSubsteps[firstIncompleteSubstep].id}`,
+  };
 }
 
 function findLengthsOfArrays(trackedSteps: TrackedSteps, indexes: number[]): number[] {

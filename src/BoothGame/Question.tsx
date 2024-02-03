@@ -140,9 +140,10 @@ function QuestionInternal(props: QuestionProps) {
 
   function nextQuestion(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
-    activeLifecycleSpan.addLog("next question");
-    // no need to change state, this component will be replaced
-    props.moveForward();
+    activeLifecycleSpan.withLog("next question", {}, () =>
+      // no need to change state, this component will be replaced
+      props.moveForward()
+    );
   }
 
   function cancel(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
