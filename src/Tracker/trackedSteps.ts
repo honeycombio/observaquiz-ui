@@ -46,19 +46,62 @@ export function findCurrentStep(trackedSteps: TrackedSteps): TrackedStep {
   return currentStep;
 }
 
-// export function advance(trackedSteps: TrackedSteps, completionResults: object): TrackedSteps {
-//   const currentStep = findCurrentStep(trackedSteps);
-//   currentStep.completionResults = { completed: true, ...completionResults }; // if it's done, I always want something in there, so it's truthy.
+function findLengthsOfArrays(trackedSteps: TrackedSteps, indexes: number[]): number[] {
+  var modifiableIndexes = indexes.slice();
+  var steps = trackedSteps.steps;
+  const lengthsOfArrays = [];
+  while (modifiableIndexes.length > 0) {
+    lengthsOfArrays.push(steps.length);
+    steps = steps[modifiableIndexes[0]].substeps || [];
+    modifiableIndexes.shift();
+  }
+  return lengthsOfArrays;
+}
 
-//   const { steps, currentStepPath } = trackedSteps;
-//   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
-//   const nextStepIndex = currentStepIndex == steps.length - 1 ? currentStepIndex : currentStepIndex + 1;
-//   return {
-//     ...trackedSteps,
-//     currentStep: steps[nextStepIndex].id,
-//   };
-// }
+function advanceIndex(indexes: number[], lengthsOfArrays: number[]): number[] {
+  const reversedLengthsOfArrays = lengthsOfArrays.slice().reverse();
+  const reversedIndexes = indexes.slice().reverse();
+  while (reversedIndexes.length > 0) {
+    if (reversedIndexes[0] + 1 < reversedLengthsOfArrays[0]) {
+      reversedIndexes[0] += 1;
+      return reversedIndexes.reverse();
+    }
+    reversedIndexes.shift();
+    reversedLengthsOfArrays.shift();
+  }
+  throw new Error(`No more steps. Indexes: ${JSON.stringify(indexes)}, Lengths: ${JSON.stringify(lengthsOfArrays)}`);
+}
 
+function findPathFromIndexes(trackedSteps: TrackedSteps, indexes: number[]): string {
+  var steps = trackedSteps.steps;
+  var currentPath = "";
+  for (const index of indexes) {
+    currentPath += `/${steps[index].id}`;
+    steps = steps[index].substeps || [];
+  }
+  return currentPath.slice(1); // remove the leading slash
+}
+
+export function advance(trackedSteps: TrackedSteps, completionResults?: object) {
+  // complete the current step
+  const currentStep = findCurrentStep(trackedSteps);
+  currentStep.completionResults = { complete: true, ...completionResults };
+
+  // now move
+  const indexesToCurrentStep = indexToCurrentStep(trackedSteps);
+  const lengthsOfArrays = findLengthsOfArrays(trackedSteps, indexesToCurrentStep);
+
+  const indexesToNextStep = advanceIndex(indexToCurrentStep(trackedSteps), lengthsOfArrays);
+  const newCurrentPath = findPathFromIndexes(trackedSteps, indexesToNextStep);
+
+  trackedSteps.currentStepPath = newCurrentPath;
+}
+
+/**
+ *
+ * @param trackedSteps
+ * @returns a path to the current step, as indexes into 'steps' and then 'substeps' arrays
+ */
 export function indexToCurrentStep(trackedSteps: TrackedSteps): number[] {
   var steps = trackedSteps.steps;
   var indexes = [];
@@ -121,8 +164,7 @@ export function advance1(trackedSteps: TrackedSteps): void {
   }
 }
 
-
-export function advance(trackedSteps: TrackedSteps): void {
+export function advance2(trackedSteps: TrackedSteps): void {
   const indices = indexToCurrentStep(trackedSteps);
   let currentContext = trackedSteps.steps;
 
@@ -147,8 +189,8 @@ export function advance(trackedSteps: TrackedSteps): void {
       if (lastIndex + 1 < parentContext.length) {
         // Found the next step/substep
         const nextStep = parentContext[lastIndex + 1];
-        const newPathParts = indices.concat(lastIndex + 1).map(idx => parentContext[idx].id);
-        trackedSteps.currentStepPath = newPathParts.join('/');
+        const newPathParts = indices.concat(lastIndex + 1).map((idx) => parentContext[idx].id);
+        trackedSteps.currentStepPath = newPathParts.join("/");
         return;
       }
     }
