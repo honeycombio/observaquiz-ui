@@ -22,6 +22,7 @@ function BoothGameInternal(props: BoothGameProps) {
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
+    setDidTheApiKeyThing(true);
     setTracingTeam(news);
     advanceTrackedSteps();
   }

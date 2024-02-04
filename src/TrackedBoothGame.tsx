@@ -22,6 +22,15 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     "tracing team",
     undefined
   );
+  React.useEffect(() => {
+    // just once at the beginning. This is a special case for loading state and being later in the
+    // observaquiz, so that 'setTracingTeam' below doesn't get called.
+    // This is a super special case and icky. But I want it to work now please
+    if (tracingTeam.value !== undefined) {
+      console.log("Learning tracing team from local storage");
+      props.learnTeam(tracingTeam.value);
+    }
+  }, []);
 
   function howToReset() {
     console.log("Resetting tracked steps");
