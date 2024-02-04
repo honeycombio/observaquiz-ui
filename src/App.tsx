@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { Configuration, RealHoneycomb } from "./Configuration.js";
 import { ObservaquizExecution, TrackedBoothGame } from "./TrackedBoothGame.js";
 import { v4 as uuidv4 } from "uuid"; // Import the 'uuidv4' function from the 'uuid' package
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { useLocalStorage } from "./tracing/useLocalStorage";
 
 console.log("begin! ao");
 

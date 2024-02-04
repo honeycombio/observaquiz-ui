@@ -2,7 +2,7 @@ import React from "react";
 import { SpanContext, trace, AttributeValue, context } from "@opentelemetry/api";
 import { ActiveLifecycleSpan } from "./ComponentLifecycleTracing";
 import { EVENT_ID_KEY, EVENT_SPAN_ID_KEY } from "./activeLifecycleSpan";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { useLocalStorage } from "./useLocalStorage";
 
 type TracedStateProvenance = {
   spanContext?: SpanContext;
