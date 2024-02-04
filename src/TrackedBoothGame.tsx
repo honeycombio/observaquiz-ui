@@ -26,6 +26,7 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   function howToReset() {
     console.log("Resetting tracked steps");
     setTrackedSteps(initialTrackedSteps);
+    setTracingTeamInternal(undefined);
     props.howToReset();
   }
 
