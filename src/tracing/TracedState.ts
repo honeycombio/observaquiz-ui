@@ -54,7 +54,7 @@ export function useTracedState<T>(
 
   const previousValue = usePrevious(currentState.value);
   React.useEffect(() => {
-    activeLifecycleSpan.addLog("traced state change", {
+    activeLifecycleSpan.addLog("changed: " + currentState.provenance.name, {
       "stateTrace.name": currentState.provenance.name,
       "stateTrace.value": JSON.stringify(currentState.value), // NOTE: this is a limitation on the kind of values that can be wrapped
       "stateTrace.previousValue": JSON.stringify(previousValue), // NOTE: this is a limitation on the kind of values that can be wrapped
