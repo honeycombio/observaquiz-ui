@@ -2,7 +2,6 @@ import React from "react";
 import { ApiKeyInput, ApiKeyInputSuccess } from "./ApiKeyInput";
 import { QuestionSet, QuestionSetRetrieval } from "./QuestionSetRetrieval";
 import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/ComponentLifecycleTracing";
-import { HowToReset } from "../resetQuiz";
 import { Hello } from "./Hello";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
@@ -69,12 +68,11 @@ function BoothGameInternal(props: BoothGameProps) {
           questionId={parameters.questionId}
           questionText={parameters.questionText}
           moveForward={advanceTrackedSteps}
-          howToReset={props.howToReset}
         />
       );
       break;
     case TopLevelSteps.LEARN:
-      content = <AnalyzeData howToReset={props.howToReset} moveForward={advanceTrackedSteps} />;
+      content = <AnalyzeData moveForward={advanceTrackedSteps} />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
@@ -92,7 +90,7 @@ export type BoothGameProps = {
   advanceIntoNewSubsteps: (substeps: TrackedStep[]) => void;
   trackedSteps: TracedState<TrackedSteps>;
   setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
-} & HowToReset;
+};
 
 export function BoothGame(props: BoothGameProps) {
   return (

@@ -1,5 +1,4 @@
 import React, { ChangeEvent, useEffect } from "react";
-import { HowToReset } from "../resetQuiz";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { fetchResponseToAnswer } from "./respondToAnswer";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
@@ -102,12 +101,6 @@ function QuestionInternal(props: QuestionProps) {
     } else {
       setAnswerContent(typedContent);
     }
-  }
-
-  function resetQuiz(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    // this will remove this component entirely
-    activeLifecycleSpan.addLog("reset quiz");
-    props.howToReset(activeLifecycleSpan);
   }
 
   function submitAnswer(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -222,9 +215,6 @@ function QuestionInternal(props: QuestionProps) {
           {buttonText}
         </button>
         {lessExcitingButton}
-        <button className="button clear pull-right" onClick={resetQuiz}>
-          Reset quiz
-        </button>
       </p>
       <p className="fine-print">
         The information you enter will be sent to: the Observaquiz backend, OpenAI for generating a response, DeepChecks
@@ -240,7 +230,7 @@ type QuestionProps = {
   questionId: string;
   questionText: string;
   moveForward: () => void;
-} & HowToReset;
+};
 
 // this displays a question, receives an answer, and then provides a response.
 export function Question(props: QuestionProps) {

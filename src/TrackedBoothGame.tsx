@@ -11,10 +11,10 @@ import {
 } from "./Tracker/trackedSteps";
 import { useDeclareTracedState } from "./tracing/TracedState";
 import { TracingTracker } from "./Tracker/TracingTracker";
-import { HowToReset } from "./resetQuiz";
 import { HoneycombTeamContextProvider } from "./BoothGame/HoneycombTeamContext";
 import { SecondsSinceEpoch, TracingTeam, TracingTeamFromAuth } from "./tracing/TracingDestination";
 import { TracingErrorBoundary } from "./tracing/TracingErrorBoundary";
+import { HowToReset } from "./resetQuiz";
 
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
@@ -58,6 +58,13 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     setTrackedSteps(advanceIntoNewSubsteps(trackedSteps.value, substeps));
   };
 
+  const resetButton = (
+    <p>
+      <button className="button clear pull-right" onClick={howToReset}>
+        Reset quiz
+      </button>
+    </p>
+  );
   return (
     <HoneycombTeamContextProvider tracingTeam={tracingTeam}>
       <TracingErrorBoundary howToReset={props.howToReset}>
@@ -69,8 +76,8 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
           resetCount={props.observaquizExecution.resetCount}
           trackedSteps={trackedSteps}
           setTracingTeam={setTracingTeam}
-          howToReset={howToReset}
         />
+        {resetButton}
       </TracingErrorBoundary>
     </HoneycombTeamContextProvider>
   );

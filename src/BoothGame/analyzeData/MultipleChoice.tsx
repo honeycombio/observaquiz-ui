@@ -1,6 +1,5 @@
 import React from "react";
 import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../../tracing/ComponentLifecycleTracing";
-import { HowToReset } from "../../resetQuiz";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
@@ -85,14 +84,6 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
     });
   }, []);
 
-  const questionText = "Which question led to the slowest response?"; // Future: parameter
-
-  function resetQuiz(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    // this will remove this component entirely
-    activeLifecycleSpan.addLog("reset quiz");
-    props.howToReset(activeLifecycleSpan);
-  }
-
   if (state.name === "loading answers") {
     return (
       <div className="loading">
@@ -104,9 +95,6 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
     return (
       <div className="error">
         <p>DOOOM</p>{" "}
-        <button className="button clear pull-right" onClick={resetQuiz}>
-          Reset quiz
-        </button>
       </div>
     );
   }
@@ -119,7 +107,7 @@ type MultipleChoiceInternalProps<ParticularQueryData> = {
   chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
   formatAnswer: (row: ParticularQueryData) => string;
   moveOn: (result: MultipleChoiceResult) => void;
-} & HowToReset;
+};
 
 type AnswerOption = {
   key: string;
@@ -155,12 +143,6 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
   }));
 
   const questionText = "Which question led to the slowest response?";
-
-  function resetQuiz(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    // this will remove this component entirely
-    activeLifecycleSpan.addLog("reset quiz");
-    props.howToReset(activeLifecycleSpan);
-  }
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const currentAnswer = answers.find((a) => a.key === event.target.value);
@@ -220,9 +202,6 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
         <button id="question-go" type="submit" disabled={!state.buttonEnabled} onClick={whatToDoNext}>
           Submit
         </button>
-        <button className="button clear pull-right" onClick={resetQuiz}>
-          Reset quiz
-        </button>
       </p>
     </div>
   );
@@ -239,7 +218,7 @@ type MultipleChoiceProps<ParticularQueryData> = {
   chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
   formatAnswer: (row: ParticularQueryData) => string;
   moveOn: (result: MultipleChoiceResult) => void;
-} & HowToReset;
+};
 export function MultipleChoice<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
   return (
     <ComponentLifecycleTracing componentName="MultipleChoice">
