@@ -8,6 +8,7 @@ import { AnalyzeData } from "./analyzeData/AnalyzeData";
 import { TopLevelSteps, TrackedStep, TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 import { Question } from "./Question";
+import { Win } from "./Win";
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -73,6 +74,9 @@ function BoothGameInternal(props: BoothGameProps) {
       break;
     case TopLevelSteps.LEARN:
       content = <AnalyzeData moveForward={advanceTrackedSteps} />;
+      break;
+    case TopLevelSteps.WIN:
+      content = <Win />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
