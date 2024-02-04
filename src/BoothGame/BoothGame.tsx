@@ -37,7 +37,7 @@ function BoothGameInternal(props: BoothGameProps) {
       {
         id: "retrieve-questions",
         invisible: true,
-        completionResults: { questionSetId: questionSet.question_set },
+        completionResults: { complete: true, questionSetId: questionSet.question_set },
       },
       ...questionSet.questions.map((q, i) => ({
         id: `question-${i + 1}`,
