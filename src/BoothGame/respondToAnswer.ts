@@ -11,8 +11,8 @@ export type ResponseFromAI =
   | { status: "failure"; error: string };
 
 type AnswersAPIResponse = {
-  score: string;
-  response: number;
+  score: number;
+  response: string;
 };
 
 function verifyResponse(

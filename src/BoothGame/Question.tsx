@@ -63,6 +63,7 @@ function QuestionInternal(props: QuestionProps) {
 
   const [answerContent, setAnswerContent] = React.useState<string>("");
   const [response, setResponse] = React.useState<string | undefined>(undefined);
+  const [highScore, setHighScore] = React.useState<number>(-2);
   const [state, setState] = useLocalTracedState<QuestionState>(NoAnswerYet, {
     componentName: "question",
     addAttributes: (newState) => ({
@@ -122,6 +123,7 @@ function QuestionInternal(props: QuestionProps) {
           setResponse(response.error || "it didn't even give me an error");
           setState(ErrorState, { reason: "failed to fetch response" });
         } else {
+          setHighScore(Math.max(highScore, response.response.score));
           // success
           const interpretation = `I give that a ${response.response.score}. ${response.response.response}`;
           setResponse(interpretation);
@@ -135,7 +137,7 @@ function QuestionInternal(props: QuestionProps) {
     event.preventDefault();
     activeLifecycleSpan.withLog("next question", {}, () =>
       // no need to change state, this component will be replaced
-      props.moveForward()
+      props.moveForward({ score: highScore })
     );
   }
 
@@ -229,7 +231,11 @@ type QuestionProps = {
   questionNumber: number;
   questionId: string;
   questionText: string;
-  moveForward: () => void;
+  moveForward: (result: QuestionResult) => void;
+};
+
+export type QuestionResult = {
+  score: number;
 };
 
 // this displays a question, receives an answer, and then provides a response.
