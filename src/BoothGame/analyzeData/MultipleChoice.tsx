@@ -121,14 +121,27 @@ function shuffle<T>(unshuffled: T[]) {
     .map(({ value }) => value);
 }
 
-const NoAnswerPicked = { name: "no answer picked", answer: undefined, button: "submit", buttonEnabled: false };
-type PickedOne = { name: "they have chosen"; answer: AnswerOption; button: "Submit"; buttonEnabled: true };
+const NoAnswerPicked = {
+  name: "no answer picked",
+  answer: undefined,
+  button: "submit",
+  buttonEnabled: false,
+  radioButtonsEnabled: true,
+};
+type PickedOne = {
+  name: "they have chosen";
+  answer: AnswerOption;
+  button: "Submit";
+  buttonEnabled: true;
+  radioButtonsEnabled: true;
+};
 type DeliverVerdict = {
   name: "deliver verdict";
   answer: AnswerOption;
   correct: boolean;
   button: "Proceed";
   buttonEnabled: true;
+  radioButtonsEnabled: false;
 };
 
 type MultipleChoiceInternalState = typeof NoAnswerPicked | PickedOne | DeliverVerdict;
@@ -151,7 +164,13 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const currentAnswer = answers.find((a) => a.key === event.target.value);
-    setState({ name: "they have chosen", answer: currentAnswer, button: "Submit", buttonEnabled: true });
+    setState({
+      name: "they have chosen",
+      answer: currentAnswer,
+      button: "Submit",
+      buttonEnabled: true,
+      radioButtonsEnabled: true,
+    });
   };
 
   const submitAnswer = (event: React.MouseEvent) => {
@@ -163,6 +182,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
       correct,
       button: "Proceed",
       buttonEnabled: true,
+      radioButtonsEnabled: false,
     });
   };
 
@@ -185,6 +205,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
             key={thisOne}
             checked={state.answer?.key === thisOne}
             onChange={handleSelection}
+            disabled={!state.radioButtonsEnabled}
           />
           {row.text}
         </label>
@@ -205,7 +226,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
       <p>{result}</p>
       <p>
         <button id="question-go" type="submit" disabled={!state.buttonEnabled} onClick={whatToDoNext}>
-          Submit
+          {state.button}
         </button>
       </p>
     </div>
