@@ -3,9 +3,13 @@ export type TrackedStep = {
   name?: string; // could be duplicated
   invisible?: boolean; // if it's not a step that the user should see
   substeps?: TrackedStep[];
-  completionResults?: object;
+  completionResults?: CompletionResult;
   parameters?: object;
 };
+
+export type CompletionResult = {
+  complete: true;
+} & Record<string, any>;
 
 export type TrackedSteps = {
   steps: TrackedStep[]; // in order, each with a unique ID
@@ -145,4 +149,17 @@ function indexToCurrentStep(trackedSteps: TrackedSteps): number[] {
     indexes.push(index);
   }
   return indexes;
+}
+
+export function allCompletionResults(steps: TrackedStep[] | undefined): CompletionResult[] {
+  if (!steps) {
+    return [];
+  }
+  const subResults = steps.map((s) => allCompletionResults(s.substeps)).flat();
+  return removeUndefinedDammit([...subResults, ...steps.map((s) => s.completionResults)]);
+}
+
+// i don't have internet to look this up atm
+function removeUndefinedDammit<T>(arr: Array<T | undefined>): T[] {
+  return arr.filter((v) => v !== undefined) as T[];
 }

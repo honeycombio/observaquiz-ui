@@ -5,7 +5,13 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/Compo
 import { Hello } from "./Hello";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
-import { TopLevelSteps, TrackedStep, TrackedSteps, findCurrentStep } from "../Tracker/trackedSteps";
+import {
+  TopLevelSteps,
+  TrackedStep,
+  TrackedSteps,
+  allCompletionResults,
+  findCurrentStep,
+} from "../Tracker/trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 import { Question } from "./Question";
 import { Win } from "./Win";
@@ -15,7 +21,6 @@ function BoothGameInternal(props: BoothGameProps) {
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
   const { advanceTrackedSteps, advanceIntoNewSubsteps, setTracingTeam } = props;
-  const [accumulatedScore, setAccumulatedScore] = React.useState<number>(0);
 
   function helloBegin() {
     console.log("You pushed begin");
@@ -40,11 +45,6 @@ function BoothGameInternal(props: BoothGameProps) {
         parameters: { questionId: q.id, questionText: q.question, questionNumber: i + 1 },
       })),
     ]);
-  }
-
-  function saveScoreAndAdvance(completionResults: { score: number }) {
-    setAccumulatedScore(accumulatedScore + completionResults.score);
-    advanceTrackedSteps(completionResults);
   }
 
   type QuestionParameters = {
@@ -74,15 +74,16 @@ function BoothGameInternal(props: BoothGameProps) {
           questionNumber={parameters.questionNumber}
           questionId={parameters.questionId}
           questionText={parameters.questionText}
-          moveForward={saveScoreAndAdvance}
+          moveForward={advanceTrackedSteps}
         />
       );
       break;
     case TopLevelSteps.LEARN:
-      content = <AnalyzeData moveForward={saveScoreAndAdvance} />;
+      content = <AnalyzeData moveForward={advanceTrackedSteps} />;
       break;
     case TopLevelSteps.WIN:
-      content = <Win score={accumulatedScore}/>;
+      const accumulatedScore = countUpScores(trackedSteps);
+      content = <Win score={accumulatedScore} />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
@@ -112,4 +113,10 @@ export function BoothGame(props: BoothGameProps) {
       <BoothGameInternal {...props} />
     </ComponentLifecycleTracing>
   );
+}
+
+function countUpScores(trackedSteps: TrackedSteps) {
+  return allCompletionResults(trackedSteps.steps)
+    .map((c: any) => c?.score || 0)
+    .reduce((a, b) => a + b, 0); // where is the sum function?
 }
