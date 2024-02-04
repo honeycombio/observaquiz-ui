@@ -22,7 +22,6 @@ function BoothGameInternal(props: BoothGameProps) {
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
-    setDidTheApiKeyThing(true);
     setTracingTeam(news);
     advanceTrackedSteps();
   }
@@ -41,7 +40,7 @@ function BoothGameInternal(props: BoothGameProps) {
       })),
     ]);
   }
-  
+
   type QuestionParameters = {
     questionId: string;
     questionText: string;
@@ -75,7 +74,7 @@ function BoothGameInternal(props: BoothGameProps) {
       );
       break;
     case TopLevelSteps.LEARN:
-      content = <AnalyzeData howToReset={props.howToReset} />;
+      content = <AnalyzeData howToReset={props.howToReset} moveForward={advanceTrackedSteps} />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
@@ -89,7 +88,7 @@ function BoothGameInternal(props: BoothGameProps) {
 
 export type BoothGameProps = {
   resetCount: number;
-  advanceTrackedSteps: () => void;
+  advanceTrackedSteps: (completionResults?: any) => void;
   advanceIntoNewSubsteps: (substeps: TrackedStep[]) => void;
   trackedSteps: TracedState<TrackedSteps>;
   setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;

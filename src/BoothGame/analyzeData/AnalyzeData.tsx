@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTraci
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
-import { MultipleChoice } from "./MultipleChoice";
+import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
 import { HowToReset } from "../../resetQuiz";
 
 const PleaseLookAtTheData = { questionVisible: false };
@@ -54,6 +54,7 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
       formatAnswer={formatAnswer}
       chooseCorrectAnswer={chooseCorrectAnswer}
       howToReset={props.howToReset}
+      moveOn={props.moveForward}
     />
   ) : null;
 
@@ -82,11 +83,11 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
     </div>
   );
 }
-export type AnalyzeDataProps = {} & HowToReset;
+export type AnalyzeDataProps = { moveForward: (result: MultipleChoiceResult) => void } & HowToReset;
 export function AnalyzeData(props: AnalyzeDataProps) {
   return (
     <ComponentLifecycleTracing componentName="analyze-data">
-      <AnalyzeDataInternal howToReset={props.howToReset} />
+      <AnalyzeDataInternal {...props} />
     </ComponentLifecycleTracing>
   );
 }

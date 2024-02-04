@@ -7,25 +7,14 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 
 const LoadingAnswers = { name: "loading answers" };
 const ErrorLoadingAnswers = { name: "error loading answers" };
-type WithAnswers<ParticularQueryData> = { answers: ParticularQueryData[] };
-type ShowingAnswers<ParticularQueryData> = {
-  name: "showing answers";
-  submitEnabled: false;
-} & WithAnswers<ParticularQueryData>;
-function showingAnswers<ParticularQueryData>(answers: ParticularQueryData[]): ShowingAnswers<ParticularQueryData> {
-  return { name: "showing answers", answers, submitEnabled: false };
+type HaveQueryData<ParticularQueryData> = { name: "have query data"; queryRows: ParticularQueryData[] };
+function haveQueryData<ParticularQueryData>(queryRows: ParticularQueryData[]): HaveQueryData<ParticularQueryData> {
+  return { name: "have query data", queryRows };
 }
-type PickedOne<ParticularQueryData> = {
-  name: "picked one";
-  picked: string;
-  submitEnabled: true;
-} & WithAnswers<ParticularQueryData>;
-function pickedOne<ParticularQueryData>(
-  state: WithAnswers<ParticularQueryData>,
-  picked: string
-): PickedOne<ParticularQueryData> {
-  return { name: "picked one", picked, answers: state.answers, submitEnabled: true };
-}
+type MultipleChoiceOuterState<ParticularQueryData> =
+  | typeof LoadingAnswers
+  | typeof ErrorLoadingAnswers
+  | HaveQueryData<ParticularQueryData>;
 
 type QueryDataResult<ParticularQueryData> = {
   query_id: string;
@@ -34,18 +23,11 @@ type QueryDataResult<ParticularQueryData> = {
   query_data: ParticularQueryData[];
 };
 
-type MultipleChoiceState<ParticularQueryData> = {
-  name: string;
-  answers?: ParticularQueryData[];
-  picked?: string;
-  submitEnabled?: boolean;
-};
-
-function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
+function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const honeycombTeam = React.useContext(HoneycombTeamContext);
 
-  const [state, setState] = useLocalTracedState<MultipleChoiceState<ParticularQueryData>>(LoadingAnswers);
+  const [state, setState] = useLocalTracedState<MultipleChoiceOuterState<ParticularQueryData>>(LoadingAnswers);
 
   React.useEffect(() => {
     if (!honeycombTeam.populated) {
@@ -54,7 +36,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
     }
     const queryDataRequestBody = {
       query: props.queryDefinition,
-      query_name: "Slowest response from LLM",
+      query_name: "Slowest response from LLM", // TODO: parameter
       dataset_slug: props.dataset,
       attendee_api_key: honeycombTeam.apiKey,
     };
@@ -89,8 +71,9 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
           );
           setState(ErrorLoadingAnswers);
         }
-        setState(showingAnswers(queryDataReturned.query_data as ParticularQueryData[]), {
+        setState(haveQueryData(queryDataReturned.query_data as ParticularQueryData[]), {
           attributes: {
+            // here's a way they can cheat, they can go look at the trace. That takes enough in-Honeycomb work that I'm OK with it
             "app.multipleChoice.query_data": JSON.stringify(queryDataReturned.query_data),
             "app.multipleChoice.answers": queryDataReturned.query_data.map(props.formatAnswer),
             "app.multipleChoice.rightAnswer": props.formatAnswer(
@@ -102,7 +85,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
     });
   }, []);
 
-  const questionText = "Which question led to the slowest response?";
+  const questionText = "Which question led to the slowest response?"; // Future: parameter
 
   function resetQuiz(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     // this will remove this component entirely
@@ -128,31 +111,83 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
     );
   }
 
-  // showing answers
+  return <MultipleChoiceInternal {...props} queryRows={(state as HaveQueryData<ParticularQueryData>).queryRows} />;
+}
+
+type MultipleChoiceInternalProps<ParticularQueryData> = {
+  queryRows: ParticularQueryData[];
+  chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
+  formatAnswer: (row: ParticularQueryData) => string;
+  moveOn: (result: MultipleChoiceResult) => void;
+} & HowToReset;
+
+type AnswerOption = {
+  key: string;
+  text: string;
+};
+
+function shuffle<T>(unshuffled: T[]) {
+  return unshuffled
+    .map((value) => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
+}
+
+const NoAnswerPicked = { name: "no answer picked", answer: undefined, button: "submit", buttonEnabled: false };
+type PickedOne = { name: "they have chosen"; answer: AnswerOption; button: "Submit"; buttonEnabled: true };
+type DeliverVerdict = {
+  name: "deliver verdict";
+  answer: AnswerOption;
+  correct: boolean;
+  button: "Proceed";
+  buttonEnabled: true;
+};
+
+type MultipleChoiceInternalState = typeof NoAnswerPicked | PickedOne | DeliverVerdict;
+
+function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceInternalProps<ParticularQueryData>) {
+  const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
+  const [state, setState] = useLocalTracedState<MultipleChoiceInternalState>(NoAnswerPicked);
+
+  const answers = shuffle([...new Set(props.queryRows.map(props.formatAnswer))]).map((answer, index) => ({
+    text: answer,
+    key: "answer" + index,
+  }));
+
+  const questionText = "Which question led to the slowest response?";
+
+  function resetQuiz(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    // this will remove this component entirely
+    activeLifecycleSpan.addLog("reset quiz");
+    props.howToReset(activeLifecycleSpan);
+  }
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // fuck you typescript, i DO NOT CARE just WORK
-    setState(pickedOne(state as WithAnswers<ParticularQueryData>, event.target.value));
+    const currentAnswer = answers.find((a) => a.key === event.target.value);
+    setState({ name: "they have chosen", answer: currentAnswer, button: "Submit", buttonEnabled: true });
   };
 
   const submitAnswer = (event: React.MouseEvent) => {
+    const correct = props.formatAnswer(props.chooseCorrectAnswer(props.queryRows)) === (state as PickedOne).answer.text;
     event.preventDefault();
-    setState({ name: "they have chosen", picked: state.picked, answers: state.answers, submitEnabled: false });
+    setState({
+      name: "deliver verdict",
+      answer: (state as PickedOne).answer,
+      correct,
+      button: "Proceed",
+      buttonEnabled: true,
+    });
   };
 
-  function isItRight(answers: ParticularQueryData[], picked: string): boolean {
-    return props.formatAnswer(props.chooseCorrectAnswer(state.answers!)) === picked;
-  }
-
   const result =
-    state.name === "they have chosen"
-      ? isItRight(state.answers!, state.picked!)
+    state.name === "deliver verdict"
+      ? (state as DeliverVerdict).correct
         ? "Right!!! 300 points!"
         : "Hmm, I disagree. 0 points"
       : "";
 
-  function radioButtonFromData(row: ParticularQueryData, index: number) {
-    const thisOne = "answer" + index;
+  function radioButtonFromData(row: AnswerOption, index: number) {
+    const thisOne = row.key;
     return (
       <li key={thisOne}>
         <label>
@@ -161,21 +196,28 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
             type="radio"
             value={thisOne}
             key={thisOne}
-            checked={state.picked === thisOne}
+            checked={state.answer?.key === thisOne}
             onChange={handleSelection}
           />
-          {props.formatAnswer(row)}
+          {row.text}
         </label>
       </li>
     );
   }
+
+  function proceeeeed(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    activeLifecycleSpan.addLog("move on");
+    props.moveOn({ score: (state as DeliverVerdict).correct ? 300 : 0 });
+  }
+
+  const whatToDoNext = state.button === "Submit" ? submitAnswer : proceeeeed;
   return (
     <div id="multiple-choice">
       <p className="question-text">{questionText}</p>
-      <ul>{(state as ShowingAnswers<ParticularQueryData>).answers.map(radioButtonFromData)}</ul>
+      <ul>{answers.map(radioButtonFromData)}</ul>
       <p>{result}</p>
       <p>
-        <button id="question-go" type="submit" disabled={!state.submitEnabled} onClick={submitAnswer}>
+        <button id="question-go" type="submit" disabled={!state.buttonEnabled} onClick={whatToDoNext}>
           Submit
         </button>
         <button className="button clear pull-right" onClick={resetQuiz}>
@@ -188,17 +230,20 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
 
 export type OverviewRowFromQuery = Record<string, string | number>;
 
+export type MultipleChoiceResult = { score: number };
+
 // TODO: make a happy type to represent a query. ChatGPT makes this fast
 type MultipleChoiceProps<ParticularQueryData> = {
   queryDefinition: object;
   dataset: string;
   chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
   formatAnswer: (row: ParticularQueryData) => string;
+  moveOn: (result: MultipleChoiceResult) => void;
 } & HowToReset;
 export function MultipleChoice<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
   return (
     <ComponentLifecycleTracing componentName="MultipleChoice">
-      <MultipleChoiceInternal {...props} />
+      <MultipleChoiceOuter {...props} />
     </ComponentLifecycleTracing>
   );
 }
