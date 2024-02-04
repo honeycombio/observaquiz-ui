@@ -1,6 +1,6 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { TrackedSteps, findCurrentStep } from "./trackedSteps";
+import { isComplete, TrackedSteps } from "./trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 
 function BoothGameTrackerInternal(props: BoothGameTrackerProps) {
@@ -13,9 +13,9 @@ function BoothGameTrackerInternal(props: BoothGameTrackerProps) {
     const className =
       step.id === currentStepPath.split("/")[0] // for right now
         ? "you-are-here"
-        : !!step.completionResults
+        : isComplete(step)
         ? "completed-step"
-        : "incomplete-step";
+        : "incomplete-step";g
     return <div key={step.id} title={step.name} className={className} />;
   });
   return <div id="booth-game-tracker">{paintedSteps}</div>;

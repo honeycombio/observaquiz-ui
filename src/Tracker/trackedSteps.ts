@@ -4,7 +4,7 @@ export type TrackedStep = {
   invisible?: boolean; // if it's not a step that the user should see
   substeps?: TrackedStep[];
   completionResults?: object;
-  parameters?: object
+  parameters?: object;
 };
 
 export type TrackedSteps = {
@@ -53,19 +53,23 @@ export function findCurrentStep(trackedSteps: TrackedSteps): TrackedStep {
   return currentStep;
 }
 
+export function isComplete(step: TrackedStep): boolean {
+  return !!step.completionResults || (step.substeps && step.substeps.every(isComplete)) || false;
+}
+
 /**
  * The idea here is, when we retrieve the question set, suddenly we know how many substeps PLAY has.
  * We add one for the question set loading which is already complete; and then one for each question.
  * We can then proceed with the next incomplete substep, Question 1.
- * @param trackedSteps 
- * @param newSubsteps 
- * @returns 
+ * @param trackedSteps
+ * @param newSubsteps
+ * @returns
  */
 export function advanceIntoNewSubsteps(trackedSteps: TrackedSteps, newSubsteps: TrackedStep[]): TrackedSteps {
   const currentStep = findCurrentStep(trackedSteps);
   currentStep.substeps = newSubsteps;
 
-  const firstIncompleteSubstep = newSubsteps.findIndex(s => !s.completionResults);
+  const firstIncompleteSubstep = newSubsteps.findIndex((s) => !s.completionResults);
   return {
     ...trackedSteps,
     currentStepPath: `${trackedSteps.currentStepPath}/${newSubsteps[firstIncompleteSubstep].id}`,
