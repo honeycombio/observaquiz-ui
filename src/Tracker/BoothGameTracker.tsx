@@ -15,7 +15,7 @@ function BoothGameTrackerInternal(props: BoothGameTrackerProps) {
         ? "you-are-here"
         : isComplete(step)
         ? "completed-step"
-        : "incomplete-step";g
+        : "incomplete-step";
     return <div key={step.id} title={step.name} className={className} />;
   });
   return <div id="booth-game-tracker">{paintedSteps}</div>;
