@@ -54,7 +54,7 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   );
 }
 
-type ObservaquizExecution = {
+export type ObservaquizExecution = {
   resetCount: number;
   startTime: SecondsSinceEpoch;
   executionId: string;
