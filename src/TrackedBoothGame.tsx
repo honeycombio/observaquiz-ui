@@ -2,7 +2,13 @@ import { BoothGame } from "./BoothGame/BoothGame";
 import React from "react";
 import { BoothGameTracker } from "./Tracker/BoothGameTracker";
 import { ComponentLifecycleTracing } from "./tracing/ComponentLifecycleTracing";
-import { TrackedStep, TrackedSteps, advance, advanceIntoNewSubsteps, initialTrackedSteps } from "./Tracker/trackedSteps";
+import {
+  TrackedStep,
+  TrackedSteps,
+  advance,
+  advanceIntoNewSubsteps,
+  initialTrackedSteps,
+} from "./Tracker/trackedSteps";
 import { useDeclareTracedState } from "./tracing/TracedState";
 import { TracingTracker } from "./Tracker/TracingTracker";
 import { HowToReset } from "./resetQuiz";
@@ -16,6 +22,12 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     "tracing team",
     undefined
   );
+
+  function howToReset() {
+    console.log("Resetting tracked steps");
+    setTrackedSteps(initialTrackedSteps);
+    props.howToReset();
+  }
 
   console.log(trackedSteps.value.currentStepPath);
 
@@ -42,12 +54,12 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
         <BoothGameTracker trackedSteps={trackedSteps} />
         <TracingTracker />
         <BoothGame
-          {...props}
           advanceTrackedSteps={advanceTrackedSteps}
           advanceIntoNewSubsteps={advanceIntoNewSubstepsAndSet}
           resetCount={props.observaquizExecution.resetCount}
           trackedSteps={trackedSteps}
           setTracingTeam={setTracingTeam}
+          howToReset={howToReset}
         />
       </TracingErrorBoundary>
     </HoneycombTeamContextProvider>
