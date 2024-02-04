@@ -10,6 +10,13 @@ function WinInternal(props: WinProps) {
         prize.
       </p>
       <p className="score-report">Your score is: {props.score}</p>
+      <p>
+        <label htmlFor="moniker">
+          Enter your name for the leaderboard:
+          <input id="moniker" type="text" className="moniker-input"></input>
+        </label>
+        <button type="submit">Submit</button>
+      </p>
     </div>
   );
 }

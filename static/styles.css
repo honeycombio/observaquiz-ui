@@ -106,3 +106,9 @@ img.small-logo {
 #multiple-choice {
   padding-top: 20px;
 }
+
+#moniker {
+  max-width: 15rem;
+  display: inline-block;
+  margin: 10px;
+}
