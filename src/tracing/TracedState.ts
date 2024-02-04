@@ -2,6 +2,7 @@ import React from "react";
 import { SpanContext, trace, AttributeValue, context } from "@opentelemetry/api";
 import { ActiveLifecycleSpan } from "./ComponentLifecycleTracing";
 import { EVENT_ID_KEY, EVENT_SPAN_ID_KEY } from "./activeLifecycleSpan";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 type TracedStateProvenance = {
   spanContext?: SpanContext;
@@ -25,7 +26,7 @@ export function useDeclareTracedState<T>(name: string, initialState: T) {
     provenance: { spanContext: activeLifecycleSpan.spanContext(), name, version: 0 }, // am I gonna _do_ anything with this initial state? Like, if I don't log it, there's no point putting this on here
   };
 
-  const [tracedState, setTracedState] = React.useState<TracedState<T>>(initialTracedState);
+  const [tracedState, setTracedState] = useLocalStorage<TracedState<T>>(name, initialTracedState);
 
   function setStateWithProvenance(t: T) {
     console.log("setting state with provenance", t);
