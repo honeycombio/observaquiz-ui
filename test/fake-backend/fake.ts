@@ -40,6 +40,7 @@ function addTracechildHeader(res: Response) {
 }
 
 app.post("fake-hny-auth", (req, res) => {
+  // TODO: could this not return 304 Not Modified, please. how to turn that off??
   const fakeAuthSuccess = {
     team: { slug: "teamity-team", name: "Teamity Team" },
     environment: { slug: "envity-env", name: "Savannah" },
@@ -49,6 +50,7 @@ app.post("fake-hny-auth", (req, res) => {
       createDatasets: true,
     },
   };
+  res.status(200);
   res.send(fakeAuthSuccess);
 });
 
