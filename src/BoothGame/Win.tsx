@@ -9,12 +9,12 @@ function WinInternal(props: WinProps) {
         Congratulation on completing the Observaquiz! Come by the Honeycomb booth at DevOpsDays Wherever to collect your
         prize.
       </p>
-      <p className="score-report">Your score is: </p>
+      <p className="score-report">Your score is: {props.score}</p>
     </div>
   );
 }
 
-export type WinProps = {};
+export type WinProps = { score: number };
 export function Win(props: WinProps) {
   return (
     <ComponentLifecycleTracing componentName="win">

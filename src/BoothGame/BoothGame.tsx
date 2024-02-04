@@ -15,6 +15,7 @@ function BoothGameInternal(props: BoothGameProps) {
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
   const { advanceTrackedSteps, advanceIntoNewSubsteps, setTracingTeam } = props;
+  const [accumulatedScore, setAccumulatedScore] = React.useState<number>(0);
 
   function helloBegin() {
     console.log("You pushed begin");
@@ -39,6 +40,11 @@ function BoothGameInternal(props: BoothGameProps) {
         parameters: { questionId: q.id, questionText: q.question, questionNumber: i + 1 },
       })),
     ]);
+  }
+
+  function saveScoreAndAdvance(completionResults: { score: number }) {
+    setAccumulatedScore(accumulatedScore + completionResults.score);
+    advanceTrackedSteps(completionResults);
   }
 
   type QuestionParameters = {
@@ -68,15 +74,15 @@ function BoothGameInternal(props: BoothGameProps) {
           questionNumber={parameters.questionNumber}
           questionId={parameters.questionId}
           questionText={parameters.questionText}
-          moveForward={advanceTrackedSteps}
+          moveForward={saveScoreAndAdvance}
         />
       );
       break;
     case TopLevelSteps.LEARN:
-      content = <AnalyzeData moveForward={advanceTrackedSteps} />;
+      content = <AnalyzeData moveForward={saveScoreAndAdvance} />;
       break;
     case TopLevelSteps.WIN:
-      content = <Win />;
+      content = <Win score={accumulatedScore}/>;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
