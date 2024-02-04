@@ -137,10 +137,15 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const [state, setState] = useLocalTracedState<MultipleChoiceInternalState>(NoAnswerPicked);
 
-  const answers = shuffle([...new Set(props.queryRows.map(props.formatAnswer))]).map((answer, index) => ({
-    text: answer,
-    key: "answer" + index,
-  }));
+  // the nondeterminism of this means that I want to calculate it exactly once
+  const answers = React.useMemo(
+    () =>
+      shuffle([...new Set(props.queryRows.map(props.formatAnswer))]).map((answer, index) => ({
+        text: answer,
+        key: "answer" + index,
+      })),
+    [props.queryRows, props.formatAnswer]
+  );
 
   const questionText = "Which question led to the slowest response?";
 
