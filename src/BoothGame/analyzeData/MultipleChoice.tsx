@@ -8,16 +8,23 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 const LoadingAnswers = { name: "loading answers" };
 const ErrorLoadingAnswers = { name: "error loading answers" };
 type WithAnswers<ParticularQueryData> = { answers: ParticularQueryData[] };
-type ShowingAnswers<ParticularQueryData> = { name: "showing answers" } & WithAnswers<ParticularQueryData>;
+type ShowingAnswers<ParticularQueryData> = {
+  name: "showing answers";
+  submitEnabled: false;
+} & WithAnswers<ParticularQueryData>;
 function showingAnswers<ParticularQueryData>(answers: ParticularQueryData[]): ShowingAnswers<ParticularQueryData> {
-  return { name: "showing answers", answers };
+  return { name: "showing answers", answers, submitEnabled: false };
 }
-type PickedOne<ParticularQueryData> = { name: "picked one"; picked: string } & WithAnswers<ParticularQueryData>;
+type PickedOne<ParticularQueryData> = {
+  name: "picked one";
+  picked: string;
+  submitEnabled: true;
+} & WithAnswers<ParticularQueryData>;
 function pickedOne<ParticularQueryData>(
   state: WithAnswers<ParticularQueryData>,
   picked: string
 ): PickedOne<ParticularQueryData> {
-  return { name: "picked one", picked, answers: state.answers };
+  return { name: "picked one", picked, answers: state.answers, submitEnabled: true };
 }
 
 type QueryDataResult<ParticularQueryData> = {
@@ -31,6 +38,7 @@ type MultipleChoiceState<ParticularQueryData> = {
   name: string;
   answers?: ParticularQueryData[];
   picked?: string;
+  submitEnabled?: boolean;
 };
 
 function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
@@ -119,10 +127,26 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
     setState(pickedOne(state as WithAnswers<ParticularQueryData>, event.target.value));
   };
 
+  const submitAnswer = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setState({ name: "they have chosen", picked: state.picked, answers: state.answers, submitEnabled: false });
+  };
+
+  function isItRight(answers: ParticularQueryData[], picked: string): boolean {
+    return props.formatAnswer(props.chooseCorrectAnswer(state.answers!)) === picked;
+  }
+
+  const result =
+    state.name === "they have chosen"
+      ? isItRight(state.answers!, state.picked!)
+        ? "Right!!! 300 points!"
+        : "Hmm, I disagree. 0 points"
+      : "";
+
   function radioButtonFromData(row: ParticularQueryData, index: number) {
     const thisOne = "answer" + index;
     return (
-      <li>
+      <li key={thisOne}>
         <label>
           <input
             className="radio"
@@ -141,8 +165,9 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
     <div id="multiple-choice">
       <p className="question-text">{questionText}</p>
       <ul>{(state as ShowingAnswers<ParticularQueryData>).answers.map(radioButtonFromData)}</ul>
+      <p>{result}</p>
       <p>
-        <button id="question-go" type="submit">
+        <button id="question-go" type="submit" disabled={!state.submitEnabled} onClick={submitAnswer}>
           Submit
         </button>
         <button className="button clear pull-right" onClick={resetQuiz}>
