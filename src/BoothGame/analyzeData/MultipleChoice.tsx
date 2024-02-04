@@ -89,7 +89,15 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceProps<
           );
           setState(ErrorLoadingAnswers);
         }
-        setState(showingAnswers(queryDataReturned.query_data as ParticularQueryData[]));
+        setState(showingAnswers(queryDataReturned.query_data as ParticularQueryData[]), {
+          attributes: {
+            "app.multipleChoice.query_data": JSON.stringify(queryDataReturned.query_data),
+            "app.multipleChoice.answers": queryDataReturned.query_data.map(props.formatAnswer),
+            "app.multipleChoice.rightAnswer": props.formatAnswer(
+              props.chooseCorrectAnswer(queryDataReturned.query_data)
+            ),
+          },
+        });
       }
     });
   }, []);
