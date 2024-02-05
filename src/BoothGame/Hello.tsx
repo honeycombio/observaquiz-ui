@@ -14,9 +14,7 @@ function HelloInternal(props: HelloProps) {
       <p>You have found the Observaquiz!</p>
       <p>This quiz will sort of test your observability knowledge, while demonstrating some observability.</p>
       <p>Complete it, and then come by the Honeycomb booth for whatever really cool prize we promised you!</p>
-      <p>
-        <MonikerForLeaderboard report={saveMoniker} />
-      </p>
+      <MonikerForLeaderboard report={saveMoniker} />
     </div>
   );
 }

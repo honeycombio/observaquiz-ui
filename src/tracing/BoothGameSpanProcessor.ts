@@ -167,9 +167,9 @@ class LearnerOfTeam {
       "honeycomb.region": team.auth!.region,
       "honeycomb.env.slug": team.auth!.environment.slug,
       "honeycomb.dataset": HONEYCOMB_DATASET_NAME,
+      [ATTRIBUTE_NAME_FOR_APIKEY]: team.auth!.apiKey, // important that this key match other steps
+      "honeycomb.leaderboard.moniker": team.protagonist?.moniker || "anonymous", // TODO: learn this earlier
     };
-    attributes[ATTRIBUTE_NAME_FOR_APIKEY] = team.auth!.apiKey; // important that this key match other steps
-    attributes["app.leaderboard.moniker"] = team.protagonist?.moniker || "anonymous"; // TODO: learn this earlier
     this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");
     this.switcher.switchTo(this.whatToSwitchTo(team));
   }
