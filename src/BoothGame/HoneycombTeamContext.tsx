@@ -34,7 +34,7 @@ export function HoneycombTeamContextProvider(props: HoneycombTeamContextProvider
           "x-Honeycomb-Api-Key": tracingTeam.auth!.apiKey,
           "X-Honeycomb-Region": tracingTeam.auth!.region,
           "X-Observaquiz-Execution-Id": tracingTeam.execution.executionId,
-          "X-Honeycomb-Team-Slug": tracingTeam.auth!.team.slug,
+          "X-Honeycomb-Moniker": tracingTeam.protagonist?.moniker || "anonymous",
         },
         ...tracingTeam,
       };
