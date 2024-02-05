@@ -1,16 +1,19 @@
 import React from "react";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 function WinInternal(props: WinProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
+  const tracingTeam = React.useContext(HoneycombTeamContext);
 
-  const postToLeaderboard = (moniker: string) => {
+  React.useEffect(() => {
+    const moniker = tracingTeam.populated ? tracingTeam.protagonist?.moniker : "anonymous";
     console.log("Posting to leaderboard: " + moniker + " " + props.score);
     activeLifecycleSpan.addLog("Leaderboard", {
       "app.leaderboard.moniker": moniker,
       "app.leaderboard.score": props.score,
     });
-  };
+  }, []);
 
   const postSuggestion = (input: string) => {
     console.log("Posting suggestion", input);
