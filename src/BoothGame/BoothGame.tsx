@@ -22,8 +22,28 @@ function BoothGameInternal(props: BoothGameProps) {
   const currentStep = findCurrentStep(trackedSteps);
   const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
 
+  React.useEffect(() => {
+    // just once, go through completed steps and catch up our in-memory stuff
+    allCompletionResults(trackedSteps.steps).forEach((completionResults) => {
+      console.log("Processing completion results: ", completionResults);
+      if (completionResults.tracingTeam?.moniker) {
+        activeLifecycleSpan.withLog(
+          "Begin has already completed",
+          { "app.completionResults": JSON.stringify(completionResults) },
+          () => addMonikerToTracingTeam(completionResults.tracingTeam)
+        );
+      }
+      if (completionResults.tracingTeam?.apiKey) {
+        activeLifecycleSpan.withLog(
+          "ApiKeyInput has already completed",
+          { "app.completionResults": JSON.stringify(completionResults) },
+          () => addAuthToTracingTeam(completionResults.tracingTeam)
+        );
+      }
+    });
+  }, []);
+
   function helloBegin(result: { moniker: string }) {
-    console.log("You pushed begin");
     addMonikerToTracingTeam(result);
     advanceTrackedSteps({ tracingTeam: result });
   }
