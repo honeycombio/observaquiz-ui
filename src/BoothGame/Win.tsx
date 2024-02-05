@@ -11,12 +11,30 @@ function WinInternal(props: WinProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
 
   const postToLeaderboard = (moniker: string) => {
+    console.log("Posting to leaderboard: " + moniker + " " + props.score);
     activeLifecycleSpan.addLog("Leaderboard", {
       "app.leaderboard.moniker": moniker,
       "app.leaderboard.score": props.score,
     });
   };
 
+  return (
+    <div>
+      <h1>You win!</h1>
+      <p>
+        Congratulation on completing the Observaquiz! Come by the Honeycomb booth at DevOpsDays Wherever to collect your
+        prize.
+      </p>
+      <p className="score-report">Your score is: {props.score}</p>
+      <MonikerForLeaderboard report={postToLeaderboard} />
+    </div>
+  );
+}
+
+type MonikerForLeaderboardProps = {
+  report: (moniker: string) => void;
+};
+function MonikerForLeaderboard(props: MonikerForLeaderboardProps) {
   const [moniker, setMoniker] = React.useState("");
   const [state, setState] = React.useState<MonikerState>(NoMoniker);
 
@@ -32,38 +50,29 @@ function WinInternal(props: WinProps) {
 
   const submit = () => {
     setState(ScoreSubmitted);
-    postToLeaderboard(moniker);
+    props.report(moniker);
   };
 
   return (
-    <div>
-      <h1>You win!</h1>
-      <p>
-        Congratulation on completing the Observaquiz! Come by the Honeycomb booth at DevOpsDays Wherever to collect your
-        prize.
-      </p>
-      <p className="score-report">Your score is: {props.score}</p>
-      <p>
-        <label htmlFor="moniker">
-          Enter your name for the leaderboard:
-          <input
-            id="moniker"
-            value={moniker}
-            disabled={!state.inputEnabled}
-            type="text"
-            onChange={updateMoniker}
-            className="moniker-input"
-          ></input>
-        </label>
-        <button disabled={!state.buttonEnabled} type="submit" onClick={submit}>
-          Submit
-        </button>{" "}
-        {state.message}
-      </p>
-    </div>
+    <p>
+      <label htmlFor="moniker">
+        Enter your name for the leaderboard:
+        <input
+          id="moniker"
+          value={moniker}
+          disabled={!state.inputEnabled}
+          type="text"
+          onChange={updateMoniker}
+          className="moniker-input"
+        ></input>
+      </label>
+      <button disabled={!state.buttonEnabled} type="submit" onClick={submit}>
+        Submit
+      </button>{" "}
+      {state.message}
+    </p>
   );
 }
-
 export type WinProps = { score: number };
 export function Win(props: WinProps) {
   return (
