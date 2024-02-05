@@ -32,9 +32,9 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
     setState(LookedAtTheData);
   }
 
-  const queryDefinition = queryForLongestLLMResponse(team.observaquizExecutionId);
+  const queryDefinition = queryForLongestLLMResponse(team.execution.executionId);
 
-  const queryLink = getQueryTemplateLink(team, queryDefinition, BACKEND_DATASET_NAME);
+  const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, BACKEND_DATASET_NAME);
 
   function formatAnswer(row: DataFromLongestLLMResponse): string {
     return row["app.post_answer.question"];

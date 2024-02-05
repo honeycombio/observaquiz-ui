@@ -20,16 +20,17 @@ function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
-  const { advanceTrackedSteps, advanceIntoNewSubsteps, setTracingTeam } = props;
+  const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
 
   function helloBegin(result: { moniker: string }) {
     console.log("You pushed begin");
-    advanceTrackedSteps(result);
+    addMonikerToTracingTeam(result);
+    advanceTrackedSteps({ tracingTeam: result });
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
-    setTracingTeam(news);
-    advanceTrackedSteps();
+    addAuthToTracingTeam(news);
+    advanceTrackedSteps({ tracingTeam: news });
   }
 
   function acceptQuestionSet(questionSet: QuestionSet) {
@@ -100,7 +101,8 @@ export type BoothGameProps = {
   advanceTrackedSteps: (completionResults?: any) => void;
   advanceIntoNewSubsteps: (substeps: TrackedStep[]) => void;
   trackedSteps: TracedState<TrackedSteps>;
-  setTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
+  addAuthToTracingTeam: (tracingTeam: TracingTeamFromAuth) => void;
+  addMonikerToTracingTeam: (protagonist: { moniker: string }) => void;
 };
 
 export function BoothGame(props: BoothGameProps) {

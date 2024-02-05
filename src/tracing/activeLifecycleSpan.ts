@@ -181,10 +181,10 @@ export function wrapAsActiveLifecycleSpan(
 }
 
 export function getLinkToCurrentSpan(tracingTeam: TracingTeam, lifecycleSpan: ActiveLifecycleSpanType): string {
-  const startTime = Math.floor(tracingTeam.observaquizStartTime); // decimals get us a 404
+  const startTime = Math.floor(tracingTeam.execution.startTime); // decimals get us a 404
   const rightNow = Math.floor(Date.now() / 1000);
   return (
-    getUrlToDataset(tracingTeam) +
+    getUrlToDataset(tracingTeam.auth!) +
     "/trace?trace_id=" +
     lifecycleSpan.spanContext()?.traceId +
     "&span=" +

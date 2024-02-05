@@ -37,7 +37,7 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
       query: props.queryDefinition,
       query_name: "Slowest response from LLM", // TODO: parameter
       dataset_slug: props.dataset,
-      attendee_api_key: honeycombTeam.apiKey,
+      attendee_api_key: honeycombTeam.auth!.apiKey,
     };
 
     fetchFromBackend({

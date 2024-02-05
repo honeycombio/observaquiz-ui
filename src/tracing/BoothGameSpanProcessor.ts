@@ -54,7 +54,7 @@ export function ConstructThePipeline(params: {
     (team) =>
       new WrapSpanProcessorWithDescription(
         params.processorForTeam(team),
-        "I have been constructed to send to team " + team.team.slug
+        "I have been constructed to send to team " + team.auth!.team.slug
       )
   );
   return { learnerOfTeam, boothGameProcessor };
@@ -163,12 +163,13 @@ class LearnerOfTeam {
 
   public learnCustomerTeam(team: TracingTeam) {
     const attributes: Attributes = {
-      "honeycomb.team.slug": team.team.slug,
-      "honeycomb.region": team.region,
-      "honeycomb.env.slug": team.environment.slug,
+      "honeycomb.team.slug": team.auth!.team.slug,
+      "honeycomb.region": team.auth!.region,
+      "honeycomb.env.slug": team.auth!.environment.slug,
       "honeycomb.dataset": HONEYCOMB_DATASET_NAME,
     };
-    attributes[ATTRIBUTE_NAME_FOR_APIKEY] = team.apiKey; // important that this key match other steps
+    attributes[ATTRIBUTE_NAME_FOR_APIKEY] = team.auth!.apiKey; // important that this key match other steps
+    attributes["app.leaderboard.moniker"] = team.protagonist?.moniker || "anonymous"; // TODO: learn this earlier
     this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");
     this.switcher.switchTo(this.whatToSwitchTo(team));
   }

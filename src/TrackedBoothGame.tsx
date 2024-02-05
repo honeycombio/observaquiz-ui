@@ -12,43 +12,62 @@ import {
 import { useDeclareTracedState } from "./tracing/TracedState";
 import { TracingTracker } from "./Tracker/TracingTracker";
 import { HoneycombTeamContextProvider } from "./BoothGame/HoneycombTeamContext";
-import { SecondsSinceEpoch, TracingTeam, TracingTeamFromAuth } from "./tracing/TracingDestination";
+import {
+  SecondsSinceEpoch,
+  TRACING_TEAM_VERSION,
+  TracingTeam,
+  TracingTeamFromAuth,
+} from "./tracing/TracingDestination";
 import { TracingErrorBoundary } from "./tracing/TracingErrorBoundary";
 import { HowToReset } from "./resetQuiz";
 
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
-  const [tracingTeam, setTracingTeamInternal] = useDeclareTracedState<TracingTeam | undefined>(
-    "tracing team",
-    undefined
-  );
+  const [tracingTeamWithTracking, setTracingTeamInternal] = useDeclareTracedState<TracingTeam>("tracing team", {
+    version: TRACING_TEAM_VERSION,
+    execution: props.observaquizExecution,
+  });
+  const tracingTeam = tracingTeamWithTracking.value;
+
   React.useEffect(() => {
-    // just once at the beginning. This is a special case for loading state and being later in the
-    // observaquiz, so that 'setTracingTeam' below doesn't get called.
-    // This is a super special case and icky. But I want it to work now please
-    if (tracingTeam.value !== undefined) {
-      console.log("Learning tracing team from local storage");
-      props.learnTeam(tracingTeam.value);
+    // on refresh, check for outdated
+    if (tracingTeam.version !== TRACING_TEAM_VERSION) {
+      console.log("Tracing team out of date, reset everything");
+      setTrackedSteps(initialTrackedSteps);
+      setTracingTeamInternal({ version: TRACING_TEAM_VERSION, execution: props.observaquizExecution });
     }
   }, []);
 
+  React.useEffect(() => {
+    if (props.observaquizExecution.executionId !== tracingTeam.execution.executionId) {
+      console.log("New execution ID, resetting tracked steps");
+      setTrackedSteps(initialTrackedSteps);
+      setTracingTeamInternal({ version: TRACING_TEAM_VERSION, execution: props.observaquizExecution });
+    }
+  }, [props.observaquizExecution]);
+
   function howToReset() {
-    console.log("Resetting tracked steps");
-    setTrackedSteps(initialTrackedSteps);
-    setTracingTeamInternal(undefined);
+    // The execution ID will change, triggering a reset of tracked steps and tracing team.
     props.howToReset();
   }
 
   console.log(trackedSteps.value.currentStepPath);
 
-  const setTracingTeam = (team: TracingTeamFromAuth) => {
-    const fullTeam = {
-      ...team,
-      observaquizStartTime: props.observaquizExecution.startTime,
-      observaquizExecutionId: props.observaquizExecution.executionId,
+  const addAuthToTracingTeam = (team: TracingTeamFromAuth) => {
+    const fullTeam: TracingTeam = {
+      ...tracingTeam,
+      auth: team,
     };
     props.learnTeam(fullTeam);
     setTracingTeamInternal(fullTeam);
+  };
+
+  const addMonikerToTracingTeam = (protagonist: { moniker: string }) => {
+    setTracingTeamInternal({
+      ...tracingTeam,
+      protagonist,
+    });
+    // TODO: teach this to the span processor chain, to add the moniker to everything from now on
   };
 
   const advanceTrackedSteps = (completionResults?: object) => {
@@ -66,7 +85,7 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     </p>
   );
   return (
-    <HoneycombTeamContextProvider tracingTeam={tracingTeam}>
+    <HoneycombTeamContextProvider tracingTeam={tracingTeamWithTracking}>
       <TracingErrorBoundary howToReset={props.howToReset}>
         <BoothGameTracker trackedSteps={trackedSteps} />
         <TracingTracker />
@@ -75,7 +94,8 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
           advanceIntoNewSubsteps={advanceIntoNewSubstepsAndSet}
           resetCount={props.observaquizExecution.resetCount}
           trackedSteps={trackedSteps}
-          setTracingTeam={setTracingTeam}
+          addAuthToTracingTeam={addAuthToTracingTeam}
+          addMonikerToTracingTeam={addMonikerToTracingTeam}
         />
         {resetButton}
       </TracingErrorBoundary>

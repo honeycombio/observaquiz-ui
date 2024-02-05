@@ -12,8 +12,8 @@ function TracingTrackerInternal(props: TracingTrackerProps) {
   }
   return (
     <div id="tracing-tracker">
-      <p>Honeycomb team: {honeycombTeam.team.name}</p>
-      <p>Environment: {honeycombTeam.environment.name}</p>
+      <p>Honeycomb team: {honeycombTeam.auth!.team.name}</p>
+      <p>Environment: {honeycombTeam.auth!.environment.name}</p>
       <p>
         <a target="_blank" href={getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan)}>
           See current trace

@@ -26,15 +26,15 @@ export type HoneycombTeamContextProviderProps = {
 
 export function HoneycombTeamContextProvider(props: HoneycombTeamContextProviderProps) {
   const tracingTeam = useTracedState(props.tracingTeam);
-  const honeycombTeamContext: HoneycombTeamContextType = !tracingTeam
+  const honeycombTeamContext: HoneycombTeamContextType = !tracingTeam?.auth
     ? nilHoneycombTeamContext
     : {
         populated: true,
         fetchHeaders: {
-          "x-Honeycomb-Api-Key": tracingTeam.apiKey,
-          "X-Honeycomb-Region": tracingTeam.region,
-          "X-Observaquiz-Execution-Id": tracingTeam.observaquizExecutionId,
-          "X-Honeycomb-Team-Slug": tracingTeam.team.slug,
+          "x-Honeycomb-Api-Key": tracingTeam.auth!.apiKey,
+          "X-Honeycomb-Region": tracingTeam.auth!.region,
+          "X-Observaquiz-Execution-Id": tracingTeam.execution.executionId,
+          "X-Honeycomb-Team-Slug": tracingTeam.auth!.team.slug,
         },
         ...tracingTeam,
       };

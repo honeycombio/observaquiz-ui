@@ -58,8 +58,8 @@ function initializeTracing() {
 
   const processorForTeam = (team: TracingTeam) => {
     const exporter = new OTLPTraceExporter({
-      url: honeycombTelemetryUrl(team.region) + "/v1/traces",
-      headers: { "x-honeycomb-team": team.apiKey },
+      url: honeycombTelemetryUrl(team.auth!.region) + "/v1/traces",
+      headers: { "x-honeycomb-team": team.auth!.apiKey },
     });
     return new BatchSpanProcessor(exporter, {
       scheduledDelayMillis: 1000,
@@ -107,8 +107,8 @@ function initializeLogging() {
 
   const processorForTeam = (team: TracingTeam) => {
     const exporter = new OTLPLogExporter({
-      url: honeycombTelemetryUrl(team.region) + "/v1/logs",
-      headers: { "x-honeycomb-team": team.apiKey },
+      url: honeycombTelemetryUrl(team.auth!.region) + "/v1/logs",
+      headers: { "x-honeycomb-team": team.auth!.apiKey },
     });
     return new BatchLogRecordProcessor(exporter, { scheduledDelayMillis: 500 });
   };

@@ -7,17 +7,22 @@
 
 export const HONEYCOMB_DATASET_NAME = "observaquiz-browser";
 export const BACKEND_DATASET_NAME = "observaquiz-bff";
+export const TRACING_TEAM_VERSION = 4;
 
+export type TracingTeam = {
+  version: typeof TRACING_TEAM_VERSION;
+  execution: {
+    startTime: SecondsSinceEpoch;
+    executionId: string;
+  };
+  protagonist?: { moniker: string };
+  auth?: TracingTeamFromAuth;
+};
 export type TracingTeamFromAuth = {
   region: HoneycombRegion;
   team: { name: string; slug: string };
   environment: { name: string; slug: string };
   apiKey: string;
-};
-
-export type TracingTeam = TracingTeamFromAuth & {
-  observaquizStartTime: SecondsSinceEpoch; // this is the unix timestamp when any tracing for this execution can begin
-  observaquizExecutionId: string; // this is a unique identifier for this execution
 };
 
 export type SecondsSinceEpoch = number;
