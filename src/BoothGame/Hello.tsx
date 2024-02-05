@@ -4,7 +4,7 @@ import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/Compo
 function HelloInternal(props: HelloProps) {
   const span = React.useContext(ActiveLifecycleSpan);
 
-  function begin() {
+  function saveMoniker(moniker: string) {
     span.inContext(() => props.moveForward());
   }
 
@@ -15,11 +15,69 @@ function HelloInternal(props: HelloProps) {
       <p>This quiz will sort of test your observability knowledge, while demonstrating some observability.</p>
       <p>Complete it, and then come by the Honeycomb booth for whatever really cool prize we promised you!</p>
       <p>
-        <button className="button primary" onClick={begin} autoFocus>
-          Begin
-        </button>
+        <MonikerForLeaderboard report={saveMoniker} />
       </p>
     </div>
+  );
+}
+
+type DoStuffWithInputProps = {
+  report: (input: string) => void;
+};
+
+const NoInput = { name: "no moniker yet", buttonEnabled: false, inputEnabled: true, message: "" };
+const EnteringInput = { name: "some moniker entered", buttonEnabled: true, inputEnabled: true, message: "" };
+const InputSubmitted = { name: "moniker accepted", buttonEnabled: false, inputEnabled: false, message: "Woot!" };
+
+type InputState = typeof NoInput | typeof EnteringInput | typeof InputSubmitted;
+function MonikerForLeaderboard(props: DoStuffWithInputProps) {
+  const [moniker, setMoniker] = React.useState("");
+  const [state, setState] = React.useState<InputState>(NoInput);
+
+  const updateMoniker = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newMoniker = event.target.value;
+    if (!newMoniker.trim()) {
+      setState(NoInput);
+    } else {
+      setState(EnteringInput);
+    }
+    setMoniker(newMoniker);
+  };
+
+  const submit = () => {
+    if (!state.buttonEnabled) {
+      // they could hit enter on a blank input, for instance
+      return;
+    }
+    setState(InputSubmitted);
+    props.report(moniker);
+  };
+
+  const submitOnEnter = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") {
+      submit();
+    }
+  };
+
+  return (
+    <p>
+      <label htmlFor="moniker">
+        Enter your name for the leaderboard:
+        <input
+          id="moniker"
+          value={moniker}
+          disabled={!state.inputEnabled}
+          type="text"
+          onChange={updateMoniker}
+          className="moniker-input"
+          onKeyUp={submitOnEnter}
+        ></input>
+      </label>
+      <button disabled={!state.buttonEnabled} type="submit" onClick={submit}>
+        Begin
+      </button>{" "}
+      {state.message}
+    </p>
   );
 }
 

@@ -1,12 +1,6 @@
 import React from "react";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 
-const NoMoniker = { name: "no moniker yet", buttonEnabled: false, inputEnabled: true, message: "" };
-const EnteringMoniker = { name: "some moniker entered", buttonEnabled: true, inputEnabled: true, message: "" };
-const ScoreSubmitted = { name: "moniker accepted", buttonEnabled: false, inputEnabled: false, message: "Woot!" };
-
-type MonikerState = typeof NoMoniker | typeof EnteringMoniker | typeof ScoreSubmitted;
-
 function WinInternal(props: WinProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
 
@@ -29,11 +23,10 @@ function WinInternal(props: WinProps) {
     <div>
       <h1>You win!</h1>
       <p>
-        Congratulations on completing the Observaquiz! Come by the Honeycomb booth at DevOpsDays Wherever to collect your
-        prize.
+        Congratulations on completing the Observaquiz! Come by the Honeycomb booth at DevOpsDays Wherever to collect
+        your prize.
       </p>
       <p className="score-report">Your score is: {props.score}</p>
-      <MonikerForLeaderboard report={postToLeaderboard} />
       <AskThemAboutPrizes report={postSuggestion} />
       <p className="fine-print">
         Also, if you think this app is ugly--ME TOO! Please help us. Find us in #devrel and pair with us.
@@ -45,67 +38,23 @@ function WinInternal(props: WinProps) {
 type DoStuffWithInputProps = {
   report: (input: string) => void;
 };
-function MonikerForLeaderboard(props: DoStuffWithInputProps) {
-  const [moniker, setMoniker] = React.useState("");
-  const [state, setState] = React.useState<MonikerState>(NoMoniker);
 
-  const updateMoniker = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newMoniker = event.target.value;
-    if (!newMoniker.trim()) {
-      setState(NoMoniker);
-    } else {
-      setState(EnteringMoniker);
-    }
-    setMoniker(newMoniker);
-  };
+const NoInput = { name: "no moniker yet", buttonEnabled: false, inputEnabled: true, message: "" };
+const EnteringInput = { name: "some moniker entered", buttonEnabled: true, inputEnabled: true, message: "" };
+const InputSubmitted = { name: "moniker accepted", buttonEnabled: false, inputEnabled: false, message: "Woot!" };
 
-  const submit = () => {
-    if (!state.buttonEnabled) {
-      // they could hit enter on a blank input, for instance
-      return;
-    }
-    setState(ScoreSubmitted);
-    props.report(moniker);
-  };
-
-  const submitOnEnter = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter") {
-      submit();
-    }
-  };
-
-  return (
-    <p>
-      <label htmlFor="moniker">
-        Enter your name for the leaderboard:
-        <input
-          id="moniker"
-          value={moniker}
-          disabled={!state.inputEnabled}
-          type="text"
-          onChange={updateMoniker}
-          className="moniker-input"
-          onKeyUp={submitOnEnter}
-        ></input>
-      </label>
-      <button disabled={!state.buttonEnabled} type="submit" onClick={submit}>
-        Submit
-      </button>{" "}
-      {state.message}
-    </p>
-  );
-}
+type InputState = typeof NoInput | typeof EnteringInput | typeof InputSubmitted;
 
 function AskThemAboutPrizes(props: DoStuffWithInputProps) {
   const [suggestion, setSuggestion] = React.useState("");
-  const [state, setState] = React.useState<MonikerState>(NoMoniker);
+  const [state, setState] = React.useState<InputState>(NoInput);
 
   const updateSuggestion = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSuggestion = event.target.value;
     if (!newSuggestion.trim()) {
-      setState(NoMoniker);
+      setState(NoInput);
     } else {
-      setState(EnteringMoniker);
+      setState(EnteringInput);
     }
     setSuggestion(newSuggestion);
   };
@@ -115,7 +64,7 @@ function AskThemAboutPrizes(props: DoStuffWithInputProps) {
       // they could hit enter on a blank input, for instance
       return;
     }
-    setState(ScoreSubmitted);
+    setState(InputSubmitted);
     props.report(suggestion);
   };
 
