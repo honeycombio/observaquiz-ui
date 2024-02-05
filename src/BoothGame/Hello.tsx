@@ -5,7 +5,7 @@ function HelloInternal(props: HelloProps) {
   const span = React.useContext(ActiveLifecycleSpan);
 
   function saveMoniker(moniker: string) {
-    span.inContext(() => props.moveForward());
+    span.inContext(() => props.moveForward({ moniker }));
   }
 
   return (
@@ -82,7 +82,7 @@ function MonikerForLeaderboard(props: DoStuffWithInputProps) {
 }
 
 export type HelloProps = {
-  moveForward: () => void;
+  moveForward: (result: { moniker: string }) => void;
 };
 
 export function Hello(props: HelloProps) {

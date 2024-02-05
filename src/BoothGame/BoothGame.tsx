@@ -22,9 +22,9 @@ function BoothGameInternal(props: BoothGameProps) {
   const currentStep = findCurrentStep(trackedSteps);
   const { advanceTrackedSteps, advanceIntoNewSubsteps, setTracingTeam } = props;
 
-  function helloBegin() {
+  function helloBegin(result: { moniker: string }) {
     console.log("You pushed begin");
-    advanceTrackedSteps();
+    advanceTrackedSteps(result);
   }
 
   function acceptApiKey(news: ApiKeyInputSuccess) {
