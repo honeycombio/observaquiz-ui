@@ -40,7 +40,7 @@ function MonikerForLeaderboard(props: MonikerForLeaderboardProps) {
 
   const updateMoniker = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newMoniker = event.target.value;
-    if (!newMoniker) {
+    if (!newMoniker.trim()) {
       setState(NoMoniker);
     } else {
       setState(EnteringMoniker);
@@ -49,8 +49,18 @@ function MonikerForLeaderboard(props: MonikerForLeaderboardProps) {
   };
 
   const submit = () => {
+    if (!state.buttonEnabled) {
+      // they could hit enter on a blank input, for instance
+      return;
+    }
     setState(ScoreSubmitted);
     props.report(moniker);
+  };
+
+  const submitOnEnter = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") {
+      submit();
+    }
   };
 
   return (
@@ -64,6 +74,7 @@ function MonikerForLeaderboard(props: MonikerForLeaderboardProps) {
           type="text"
           onChange={updateMoniker}
           className="moniker-input"
+          onKeyUp={submitOnEnter}
         ></input>
       </label>
       <button disabled={!state.buttonEnabled} type="submit" onClick={submit}>
