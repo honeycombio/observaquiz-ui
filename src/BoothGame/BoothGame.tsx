@@ -1,5 +1,5 @@
 import React from "react";
-import { ApiKeyInput, ApiKeyInputSuccess } from "./ApiKeyInput";
+import { ApiKeyInputSuccess } from "./ApiKeyInput";
 import { QuestionSet, QuestionSetRetrieval } from "./QuestionSetRetrieval";
 import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/ComponentLifecycleTracing";
 import { Hello } from "./Hello";
@@ -15,6 +15,7 @@ import {
 import { TracedState, useTracedState } from "../tracing/TracedState";
 import { Question } from "./Question";
 import { Win } from "./Win";
+import { LeadThemToTheirApiKey } from "./LeadThemToTheirApiKey";
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -80,7 +81,7 @@ function BoothGameInternal(props: BoothGameProps) {
       content = <Hello moveForward={helloBegin} />;
       break;
     case "begin-apikey":
-      content = <ApiKeyInput moveForward={acceptApiKey} />;
+      content = <LeadThemToTheirApiKey moveForward={acceptApiKey} />;
       break;
     case TopLevelSteps.PLAY:
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;

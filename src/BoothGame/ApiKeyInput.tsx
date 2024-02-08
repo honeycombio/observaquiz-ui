@@ -5,8 +5,6 @@ import { callHoneycombAuthEndpoint } from "./honeycombAuth";
 import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME } from "../tracing/TracingDestination";
 
-type ApiKeyInputProps = { moveForward: (success: ApiKeyInputSuccess) => void };
-
 export type ApiKeyInputSuccess = {
   apiKey: string;
   team: { name: string; slug: string };
@@ -216,6 +214,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   );
 }
 
+type ApiKeyInputProps = { moveForward: (success: ApiKeyInputSuccess) => void };
 export function ApiKeyInput(props: ApiKeyInputProps) {
   return (
     <ComponentLifecycleTracing componentName="ApiKeyInput">
