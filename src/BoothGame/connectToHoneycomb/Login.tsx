@@ -2,14 +2,22 @@ import React from "react";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 
-const NothingSelectedYet = { stateName: "no selection", instructions: "empty" };
-const SelectedYes = { stateName: "have a login", instructions: "sign in" };
-const SelectedNo = { stateName: "no login", instructions: "sign up" };
-const SelectedDunno = { stateName: "they don't know whether they have a login", instructions: "sign up anyway" };
+const SignupButton = { text: "Sign up", href: "https://ui.honeycomb.io/signup", result: { honeycombLogin: "new" } };
+
+const LoginButton = { text: "Log in", href: "https://ui.honeycomb.io/login", result: { honeycombLogin: "existing" } };
+
+const NothingSelectedYet = { stateName: "no selection", instructions: "empty", button: undefined };
+const SelectedYes = { stateName: "have a login", instructions: "sign in", button: LoginButton };
+const SelectedNo = { stateName: "no login", instructions: "sign up", button: SignupButton };
+const SelectedDunno = {
+  stateName: "they don't know whether they have a login",
+  instructions: "sign up anyway",
+  button: SignupButton,
+};
 
 type DoTheyHaveALoginState = typeof NothingSelectedYet | typeof SelectedYes | typeof SelectedNo | typeof SelectedDunno;
 
-type LoginSelection = "none" | "yes" | "no" | "dunno";
+type LoginSelection = "yes" | "no" | "dunno";
 
 type RadioButtonRow = { key: LoginSelection; text: string; moveToState: DoTheyHaveALoginState };
 const radioButtons: Array<RadioButtonRow> = [
@@ -39,7 +47,7 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
             <i>20 million</i> events per month. After that you'll get rate limited.
           </p>
           <p>
-            This quiz will send about 400 spans, so you can take it {20000000 / 400} times this month. (But don't. Once
+            This quiz will send about 400 events, so you can take it {20000000 / 400} times this month. (But don't. Once
             is good.)
           </p>
         </>
@@ -51,17 +59,27 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
           <p>Go ahead and sign up. If you already have an account, you'll get an email with a "reset password" link.</p>
           <p>
             Your free Honeycomb team is free forever, and it will accept 20 million events per month. This quiz will
-            send about 400 spans.
+            send about 400 events .
           </p>
         </>
       );
       break;
+  }
+
+  var button = <></>;
+  if (state.button) {
+    button = (
+      <a href={state.button.href} target="_blank" className="button primary">
+        {state.button.text}
+      </a>
+    );
   }
   return (
     <section className="step">
       <p>Do you already have a Honeycomb login?</p>
       <RadioButtonList radioButtons={radioButtons} handleSelection={handleSelection} />
       {instructions}
+      {button}
     </section>
   );
 }
