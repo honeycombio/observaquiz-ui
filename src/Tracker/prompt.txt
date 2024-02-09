@@ -1,34 +1,4 @@
-I have a structure that represents steps through a program. Each step has an ID and optionally a set of substeps.
-The structure also contains a currentStepPath, which represents where we are in the set of steps. 
-The path is a slash-delimited string of step and substep IDs.
+I need some HTML that describes a series of steps. Each step is in a section.
 
-I need a function called "advance" that changes the currentStepPath to identify next substep (if there is one) or the next step up.
-If there are no more steps at all, it should throw an error.
-
-For example, here is where the steps start:
-```
-export const initialTrackedSteps: TrackedSteps = {
-  steps: [
-    {
-      id: "initialstep-letsgo",
-      name: "Begin",
-      substeps: [
-        { id: "begin-email", name: "Identify Yourself" },
-        { id: "begin-apikey", name: "Start Tracing" },
-      ],
-    },
-    { id: "initialstep-play", name: "Play" },
-    { id: "initialstep-learn", name: "Learn" },
-    { id: "initialstep-win", name: "Win" },
-  ],
-  currentStepPath: "initialstep-letsgo/begin-hello",
-};
-```
-
-The first time I call 'advance', the currentStepPath should change to "initialstep-letsgo/begin-apikey"
-
-Second example: if currentStepPath is "initialstep-letsgo/begin-apikey", then 'advance' should change it to "initialstep-play"
-
-I have a function 'indexToCurrentStep' that returns an array of indexes leading you to the current step in the steps array, based on currentStepPath
-
-please write the function 'advance' in a way that will work no matter how deep the nesting of substeps goes.
+I want the steps to collapse when they are finished.
+I want each step to have a beveled border around it.

@@ -44,14 +44,14 @@ function DoTheyHaveALogin(props: { handleSelection: (s: LoginSelection) => void 
     props.handleSelection(ls);
   };
   return (
-    <div>
+    <section className="step">
       <p>Do you already have a Honeycomb login?</p>
       <ul>
         {radioButtonFromData(handleSelection, loginSelection, { value: "yes", text: "Yes" })}
         {radioButtonFromData(handleSelection, loginSelection, { value: "no", text: "No" })}
         {radioButtonFromData(handleSelection, loginSelection, { value: "dunno", text: "I'm not sure" })}
       </ul>
-    </div>
+    </section>
   );
 }
 
