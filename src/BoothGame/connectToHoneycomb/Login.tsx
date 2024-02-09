@@ -2,9 +2,17 @@ import React from "react";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 
-const SignupButton = { text: "Sign up", href: "https://ui.honeycomb.io/signup", result: { honeycombLogin: "new" } };
+const SignupButton = {
+  text: "Sign up",
+  href: "https://ui.honeycomb.io/signup",
+  result: { honeycombLogin: "new" } as DoTheyHaveALoginResult,
+};
 
-const LoginButton = { text: "Log in", href: "https://ui.honeycomb.io/login", result: { honeycombLogin: "existing" } };
+const LoginButton = {
+  text: "Log in",
+  href: "https://ui.honeycomb.io/login",
+  result: { honeycombLogin: "existing" } as DoTheyHaveALoginResult,
+};
 
 const NothingSelectedYet = { stateName: "no selection", instructions: "empty", button: undefined };
 const SelectedYes = { stateName: "have a login", instructions: "sign in", button: LoginButton };
@@ -69,7 +77,12 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
   var button = <></>;
   if (state.button) {
     button = (
-      <a href={state.button.href} target="_blank" className="button primary">
+      <a
+        href={state.button.href}
+        target="_blank"
+        className="button primary"
+        onClick={() => props.handleCompletion(state.button.result)}
+      >
         {state.button.text}
       </a>
     );

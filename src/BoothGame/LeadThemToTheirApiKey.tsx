@@ -6,6 +6,7 @@ import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./connectToHoneycomb/L
 
 const Start: ConnectToHoneycombState = { doTheyHaveALogin: undefined, showApiKeyInput: false };
 
+
 type ConnectToHoneycombState = {
   doTheyHaveALogin: DoTheyHaveALoginResult | undefined;
   showApiKeyInput: boolean;
