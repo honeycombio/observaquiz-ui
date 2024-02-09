@@ -5,14 +5,40 @@ import { useLocalTracedState } from "../tracing/LocalTracedState";
 
 const Start: ConnectToHoneycombState = { doTheyHaveALogin: "none", showApiKeyInput: false };
 
+function radioButtonFromData<V extends string>(
+  handleSelection: (v: V) => void,
+  selectedValue: V,
+  row: { value: V; text: string }
+) {
+  const thisOne = row.value;
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value as V;
+    handleSelection(v);
+  };
+  return (
+    <li key={thisOne}>
+      <label>
+        <input
+          className="radio"
+          type="radio"
+          value={thisOne}
+          key={thisOne}
+          checked={selectedValue === thisOne}
+          onChange={onChange}
+        />
+        {row.text}
+      </label>
+    </li>
+  );
+}
+
 type LoginSelection = "none" | "yes" | "no" | "dunno";
 function DoTheyHaveALogin(props: { handleSelection: (s: LoginSelection) => void }) {
   const [loginSelection, setLoginSelection] = useLocalTracedState<LoginSelection>("none", {
     componentName: "Do they have a login?",
   });
 
-  const handleSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const ls = e.target.value as LoginSelection;
+  const handleSelection = (ls: LoginSelection) => {
     console.log("value: ", ls);
     setLoginSelection(ls);
     props.handleSelection(ls);
@@ -21,48 +47,9 @@ function DoTheyHaveALogin(props: { handleSelection: (s: LoginSelection) => void 
     <div>
       <p>Do you already have a Honeycomb login?</p>
       <ul>
-        <li key="yes">
-          <label htmlFor="yes">
-            <input
-              id="yes"
-              name="radio"
-              type="radio"
-              value="yes"
-              checked={loginSelection === "yes"}
-              onChange={handleSelection}
-              className="radio"
-            />
-            Yes
-          </label>
-        </li>
-        <li key="no">
-          <label htmlFor="no">
-            <input
-              id="no"
-              name="radio"
-              type="radio"
-              value="no"
-              checked={loginSelection === "no"}
-              onChange={handleSelection}
-              className="radio"
-            />
-            No
-          </label>
-        </li>
-        <li key="dunno">
-          <label htmlFor="dunno">
-            <input
-              id="dunno"
-              name="radio"
-              type="radio"
-              value="dunno"
-              checked={loginSelection === "dunno"}
-              onChange={handleSelection}
-              className="radio"
-            />{" "}
-            I don't know
-          </label>
-        </li>
+        {radioButtonFromData(handleSelection, loginSelection, { value: "yes", text: "Yes" })}
+        {radioButtonFromData(handleSelection, loginSelection, { value: "no", text: "No" })}
+        {radioButtonFromData(handleSelection, loginSelection, { value: "dunno", text: "I'm not sure" })}
       </ul>
     </div>
   );
