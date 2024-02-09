@@ -2,70 +2,21 @@ import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { ApiKeyInput, ApiKeyInputSuccess } from "./ApiKeyInput";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
+import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./connectToHoneycomb/Login";
 
-const Start: ConnectToHoneycombState = { doTheyHaveALogin: "none", showApiKeyInput: false };
-
-function radioButtonFromData<V extends string>(
-  handleSelection: (v: V) => void,
-  selectedValue: V,
-  row: { value: V; text: string }
-) {
-  const thisOne = row.value;
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value as V;
-    handleSelection(v);
-  };
-  return (
-    <li key={thisOne}>
-      <label>
-        <input
-          className="radio"
-          type="radio"
-          value={thisOne}
-          key={thisOne}
-          checked={selectedValue === thisOne}
-          onChange={onChange}
-        />
-        {row.text}
-      </label>
-    </li>
-  );
-}
-
-type LoginSelection = "none" | "yes" | "no" | "dunno";
-function DoTheyHaveALogin(props: { handleSelection: (s: LoginSelection) => void }) {
-  const [loginSelection, setLoginSelection] = useLocalTracedState<LoginSelection>("none", {
-    componentName: "Do they have a login?",
-  });
-
-  const handleSelection = (ls: LoginSelection) => {
-    console.log("value: ", ls);
-    setLoginSelection(ls);
-    props.handleSelection(ls);
-  };
-  return (
-    <section className="step">
-      <p>Do you already have a Honeycomb login?</p>
-      <ul>
-        {radioButtonFromData(handleSelection, loginSelection, { value: "yes", text: "Yes" })}
-        {radioButtonFromData(handleSelection, loginSelection, { value: "no", text: "No" })}
-        {radioButtonFromData(handleSelection, loginSelection, { value: "dunno", text: "I'm not sure" })}
-      </ul>
-    </section>
-  );
-}
+const Start: ConnectToHoneycombState = { doTheyHaveALogin: undefined, showApiKeyInput: false };
 
 type ConnectToHoneycombState = {
-  doTheyHaveALogin: LoginSelection;
+  doTheyHaveALogin: DoTheyHaveALoginResult | undefined;
   showApiKeyInput: boolean;
 };
 function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
   const [state, setState] = useLocalTracedState<ConnectToHoneycombState>(Start);
 
-  const handleLoginSelection = (s: LoginSelection) => {
+  const handleLoginSelection = (s: DoTheyHaveALoginResult) => {
     setState({ doTheyHaveALogin: s, showApiKeyInput: true });
   };
-  const honeycombTeamPortion = <DoTheyHaveALogin handleSelection={handleLoginSelection} />;
+  const honeycombTeamPortion = <DoTheyHaveALogin handleCompletion={handleLoginSelection} />;
   return (
     <>
       <h2>Connect to Honeycomb</h2>
