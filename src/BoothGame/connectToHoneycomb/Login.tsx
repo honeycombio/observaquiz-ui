@@ -83,6 +83,8 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
         { "app.login.buttonClicked": state.button.text, "app.login.result": JSON.stringify(state.button.result) },
         () => props.handleCompletion(state.button.result)
       );
+    } else {
+      console.error("wtf, button clicked but no button");
     }
   }
 
