@@ -10,23 +10,28 @@ const Start = {
   stateName: "start at the top",
   sections: { login: "open", team: "hidden", env: "hidden", apikey: "hidden" },
 };
-const NewTeam = {
-  stateName: "new team",
+const NewAccount = {
+  stateName: "brand new account",
   sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
+};
+const ExistingAccount = {
+  stateName: "existing account",
+  sections: { login: "complete", team: "open", env: "hidden", apikey: "hidden" },
 };
 const ApiKeyFromLocalStorage = {
   stateName: "api key from local storage",
   sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
 };
 
-type ConnectToHoneycombState = typeof Start | typeof NewTeam | typeof ApiKeyFromLocalStorage;
+type ConnectToHoneycombState = typeof Start | typeof NewAccount | typeof ApiKeyFromLocalStorage;
 
 function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
   const initialState = isApiKeyInLocalStorage() ? ApiKeyFromLocalStorage : Start;
   const [state, setState] = useLocalTracedState<ConnectToHoneycombState>(initialState);
 
   const handleLoginSelection = (s: DoTheyHaveALoginResult) => {
-    setState(NewTeam);
+    const nextState = s.honeycombLogin === "new" ? NewAccount : ExistingAccount;
+    setState(nextState, { eventName: nextState.stateName });
   };
   return (
     <>
@@ -83,10 +88,18 @@ type CollapsingSectionProps = {
 
 function CollapsingSection(props: CollapsingSectionProps) {
   const [clickedOpen, setClickedOpen] = React.useState(false);
+  const [everOpen, setEverOpen] = React.useState(props.open);
 
   function toggleClickedOpen() {
     setClickedOpen(!clickedOpen);
   }
+
+  React.useEffect(() => {
+    if (props.open || clickedOpen) {
+      setEverOpen(true);
+    }
+  }, [props.open, clickedOpen]);
+
   return (
     <section className="step" hidden={props.hidden}>
       <div className="section-header" onClick={toggleClickedOpen}>
@@ -95,11 +108,11 @@ function CollapsingSection(props: CollapsingSectionProps) {
           {props.header}
         </h3>
       </div>
-      {(props.open || clickedOpen) && (
-        <>
+      {everOpen && (
+        <div hidden={!(props.open || clickedOpen)}>
           <hr />
           {props.children}
-        </>
+        </div>
       )}
     </section>
   );

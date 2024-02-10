@@ -16,6 +16,7 @@ import { ActiveLifecycleSpan } from "./ComponentLifecycleTracing";
 type SetStateParams = {
   reason?: string;
   attributes?: Attributes;
+  eventName?: string;
   action?: () => void; // do in the context of this log
 };
 export function useLocalTracedState<T>(
@@ -41,7 +42,7 @@ export function useLocalTracedState<T>(
     attributes[`app.${componentName}.reason`] = setStateParams?.reason || "unset";
     const action = setStateParams?.action ? setStateParams.action : () => {};
 
-    activeLifecycleSpan.withLog("state change", attributes, action);
+    activeLifecycleSpan.withLog(setStateParams?.eventName || "state change", attributes, action);
 
     setStateInternal(newState);
   }

@@ -104,7 +104,7 @@ export type GetThemATeamProps = { handleCompletion: (s: GetThemATeamResult) => v
 
 export function GetThemATeam(props: GetThemATeamProps) {
   return (
-    <ComponentLifecycleTracing componentName="login">
+    <ComponentLifecycleTracing componentName="team">
       <GetThemATeamInternal {...props} />
     </ComponentLifecycleTracing>
   );

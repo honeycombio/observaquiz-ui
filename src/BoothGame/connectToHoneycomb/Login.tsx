@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
-import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
+import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { RadioButtonList } from "./RadioButtonList";
 
 const SignupButton = {
@@ -36,11 +36,12 @@ const radioButtons: Array<RadioButtonRow> = [
 ];
 
 function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
+  const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const [state, setState] = useLocalTracedState<DoTheyHaveALoginState>(NothingSelectedYet);
 
   const handleSelection = (ls: RadioButtonRow) => {
     console.log("value: ", ls);
-    setState(ls.moveToState);
+    setState(ls.moveToState, { eventName: ls.moveToState.stateName });
   };
 
   var instructions = <></>;
@@ -75,15 +76,20 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
       break;
   }
 
+  function buttonClick() {
+    if (state.button) {
+      activeLifecycleSpan.withLog(
+        "clicked " + state.button.text,
+        { "app.login.buttonClicked": state.button.text, "app.login.result": JSON.stringify(state.button.result) },
+        () => props.handleCompletion(state.button.result)
+      );
+    }
+  }
+
   var button = <></>;
   if (state.button) {
     button = (
-      <a
-        href={state.button.href}
-        target="_blank"
-        className="button primary"
-        onClick={() => props.handleCompletion(state.button.result)}
-      >
+      <a href={state.button.href} target="_blank" className="button primary" onClick={buttonClick}>
         {state.button.text}
       </a>
     );

@@ -104,7 +104,7 @@ export type GetAnEnvironmentProps = { handleCompletion: (s: GetAnEnvironmentResu
 
 export function GetAnEnvironment(props: GetAnEnvironmentProps) {
   return (
-    <ComponentLifecycleTracing componentName="login">
+    <ComponentLifecycleTracing componentName="environment">
       <GetAnEnvironmentInternal {...props} />
     </ComponentLifecycleTracing>
   );
