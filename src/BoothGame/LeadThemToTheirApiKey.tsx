@@ -4,17 +4,26 @@ import { ApiKeyInput, ApiKeyInputSuccess } from "./ApiKeyInput";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
 import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./connectToHoneycomb/Login";
 
-const Start: ConnectToHoneycombState = { doTheyHaveALogin: undefined, showApiKeyInput: false };
-
-type ConnectToHoneycombState = {
-  doTheyHaveALogin: DoTheyHaveALoginResult | undefined;
-  showApiKeyInput: boolean;
+const Start = {
+  stateName: "start at the top",
+  sections: { login: "open", team: "hidden", env: "hidden", apikey: "hidden" },
 };
+const NewTeam = {
+  stateName: "new team",
+  sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
+};
+const ApiKeyFromLocalStorage = {
+  stateName: "api key from local storage",
+  sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
+};
+
+type ConnectToHoneycombState = typeof Start | typeof NewTeam | typeof ApiKeyFromLocalStorage;
+
 function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
   const [state, setState] = useLocalTracedState<ConnectToHoneycombState>(Start);
 
   const handleLoginSelection = (s: DoTheyHaveALoginResult) => {
-    setState({ doTheyHaveALogin: s, showApiKeyInput: true });
+    setState(NewTeam);
   };
   const honeycombTeamPortion = <DoTheyHaveALogin handleCompletion={handleLoginSelection} />;
   return (
@@ -27,7 +36,7 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
       <p>To do this, Observaquiz needs to connect to a Honeycomb team that belongs to you.</p>
 
       <section className="step">{honeycombTeamPortion}</section>
-      <section className="step" hidden={!state.showApiKeyInput}>
+      <section className="step" hidden={state.sections.apikey === "hidden"}>
         <ApiKeyInput moveForward={props.moveForward} />
       </section>
     </>
