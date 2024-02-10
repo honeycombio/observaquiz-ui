@@ -6,7 +6,6 @@ import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./connectToHoneycomb/L
 
 const Start: ConnectToHoneycombState = { doTheyHaveALogin: undefined, showApiKeyInput: false };
 
-
 type ConnectToHoneycombState = {
   doTheyHaveALogin: DoTheyHaveALoginResult | undefined;
   showApiKeyInput: boolean;
@@ -26,8 +25,11 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
         learn the workings of Observaquiz!
       </p>
       <p>To do this, Observaquiz needs to connect to a Honeycomb team that belongs to you.</p>
-      {honeycombTeamPortion}
-      {state.showApiKeyInput && <ApiKeyInput moveForward={props.moveForward} />}
+
+      <section className="step">{honeycombTeamPortion}</section>
+      <section className="step" hidden={!state.showApiKeyInput}>
+        <ApiKeyInput moveForward={props.moveForward} />
+      </section>
     </>
   );
 }

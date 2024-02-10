@@ -88,12 +88,12 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
     );
   }
   return (
-    <section className="step">
+    <>
       <p>Do you already have a Honeycomb login?</p>
       <RadioButtonList radioButtons={radioButtons} handleSelection={handleSelection} />
       {instructions}
       {button}
-    </section>
+    </>
   );
 }
 
