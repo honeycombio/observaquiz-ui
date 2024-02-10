@@ -35,22 +35,41 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
       </p>
       <p>To do this, Observaquiz will connect to a Honeycomb team that belongs to you.</p>
 
-      <CollapsingSection header="Honeycomb login" open={state.sections.login === "open"} hidden={false}>
+      <CollapsingSection
+        header="Honeycomb login"
+        complete={state.sections.login === "complete"}
+        open={state.sections.login === "open"}
+        hidden={false}
+      >
         <DoTheyHaveALogin handleCompletion={handleLoginSelection} />
       </CollapsingSection>
-      <CollapsingSection header="Honeycomb API Key" open={true} hidden={state.sections.apikey === "hidden"}>
+      <CollapsingSection
+        header="Honeycomb API Key"
+        complete={false}
+        open={true}
+        hidden={state.sections.apikey === "hidden"}
+      >
         <ApiKeyInput moveForward={props.moveForward} />
       </CollapsingSection>
     </>
   );
 }
 
-type CollapsingSectionProps = { header: string; children: React.ReactNode; open: boolean; hidden: boolean };
+type CollapsingSectionProps = {
+  header: string;
+  children: React.ReactNode;
+  complete: boolean;
+  open: boolean;
+  hidden: boolean;
+};
 
 function CollapsingSection(props: CollapsingSectionProps) {
   return (
     <section className="step" hidden={props.hidden}>
-      <h3>{props.header}</h3>
+      <h3>
+        {props.complete && "✅ "}
+        {props.header}
+      </h3>
       {props.open && (
         <>
           <hr />
