@@ -64,13 +64,20 @@ type CollapsingSectionProps = {
 };
 
 function CollapsingSection(props: CollapsingSectionProps) {
+  const [clickedOpen, setClickedOpen] = React.useState(false);
+
+  function toggleClickedOpen() {
+    setClickedOpen(!clickedOpen);
+  }
   return (
     <section className="step" hidden={props.hidden}>
-      <h3>
-        {props.complete && "✅ "}
-        {props.header}
-      </h3>
-      {props.open && (
+      <div className="section-header" onClick={toggleClickedOpen}>
+        <h3>
+          {props.complete && "✅ "}
+          {props.header}
+        </h3>
+      </div>
+      {(props.open || clickedOpen) && (
         <>
           <hr />
           {props.children}
