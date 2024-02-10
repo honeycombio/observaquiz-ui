@@ -1,8 +1,8 @@
 import React from "react";
-import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { ApiKeyInput, ApiKeyInputSuccess, isApiKeyInLocalStorage } from "./ApiKeyInput";
-import { useLocalTracedState } from "../tracing/LocalTracedState";
-import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./connectToHoneycomb/Login";
+import { useLocalTracedState } from "../../tracing/LocalTracedState";
+import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./Login";
 
 const Start = {
   stateName: "start at the top",

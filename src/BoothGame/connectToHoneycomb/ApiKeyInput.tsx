@@ -1,9 +1,9 @@
 import React, { FormEvent, useContext } from "react";
-import { Configuration } from "../Configuration";
-import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import { Configuration } from "../../Configuration";
+import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { callHoneycombAuthEndpoint } from "./honeycombAuth";
-import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
-import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME } from "../tracing/TracingDestination";
+import { ActiveLifecycleSpanType } from "../../tracing/activeLifecycleSpan";
+import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME } from "../../tracing/TracingDestination";
 
 const LOCAL_STORAGE_KEY_API_KEY = "apiKey";
 const LOCAL_STORAGE_KEY_WHETHER_TO_SAVE = "apisaveApiKeyToLocalStorageKey";

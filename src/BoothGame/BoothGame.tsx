@@ -1,5 +1,5 @@
 import React from "react";
-import { ApiKeyInputSuccess } from "./ApiKeyInput";
+import { ApiKeyInputSuccess } from "./connectToHoneycomb/ApiKeyInput";
 import { QuestionSet, QuestionSetRetrieval } from "./QuestionSetRetrieval";
 import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/ComponentLifecycleTracing";
 import { Hello } from "./Hello";
@@ -15,7 +15,7 @@ import {
 import { TracedState, useTracedState } from "../tracing/TracedState";
 import { Question } from "./Question";
 import { Win } from "./Win";
-import { LeadThemToTheirApiKey } from "./LeadThemToTheirApiKey";
+import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKey";
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
