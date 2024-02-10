@@ -16,18 +16,21 @@ function newExecution(resets: number): ObservaquizExecution {
   };
 }
 function QuizApp() {
-  const [resets, setResets] = React.useState(0);
-  const [execution, saveExecution] = useLocalStorage<ObservaquizExecution>("execution", newExecution(resets));
+  const [execution, saveExecution] = useLocalStorage<ObservaquizExecution>("execution", newExecution(0));
 
   function reset() {
     console.log("Resetting");
-    saveExecution(newExecution(resets + 1));
-    setResets(resets + 1);
+    saveExecution(newExecution(execution.resetCount + 1));
   }
 
   return (
     <Configuration.Provider value={RealHoneycomb}>
-      <TrackedBoothGame key={resets} observaquizExecution={execution} howToReset={reset} learnTeam={learnTeam} />
+      <TrackedBoothGame
+        key={execution.resetCount}
+        observaquizExecution={execution}
+        howToReset={reset}
+        learnTeam={learnTeam}
+      />
     </Configuration.Provider>
   );
 }

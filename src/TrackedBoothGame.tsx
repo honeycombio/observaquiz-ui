@@ -124,6 +124,7 @@ export function TrackedBoothGame(props: TrackedBoothGameProps) {
       }}
       attributesForAllChildren={{
         "app.observaquiz.execution_id": props.observaquizExecution.executionId,
+        "app.observaquiz.resetCount": props.observaquizExecution.resetCount,
       }}
     >
       <TrackedBoothGameInternal {...props} />
