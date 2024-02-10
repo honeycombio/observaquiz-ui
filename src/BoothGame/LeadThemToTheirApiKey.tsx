@@ -1,6 +1,6 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { ApiKeyInput, ApiKeyInputSuccess } from "./ApiKeyInput";
+import { ApiKeyInput, ApiKeyInputSuccess, isApiKeyInLocalStorage } from "./ApiKeyInput";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
 import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./connectToHoneycomb/Login";
 
@@ -20,7 +20,8 @@ const ApiKeyFromLocalStorage = {
 type ConnectToHoneycombState = typeof Start | typeof NewTeam | typeof ApiKeyFromLocalStorage;
 
 function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
-  const [state, setState] = useLocalTracedState<ConnectToHoneycombState>(Start);
+  const initialState = isApiKeyInLocalStorage() ? ApiKeyFromLocalStorage : Start;
+  const [state, setState] = useLocalTracedState<ConnectToHoneycombState>(initialState);
 
   const handleLoginSelection = (s: DoTheyHaveALoginResult) => {
     setState(NewTeam);

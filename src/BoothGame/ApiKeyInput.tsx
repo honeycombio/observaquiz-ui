@@ -5,6 +5,9 @@ import { callHoneycombAuthEndpoint } from "./honeycombAuth";
 import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME } from "../tracing/TracingDestination";
 
+const LOCAL_STORAGE_KEY_API_KEY = "apiKey";
+const LOCAL_STORAGE_KEY_WHETHER_TO_SAVE = "apisaveApiKeyToLocalStorageKey";
+
 export type ApiKeyInputSuccess = {
   apiKey: string;
   team: { name: string; slug: string };
@@ -12,13 +15,17 @@ export type ApiKeyInputSuccess = {
   region: "us" | "eu";
 };
 
+export function isApiKeyInLocalStorage(): boolean {
+  return window.localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY) !== null;
+}
+
 function retrieveApiKeyFromLocalStorage(span: ActiveLifecycleSpanType): {
   apiKey: string | null;
   saveApiKeyToLocalStorage: boolean | null;
 } {
-  const localStorageStringValue = window.localStorage.getItem("saveApiKeyToLocalStorage");
+  const localStorageStringValue = window.localStorage.getItem(LOCAL_STORAGE_KEY_WHETHER_TO_SAVE);
   const result = {
-    apiKey: window.localStorage.getItem("apiKey"),
+    apiKey: window.localStorage.getItem(LOCAL_STORAGE_KEY_API_KEY),
     saveApiKeyToLocalStorage: localStorageStringValue ? localStorageStringValue === "true" : null,
   };
   span.addLog("localStorage GET", {
@@ -33,8 +40,8 @@ function storeApiKeyInLocalStorage(span: ActiveLifecycleSpanType, apiKey: string
     "app.localStorage.apiKey": apiKey,
     "app.localStorage.saveApiKeyToLocalStorage": true,
   });
-  window.localStorage.setItem("saveApiKeyToLocalStorage", "true");
-  window.localStorage.setItem("apiKey", apiKey);
+  window.localStorage.setItem(LOCAL_STORAGE_KEY_WHETHER_TO_SAVE, "true");
+  window.localStorage.setItem(LOCAL_STORAGE_KEY_API_KEY, apiKey);
 }
 
 function deleteApiKeyFromLocalStorage(span: ActiveLifecycleSpanType) {
@@ -42,12 +49,12 @@ function deleteApiKeyFromLocalStorage(span: ActiveLifecycleSpanType) {
     "app.localStorage.apiKey": "deleted",
     "app.localStorage.saveApiKeyToLocalStorage": false,
   });
-  window.localStorage.removeItem("apiKey");
-  window.localStorage.setItem("saveApiKeyToLocalStorage", "false");
+  window.localStorage.removeItem(LOCAL_STORAGE_KEY_API_KEY);
+  window.localStorage.setItem(LOCAL_STORAGE_KEY_WHETHER_TO_SAVE, "false");
 }
 
 function saveApiKeyInLocalStorageInTheFuture() {
-  window.localStorage.setItem("saveApiKeyToLocalStorage", "true");
+  window.localStorage.setItem(LOCAL_STORAGE_KEY_WHETHER_TO_SAVE, "true");
 }
 
 function ApiKeyInputInternal(props: ApiKeyInputProps) {
