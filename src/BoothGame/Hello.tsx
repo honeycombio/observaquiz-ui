@@ -32,6 +32,12 @@ function MonikerForLeaderboard(props: DoStuffWithInputProps) {
   const [moniker, setMoniker] = React.useState("");
   const [state, setState] = React.useState<InputState>(NoInput);
 
+  const focusHerePlease = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    focusHerePlease.current?.focus();
+  }, [focusHerePlease.current]);
+
   const updateMoniker = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newMoniker = event.target.value;
     if (!newMoniker.trim()) {
@@ -63,6 +69,7 @@ function MonikerForLeaderboard(props: DoStuffWithInputProps) {
         Enter your name for the leaderboard:
         <input
           id="moniker"
+          ref={focusHerePlease}
           value={moniker}
           disabled={!state.inputEnabled}
           type="text"
