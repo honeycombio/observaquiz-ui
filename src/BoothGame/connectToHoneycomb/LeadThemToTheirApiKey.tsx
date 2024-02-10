@@ -3,6 +3,8 @@ import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTraci
 import { ApiKeyInput, ApiKeyInputSuccess, isApiKeyInLocalStorage } from "./ApiKeyInput";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./Login";
+import { GetThemATeam } from "./Team";
+import { GetAnEnvironment } from "./Environment";
 
 const Start = {
   stateName: "start at the top",
@@ -42,6 +44,22 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
         hidden={false}
       >
         <DoTheyHaveALogin handleCompletion={handleLoginSelection} />
+      </CollapsingSection>
+      <CollapsingSection
+        header="Honeycomb team"
+        complete={state.sections.team === "complete"}
+        open={state.sections.team === "open"}
+        hidden={state.sections.team === "hidden"}
+      >
+        <GetThemATeam handleCompletion={handleLoginSelection} />
+      </CollapsingSection>
+      <CollapsingSection
+        header="Honeycomb environment"
+        complete={state.sections.env === "complete"}
+        open={state.sections.env === "open"}
+        hidden={state.sections.env === "hidden"}
+      >
+        <GetAnEnvironment handleCompletion={handleLoginSelection} />
       </CollapsingSection>
       <CollapsingSection
         header="Honeycomb API Key"
