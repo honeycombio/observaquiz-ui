@@ -26,7 +26,6 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
   const handleLoginSelection = (s: DoTheyHaveALoginResult) => {
     setState(NewTeam);
   };
-  const honeycombTeamPortion = <DoTheyHaveALogin handleCompletion={handleLoginSelection} />;
   return (
     <>
       <h2>Connect to Honeycomb</h2>
@@ -34,13 +33,31 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
         As you answer questions, Observaquiz sends telemetry to Honeycomb where you can see it. You'll use that data to
         learn the workings of Observaquiz!
       </p>
-      <p>To do this, Observaquiz needs to connect to a Honeycomb team that belongs to you.</p>
+      <p>To do this, Observaquiz will connect to a Honeycomb team that belongs to you.</p>
 
-      <section className="step">{honeycombTeamPortion}</section>
-      <section className="step" hidden={state.sections.apikey === "hidden"}>
+      <CollapsingSection header="Honeycomb login" open={state.sections.login === "open"} hidden={false}>
+        <DoTheyHaveALogin handleCompletion={handleLoginSelection} />
+      </CollapsingSection>
+      <CollapsingSection header="Honeycomb API Key" open={true} hidden={state.sections.apikey === "hidden"}>
         <ApiKeyInput moveForward={props.moveForward} />
-      </section>
+      </CollapsingSection>
     </>
+  );
+}
+
+type CollapsingSectionProps = { header: string; children: React.ReactNode; open: boolean; hidden: boolean };
+
+function CollapsingSection(props: CollapsingSectionProps) {
+  return (
+    <section className="step" hidden={props.hidden}>
+      <h3>{props.header}</h3>
+      {props.open && (
+        <>
+          <hr />
+          {props.children}
+        </>
+      )}
+    </section>
   );
 }
 
