@@ -4,13 +4,13 @@ import { ApiKeyInput, ApiKeyInputSuccess, isApiKeyInLocalStorage } from "./ApiKe
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./Login";
 import { GetThemATeam, GetThemATeamResult } from "./Team";
-import { GetAnEnvironment } from "./Environment";
+import { GetAnEnvironment, GetAnEnvironmentResult } from "./Environment";
 
 const Start = {
   stateName: "start at the top",
   sections: { login: "open", team: "hidden", env: "hidden", apikey: "hidden" },
 };
-const NewAccount = {
+const NewEnvironment = {
   stateName: "brand new account",
   sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
 };
@@ -22,24 +22,40 @@ const ExistingTeam = {
   stateName: "existing account and team",
   sections: { login: "complete", team: "complete", env: "open", apikey: "hidden" },
 };
+const ExistingEnvironment = {
+  stateName: "existing account, team, environment",
+  sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
+  apiKeyInstructions: "existing environment"
+}
 const ApiKeyFromLocalStorage = {
   stateName: "api key from local storage",
   sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
+  apiKeyInstructions: "new environment"
 };
 
-type ConnectToHoneycombState = typeof Start | typeof NewAccount | typeof ApiKeyFromLocalStorage;
+type ConnectToHoneycombState = typeof Start |
+  typeof NewEnvironment |
+  typeof ApiKeyFromLocalStorage |
+  typeof ExistingAccount |
+  typeof ExistingTeam |
+  typeof ExistingEnvironment;
 
 function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
   const initialState = isApiKeyInLocalStorage() ? ApiKeyFromLocalStorage : Start;
   const [state, setState] = useLocalTracedState<ConnectToHoneycombState>(initialState);
 
   const handleLoginSelection = (s: DoTheyHaveALoginResult) => {
-    const nextState = s.honeycombLogin === "new" ? NewAccount : ExistingAccount;
+    const nextState = s.honeycombLogin === "new" ? NewEnvironment : ExistingAccount;
     setState(nextState, { eventName: nextState.stateName });
   };
 
   const handleTeamSelection = (s: GetThemATeamResult) => {
-    const nextState = s.honeycombTeam === "new" ? NewAccount : ExistingTeam;
+    const nextState = s.honeycombTeam === "new" ? NewEnvironment : ExistingTeam;
+    setState(nextState, { eventName: nextState.stateName });
+  };
+
+  const handleEnvironmentSelection = (s: GetAnEnvironmentResult) => {
+    const nextState = s.honeycombEnvironment === "new" ? NewEnvironment : ExistingEnvironment;
     setState(nextState, { eventName: nextState.stateName });
   };
 
@@ -74,7 +90,7 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
         open={state.sections.env === "open"}
         hidden={state.sections.env === "hidden"}
       >
-        <GetAnEnvironment handleCompletion={handleLoginSelection} />
+        <GetAnEnvironment handleCompletion={handleEnvironmentSelection} />
       </CollapsingSection>
       <CollapsingSection
         header="Honeycomb API Key"

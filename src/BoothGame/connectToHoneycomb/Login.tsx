@@ -47,7 +47,7 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
   var instructions = <></>;
   switch (state.instructions) {
     case "sign in":
-      instructions = <p>Great! Click this to log in to Honeycomb in a new tab:</p>;
+      instructions = <p>Great! Click to log in to Honeycomb in a new tab.</p>;
       break;
     case "sign up":
       instructions = (
