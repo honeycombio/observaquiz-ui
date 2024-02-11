@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTraci
 import { ApiKeyInput, ApiKeyInputSuccess, isApiKeyInLocalStorage } from "./ApiKeyInput";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./Login";
-import { GetThemATeam } from "./Team";
+import { GetThemATeam, GetThemATeamResult } from "./Team";
 import { GetAnEnvironment } from "./Environment";
 
 const Start = {
@@ -17,6 +17,10 @@ const NewAccount = {
 const ExistingAccount = {
   stateName: "existing account",
   sections: { login: "complete", team: "open", env: "hidden", apikey: "hidden" },
+};
+const ExistingTeam = {
+  stateName: "existing account and team",
+  sections: { login: "complete", team: "complete", env: "open", apikey: "hidden" },
 };
 const ApiKeyFromLocalStorage = {
   stateName: "api key from local storage",
@@ -33,6 +37,12 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
     const nextState = s.honeycombLogin === "new" ? NewAccount : ExistingAccount;
     setState(nextState, { eventName: nextState.stateName });
   };
+
+  const handleTeamSelection = (s: GetThemATeamResult) => {
+    const nextState = s.honeycombTeam === "new" ? NewAccount : ExistingTeam;
+    setState(nextState, { eventName: nextState.stateName });
+  };
+
   return (
     <>
       <h2>Connect to Honeycomb</h2>
@@ -56,7 +66,7 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
         open={state.sections.team === "open"}
         hidden={state.sections.team === "hidden"}
       >
-        <GetThemATeam handleCompletion={handleLoginSelection} />
+        <GetThemATeam handleCompletion={handleTeamSelection} />
       </CollapsingSection>
       <CollapsingSection
         header="Honeycomb environment"

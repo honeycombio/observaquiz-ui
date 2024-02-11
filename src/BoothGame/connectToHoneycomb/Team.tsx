@@ -1,41 +1,62 @@
 import React from "react";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
-import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
+import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { RadioButtonList } from "./RadioButtonList";
 
-const SignupButton = {
-  text: "Sign up",
-  href: "https://ui.honeycomb.io/signup",
-  result: { honeycombLogin: "new" } as GetThemATeamResult,
+const InMyPlayTeamButton = {
+  text: "OK",
+  href: undefined,
+  result: { honeycombTeam: "existing" } as GetThemATeamResult,
 };
 
-const LoginButton = {
-  text: "Log in",
-  href: "https://ui.honeycomb.io/login",
-  result: { honeycombLogin: "existing" } as GetThemATeamResult,
+const MakeANewTeamButton = {
+  text: "Teams page",
+  href: "https://ui.honeycomb.io/teams",
+  result: { honeycombTeam: "new" } as GetThemATeamResult,
 };
 
-const NothingSelectedYet = { stateName: "no selection", instructions: "empty", button: undefined };
-const SelectedYes = { stateName: "have a login", instructions: "sign in", button: LoginButton };
-const SelectedNo = { stateName: "no login", instructions: "sign up", button: SignupButton };
-const SelectedDunno = {
-  stateName: "they don't know whether they have a login",
-  instructions: "sign up anyway",
-  button: SignupButton,
+const SwitchToPlayTeamButton = {
+  text: "Teams page",
+  href: "https://ui.honeycomb.io/teams",
+  result: { honeycombTeam: "existing" } as GetThemATeamResult,
 };
 
-type GetThemATeamState = typeof NothingSelectedYet | typeof SelectedYes | typeof SelectedNo | typeof SelectedDunno;
+const NothingSelectedYet = {
+  stateName: "no selection",
+  instructions: "empty" as GetThemATeamInstructions,
+  button: undefined,
+};
+const SelectedWork = {
+  stateName: "use it for work",
+  instructions: "create a new team" as GetThemATeamInstructions,
+  button: MakeANewTeamButton,
+};
+const SelectedPlay = {
+  stateName: "have a play team",
+  instructions: "great" as GetThemATeamInstructions,
+  button: InMyPlayTeamButton,
+};
+const SelectedBoth = {
+  stateName: "both work and personal teams",
+  instructions: "switch to personal team" as GetThemATeamInstructions,
+  button: SwitchToPlayTeamButton,
+};
 
-type LoginSelection = "yes" | "no" | "dunno";
+type GetThemATeamInstructions = "empty" | "create a new team" | "great" | "switch to personal team";
 
-type RadioButtonRow = { key: LoginSelection; text: string; moveToState: GetThemATeamState };
+type GetThemATeamState = typeof NothingSelectedYet | typeof SelectedWork | typeof SelectedPlay | typeof SelectedBoth;
+
+type TeamDescription = "work" | "play" | "both";
+
+type RadioButtonRow = { key: TeamDescription; text: string; moveToState: GetThemATeamState };
 const radioButtons: Array<RadioButtonRow> = [
-  { key: "yes", text: "Yes", moveToState: SelectedYes },
-  { key: "no", text: "No", moveToState: SelectedNo },
-  { key: "dunno", text: "I'm not sure", moveToState: SelectedDunno },
+  { key: "work", text: "I use Honeycomb at work", moveToState: SelectedWork },
+  { key: "play", text: "I have a Honeycomb team that I play around with", moveToState: SelectedPlay },
+  { key: "both", text: "Both", moveToState: SelectedBoth },
 ];
 
 function GetThemATeamInternal(props: GetThemATeamProps) {
+  const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const [state, setState] = useLocalTracedState<GetThemATeamState>(NothingSelectedYet);
 
   const handleSelection = (ls: RadioButtonRow) => {
@@ -45,52 +66,74 @@ function GetThemATeamInternal(props: GetThemATeamProps) {
 
   var instructions = <></>;
   switch (state.instructions) {
-    case "sign in":
-      instructions = <p>Great! Click this to log in to Honeycomb in a new tab:</p>;
-      break;
-    case "sign up":
+    case "create a new team":
       instructions = (
         <>
           <p>
-            You're in luck! You get a free Honeycomb account. Your free team lasts forever, and it can receive{" "}
-            <i>20 million</i> events per month. After that you'll get rate limited.
+            We recommend creating your own free Honeycomb team for Observaquiz. That way your data won't show up in your
+            work team, and you'll have full permissions to delete it afterward if you want to.
           </p>
           <p>
-            This quiz will send about 400 events, so you can take it {20000000 / 400} times this month. (But don't. Once
-            is good.)
+            On the teams page, you'll find a list of all your teams. Below that is "Create team." Make yourself a new
+            team now.
+          </p>
+          <p>
+            Your new team is on the free Honeycomb plan, ready to receive up to 20 million events per month, forever.
           </p>
         </>
       );
       break;
-    case "sign up anyway":
+    case "switch to personal team":
       instructions = (
         <>
-          <p>Go ahead and sign up. If you already have an account, you'll get an email with a "reset password" link.</p>
           <p>
-            Your free Honeycomb team is free forever, and it will accept 20 million events per month. This quiz will
-            send about 400 events .
+            Great! You'll want to use your personal team for this quiz, not your work team. That way your coworkers
+            won't be baffled by Observaquiz data.
           </p>
+          <p>Click the button below to access your list of teams, and then choose your personal team.</p>
+        </>
+      );
+      break;
+    case "great":
+      instructions = (
+        <>
+          <p>A personal team is perfect for Observaquiz!</p>
         </>
       );
       break;
   }
 
+  function buttonClick() {
+    if (state.button) {
+      activeLifecycleSpan.withLog(
+        "clicked " + state.button.text,
+        { "app.login.buttonClicked": state.button.text, "app.login.result": JSON.stringify(state.button.result) },
+        () => props.handleCompletion(state.button.result)
+      );
+    } else {
+      console.error("wtf, button clicked but no button");
+    }
+  }
+
   var button = <></>;
   if (state.button) {
-    button = (
-      <a
-        href={state.button.href}
-        target="_blank"
-        className="button primary"
-        onClick={() => props.handleCompletion(state.button.result)}
-      >
-        {state.button.text}
-      </a>
-    );
+    if (state.button.href) {
+      button = (
+        <a href={state.button.href} target="_blank" className="button primary" onClick={buttonClick}>
+          {state.button.text}
+        </a>
+      );
+    } else {
+      button = (
+        <button className="button primary" onClick={buttonClick}>
+          {state.button.text}
+        </button>
+      );
+    }
   }
   return (
     <>
-      <p>Do you already have a Honeycomb login?</p>
+      <p>How do you use Honeycomb?</p>
       <RadioButtonList radioButtons={radioButtons} handleSelection={handleSelection} />
       {instructions}
       {button}
@@ -98,7 +141,7 @@ function GetThemATeamInternal(props: GetThemATeamProps) {
   );
 }
 
-export type GetThemATeamResult = { honeycombLogin: "new" | "existing" };
+export type GetThemATeamResult = { honeycombTeam: "new" | "existing" };
 
 export type GetThemATeamProps = { handleCompletion: (s: GetThemATeamResult) => void };
 
