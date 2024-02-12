@@ -171,13 +171,20 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
     case "existing environment":
       instructions = <>
         <p>You can always get an API key from environment settings. Try this:</p>
-        <ul>
-          <li>In the top left, click the Environment selector. (It is right under the Honeycomb logo.)</li>
-          <li>In the popout menu, choose "Manage Environments".</li>
-          <li>In the list, find the environment you want to use. Next to that, click "View API Keys".</li>
-          <li>Copy an existing one, or create a new one.</li>
-          <li>Observaquiz needs these permissions: Send events, create datasets.</li>
-        </ul>
+        <div className="instructions-flex-parent">
+          <div className="instructions-list">
+            <ul>
+              <li>In the top left, click the Environment selector. (It is right under the Honeycomb logo.)</li>
+              <li>In the popout menu, choose "Manage Environments".</li>
+              <li>In the list, find the environment you want to use. Next to that, click "View API Keys".</li>
+              <li>Copy an existing one, or create a new one.</li>
+              <li>Observaquiz needs these permissions: Send Events, Create Datasets.</li>
+            </ul>
+          </div>
+          <div className="instructions-movie">
+            <img src="/create-an-api-key.gif" />
+          </div>
+        </div>
       </>
       break;
     case "known api key":
@@ -227,7 +234,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
         </div>
       </form>
       <p className="fine-print">
-        This app will send about 400 events to your Honeycomb environment. You will see 2 new datasets: {HONEYCOMB_DATASET_NAME} and
+        This app will send about 400 events to your Honeycomb environment. You will see 2 new datasets: {HONEYCOMB_DATASET_NAME} and{" "}
         {BACKEND_DATASET_NAME}. As a team owner, you can delete these.
       </p>
     </div>
