@@ -159,23 +159,39 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
     }
   }
 
+  var instructions = <></>;
+  switch (props.instructions) {
+    case "new environment":
+      instructions = <>
+        <p>Now grab your API key! The Home screen for your new environment eagerly wants to give you your API key.</p>
+        <img className="screenshot" src="/home-api-key-screenshot.png" />
+        <button className="button clear pull-right" onClick={props.switchToExistingEnvironment}>I don't see this screen</button>
+      </>
+      break;
+    case "existing environment":
+      instructions = <>
+        <p>You can always get an API key from environment settings. Try this:</p>
+        <ul>
+          <li>In the top left, click the Environment selector. (It is right under the Honeycomb logo.)</li>
+          <li>In the popout menu, choose "Manage Environments".</li>
+          <li>In the list, find the environment you want to use. Next to that, click "View API Keys".</li>
+          <li>Copy an existing one, or create a new one.</li>
+          <li>Observaquiz needs these permissions: Send events, create datasets.</li>
+        </ul>
+      </>
+      break;
+    case "known api key":
+      instructions = <>
+        <p>You've been here before. 😉</p>
+        <button className="button clear pull-right" onClick={props.switchToExistingEnvironment}>Tell me how to find an API key again</button>
+      </>
+  }
+
   return (
     <div>
+      {instructions}
       <form onSubmit={formSubmit}>
-        <div className="question-parent">
-          <p className="">
-            First, please sign up (free) or log in to{" "}
-            <a target="_blank" href="https://ui.honeycomb.io">
-              Honeycomb
-            </a>{" "}
-            and{" "}
-            <a target="_blank" href="https://docs.honeycomb.io/working-with-your-data/settings/api-keys/#find-api-keys">
-              get an API key
-            </a>
-            .
-          </p>
-          <p>The key needs these permissions: Send Events & Create Datasets.</p>
-          <p>We will send traces from this quiz session to Honeycomb so you can see them!</p>
+        <div>
           <label htmlFor="apiKey-input">Paste your API key here:</label>
           <p className="grouped">
             <input
@@ -189,7 +205,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
           </p>
           <p>
             <button
-              disabled={!submitIsAvailable} // I don't like this. I want a state that is a function of other state...
+              disabled={!submitIsAvailable}
               className="button-4 centered-button"
               id="apikey-submit"
               type="submit"
@@ -211,17 +227,15 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
         </div>
       </form>
       <p className="fine-print">
-        This app will send data to your Honeycomb environment. You will see 2 new datasets: {HONEYCOMB_DATASET_NAME} and
+        This app will send about 400 events to your Honeycomb environment. You will see 2 new datasets: {HONEYCOMB_DATASET_NAME} and
         {BACKEND_DATASET_NAME}. As a team owner, you can delete these.
-      </p>
-      <p className="fine-print">
-        Your team will get about 300 events. A free Honeycomb team can receive 20,000,000 events per month.
       </p>
     </div>
   );
 }
 
-type ApiKeyInputProps = { moveForward: (success: ApiKeyInputSuccess) => void };
+type ApiKeyInputProps = { moveForward: (success: ApiKeyInputSuccess) => void, switchToExistingEnvironment: () => void, instructions: ApiKeyInstructions };
+export type ApiKeyInstructions = "new environment" | "existing environment" | "known api key";
 export function ApiKeyInput(props: ApiKeyInputProps) {
   return (
     <ComponentLifecycleTracing componentName="ApiKeyInput">

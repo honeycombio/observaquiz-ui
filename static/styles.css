@@ -136,8 +136,20 @@ section.step {
   flex-grow: 2;
 }
 
+.instructions-movie img {
+  border: 2px var(--color-darkGrey) inset;
+  padding: 2px;
+}
+
 .instructions-flex-parent div.instructions-list {
   flex-basis: 400px;
   flex-grow: 1;
   margin-right: 10px;
+}
+
+.screenshot {
+  max-width: 80%;
+  min-width: 300px;
+  border: 2px var(--color-darkGrey) inset;
+  padding: 2px;
 }

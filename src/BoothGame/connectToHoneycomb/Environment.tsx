@@ -23,7 +23,7 @@ function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
     </button>);
   const alternateButton = (
     <button
-      className="button primary"
+      className="button clear"
       onClick={() => props.handleCompletion(UseAnExistingOne.result)}>
       {UseAnExistingOne.text}
     </button>);

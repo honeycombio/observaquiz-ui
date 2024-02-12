@@ -1,6 +1,6 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
-import { ApiKeyInput, ApiKeyInputSuccess, isApiKeyInLocalStorage } from "./ApiKeyInput";
+import { ApiKeyInput, ApiKeyInputSuccess, ApiKeyInstructions, isApiKeyInLocalStorage } from "./ApiKeyInput";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { DoTheyHaveALogin, DoTheyHaveALoginResult } from "./Login";
 import { GetThemATeam, GetThemATeamResult } from "./Team";
@@ -9,28 +9,32 @@ import { GetAnEnvironment, GetAnEnvironmentResult } from "./Environment";
 const Start = {
   stateName: "start at the top",
   sections: { login: "open", team: "hidden", env: "hidden", apikey: "hidden" },
+  apiKeyInstructions: "existing environment" as ApiKeyInstructions // they shouldn't see it
 };
 const NewEnvironment = {
   stateName: "brand new account",
   sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
+  apiKeyInstructions: "new environment" as ApiKeyInstructions
 };
 const ExistingAccount = {
   stateName: "existing account",
   sections: { login: "complete", team: "open", env: "hidden", apikey: "hidden" },
+  apiKeyInstructions: "existing environment" as ApiKeyInstructions // they shouldn't see it
 };
 const ExistingTeam = {
   stateName: "existing account and team",
   sections: { login: "complete", team: "complete", env: "open", apikey: "hidden" },
+  apiKeyInstructions: "existing environment" as ApiKeyInstructions // they shouldn't see it
 };
 const ExistingEnvironment = {
   stateName: "existing account, team, environment",
   sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
-  apiKeyInstructions: "existing environment"
+  apiKeyInstructions: "existing environment" as ApiKeyInstructions
 }
 const ApiKeyFromLocalStorage = {
   stateName: "api key from local storage",
   sections: { login: "complete", team: "complete", env: "complete", apikey: "open" },
-  apiKeyInstructions: "new environment"
+  apiKeyInstructions: "known api key" as ApiKeyInstructions
 };
 
 type ConnectToHoneycombState = typeof Start |
@@ -58,6 +62,10 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
     const nextState = s.honeycombEnvironment === "new" ? NewEnvironment : ExistingEnvironment;
     setState(nextState, { eventName: nextState.stateName });
   };
+
+  const switchToExistingEnvironment = () => {
+    setState(ExistingEnvironment, { eventName: ExistingEnvironment.stateName, attributes: { "app.connectToHoneycomb.why": "they asked for more instructions" } });
+  }
 
   return (
     <>
@@ -98,7 +106,7 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
         open={true}
         hidden={state.sections.apikey === "hidden"}
       >
-        <ApiKeyInput moveForward={props.moveForward} />
+        <ApiKeyInput moveForward={props.moveForward} switchToExistingEnvironment={switchToExistingEnvironment} instructions={state.apiKeyInstructions} />
       </CollapsingSection>
     </>
   );

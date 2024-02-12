@@ -78,6 +78,9 @@ function GetThemATeamInternal(props: GetThemATeamProps) {
             team now.
           </p>
           <p>
+            Name your team something unique to you. When it prompts you to name an environment, call it "quiz".
+          </p>
+          <p>
             Your new team is on the free Honeycomb plan, ready to receive up to 20 million events per month, forever.
           </p>
         </>
