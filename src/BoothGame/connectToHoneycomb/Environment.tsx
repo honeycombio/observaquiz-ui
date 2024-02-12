@@ -42,6 +42,8 @@ function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
             <li>In the menu that pops up, click "Manage Environments."</li>
             <li>In the top right, click "Create Environment."</li>
             <li>Maybe name it "quiz"</li>
+            <li>Now click the name of the new environment.</li>
+            <li>Click "Home" on the left.</li>
           </ul>
         </div>
         <div className="instructions-movie">
