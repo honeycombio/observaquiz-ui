@@ -35,7 +35,7 @@ function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
 
       <p>To make a new environment in Honeycomb:</p>
       <div className="instructions-flex-parent">
-        <div>
+        <div className="instructions-list">
           <ul>
             <li>At the top left, just below the Honeycomb logo, click on the <span className="small-caps">ENVIRONMENT</span>{" "}
               selector.</li>
@@ -44,7 +44,7 @@ function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
             <li>Maybe name it "quiz"</li>
           </ul>
         </div>
-        <div>
+        <div className="instructions-movie">
           <img src="/create-env.gif" />
         </div>
       </div>

@@ -131,6 +131,13 @@ section.step {
   flex-wrap: wrap
 }
 
-.instructions-flex-parent div {
+.instructions-flex-parent div.instructions-movie {
   flex-basis: 400px;
+  flex-grow: 2;
+}
+
+.instructions-flex-parent div.instructions-list {
+  flex-basis: 400px;
+  flex-grow: 1;
+  margin-right: 10px;
 }
