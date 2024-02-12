@@ -87,10 +87,9 @@ function GetThemATeamInternal(props: GetThemATeamProps) {
       instructions = (
         <>
           <p>
-            Great! You'll want to use your personal team for this quiz, not your work team. That way your coworkers
-            won't be baffled by Observaquiz data.
+            Great! You'll want to use your personal team.
           </p>
-          <p>Click the button below to access your list of teams, and then choose your personal team.</p>
+          <p>Click the button to see all your teams. Please choose your personal team.</p>
         </>
       );
       break;
