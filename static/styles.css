@@ -131,10 +131,6 @@ section.step {
   flex-wrap: wrap
 }
 
-.instructions-flex-parent ul {
-  flex-basis: 400px;
-}
-
-.instructions-flex-parent img {
+.instructions-flex-parent div {
   flex-basis: 400px;
 }
