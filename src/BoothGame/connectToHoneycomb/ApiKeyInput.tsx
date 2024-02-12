@@ -108,10 +108,6 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   function formSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); // don't actually submit the form
     var useThis = enteredApiKey;
-    if (useThis === "swarm") {
-      span.addLog("secret api key code activated", { "app.honeycomb.secretCode": useThis });
-      useThis = "umjGlk57N2Hwt4Oe1wzx7H"; // modernity, quiz-customer
-    }
     span.addLog("form submit", { "app.honeycomb.apiKey": useThis });
 
     enterStateOfLoading();
@@ -162,36 +158,46 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   var instructions = <></>;
   switch (props.instructions) {
     case "new environment":
-      instructions = <>
-        <p>Now grab your API key! The Home screen for your new environment eagerly wants to give you your API key.</p>
-        <img className="screenshot" src="/home-api-key-screenshot.png" />
-        <button className="button clear pull-right" onClick={props.switchToExistingEnvironment}>I don't see this screen</button>
-      </>
+      instructions = (
+        <>
+          <p>Now grab your API key! The Home screen for your new environment eagerly wants to give you your API key.</p>
+          <img className="screenshot" src="/home-api-key-screenshot.png" />
+          <button className="button clear pull-right" onClick={props.switchToExistingEnvironment}>
+            I don't see this screen
+          </button>
+        </>
+      );
       break;
     case "existing environment":
-      instructions = <>
-        <p>You can always get an API key from environment settings. Try this:</p>
-        <div className="instructions-flex-parent">
-          <div className="instructions-list">
-            <ul>
-              <li>In the top left, click the Environment selector. (It is right under the Honeycomb logo.)</li>
-              <li>In the popout menu, choose "Manage Environments".</li>
-              <li>In the list, find the environment you want to use. Next to that, click "View API Keys".</li>
-              <li>Copy an existing one, or create a new one.</li>
-              <li>Observaquiz needs these permissions: Send Events, Create Datasets.</li>
-            </ul>
+      instructions = (
+        <>
+          <p>You can always get an API key from environment settings. Try this:</p>
+          <div className="instructions-flex-parent">
+            <div className="instructions-list">
+              <ul>
+                <li>In the top left, click the Environment selector. (It is right under the Honeycomb logo.)</li>
+                <li>In the popout menu, choose "Manage Environments".</li>
+                <li>In the list, find the environment you want to use. Next to that, click "View API Keys".</li>
+                <li>Copy an existing one, or create a new one.</li>
+                <li>Observaquiz needs these permissions: Send Events, Create Datasets.</li>
+              </ul>
+            </div>
+            <div className="instructions-movie">
+              <img src="/create-an-api-key.gif" />
+            </div>
           </div>
-          <div className="instructions-movie">
-            <img src="/create-an-api-key.gif" />
-          </div>
-        </div>
-      </>
+        </>
+      );
       break;
     case "known api key":
-      instructions = <>
-        <p>You've been here before. 😉</p>
-        <button className="button clear pull-right" onClick={props.switchToExistingEnvironment}>Tell me how to find an API key again</button>
-      </>
+      instructions = (
+        <>
+          <p>You've been here before. 😉</p>
+          <button className="button clear pull-right" onClick={props.switchToExistingEnvironment}>
+            Tell me how to find an API key again
+          </button>
+        </>
+      );
   }
 
   return (
@@ -234,14 +240,18 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
         </div>
       </form>
       <p className="fine-print">
-        This app will send about 400 events to your Honeycomb environment. You will see 2 new datasets: {HONEYCOMB_DATASET_NAME} and{" "}
-        {BACKEND_DATASET_NAME}. As a team owner, you can delete these.
+        This app will send about 400 events to your Honeycomb environment. You will see 2 new datasets:{" "}
+        {HONEYCOMB_DATASET_NAME} and {BACKEND_DATASET_NAME}. As a team owner, you can delete these.
       </p>
     </div>
   );
 }
 
-type ApiKeyInputProps = { moveForward: (success: ApiKeyInputSuccess) => void, switchToExistingEnvironment: () => void, instructions: ApiKeyInstructions };
+type ApiKeyInputProps = {
+  moveForward: (success: ApiKeyInputSuccess) => void;
+  switchToExistingEnvironment: () => void;
+  instructions: ApiKeyInstructions;
+};
 export type ApiKeyInstructions = "new environment" | "existing environment" | "known api key";
 export function ApiKeyInput(props: ApiKeyInputProps) {
   return (
