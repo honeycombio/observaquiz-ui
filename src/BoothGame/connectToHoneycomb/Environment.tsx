@@ -32,14 +32,18 @@ function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
       <p>Since you already have a team, it's a good idea to create an environment for Observaquiz.</p>
       <p>An environment is like "production" or "test" -- it describes where the data comes from.
         The data coming from Observaquiz is its own thing, so it belongs in its own environment.</p>
+
       <p>To make a new environment in Honeycomb:</p>
-      <ul>
-        <li>At the top left, just below the Honeycomb logo, click on the <span className="small-caps">ENVIRONMENT</span>{" "}
-          selector.</li>
-        <li>In the menu that pops up, click "Manage Environments."</li>
-        <li>In the top right, click "Create Environment."</li>
-        <li>Maybe name it "quiz"</li>
-      </ul>
+      <div className="instructions-flex-parent">
+        <ul>
+          <li>At the top left, just below the Honeycomb logo, click on the <span className="small-caps">ENVIRONMENT</span>{" "}
+            selector.</li>
+          <li>In the menu that pops up, click "Manage Environments."</li>
+          <li>In the top right, click "Create Environment."</li>
+          <li>Maybe name it "quiz"</li>
+        </ul>
+        <img src="/create-env.gif" />
+      </div>
       {goodButton}{alternateButton}
     </>
   );

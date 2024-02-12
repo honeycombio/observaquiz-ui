@@ -7,7 +7,8 @@
   --color-grey: #747681;
   --color-darkGrey: #3f4144; */
   --color-error: #ec5802;
-  --color-success: #21ec02; /* also good with the primary, tetradic: #CD02EC */
+  --color-success: #21ec02;
+  /* also good with the primary, tetradic: #CD02EC */
   /* --grid-maxWidth: 120rem;
   --grid-gutter: 2rem;
   --font-size: 1.6rem;
@@ -57,16 +58,16 @@ img.small-logo {
   transition: all 0.5s linear;
 }
 
-#booth-game-tracker > .completed-step {
+#booth-game-tracker>.completed-step {
   background-color: green;
 }
 
-#booth-game-tracker > .you-are-here {
+#booth-game-tracker>.you-are-here {
   background-color: yellow;
   height: 1.5rem;
 }
 
-#booth-game-tracker > .incomplete-step {
+#booth-game-tracker>.incomplete-step {
   background-color: pink;
 }
 
@@ -122,4 +123,18 @@ section.step {
 
 .section-header h3 {
   margin: 0px;
+}
+
+.instructions-flex-parent {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap
+}
+
+.instructions-flex-parent ul {
+  flex-basis: 400px;
+}
+
+.instructions-flex-parent img {
+  flex-basis: 400px;
 }
