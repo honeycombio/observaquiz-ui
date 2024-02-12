@@ -38,6 +38,13 @@ const radioButtons: Array<RadioButtonRow> = [
 function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const [state, setState] = useLocalTracedState<DoTheyHaveALoginState>(NothingSelectedYet);
+  const buttonRef = React.useRef<HTMLAnchorElement>(null);
+
+  React.useEffect(() => {
+    // when the button appears, focus it.
+    console.log("ah ha, the button", buttonRef.current);
+    buttonRef.current?.focus(); // this doesn't work, fyi.
+  }, [buttonRef.current, state]);
 
   const handleSelection = (ls: RadioButtonRow) => {
     console.log("value: ", ls);
@@ -91,7 +98,7 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
   var button = <></>;
   if (state.button) {
     button = (
-      <a href={state.button.href} target="_blank" className="button primary" onClick={buttonClick}>
+      <a href={state.button.href} target="_blank" tabIndex={0} className="button primary" onClick={buttonClick} ref={buttonRef}>
         {state.button.text}
       </a>
     );

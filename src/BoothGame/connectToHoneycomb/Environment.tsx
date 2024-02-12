@@ -34,7 +34,7 @@ function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
         The data coming from Observaquiz is its own thing, so it belongs in its own environment.</p>
       <p>To make a new environment in Honeycomb:</p>
       <ul>
-        <li>At the top left, just below the Honeycomb logo, click on the <span className="small-caps">ENVIRONMENT</span>
+        <li>At the top left, just below the Honeycomb logo, click on the <span className="small-caps">ENVIRONMENT</span>{" "}
           selector.</li>
         <li>In the menu that pops up, click "Manage Environments."</li>
         <li>In the top right, click "Create Environment."</li>
