@@ -66,7 +66,7 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
         We call out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those
         took.
       </p>
-      <p>Please look at these results:</p>
+      <p>Please look at these results (hint: scroll down to see the table below the graph)</p>
       <a
         id="see-query"
         className="button primary"
