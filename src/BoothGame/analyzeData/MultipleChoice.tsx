@@ -26,7 +26,9 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const honeycombTeam = React.useContext(HoneycombTeamContext);
 
-  const [state, setState] = useLocalTracedState<MultipleChoiceOuterState<ParticularQueryData>>(LoadingAnswers);
+  const [state, setState] = useLocalTracedState<MultipleChoiceOuterState<ParticularQueryData>>(LoadingAnswers, {
+    componentName: "MultipleChoiceFetcher",
+  });
 
   React.useEffect(() => {
     if (!honeycombTeam.populated) {
@@ -71,6 +73,7 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
           setState(ErrorLoadingAnswers);
         }
         setState(haveQueryData(queryDataReturned.query_data as ParticularQueryData[]), {
+          eventName: "have answers",
           attributes: {
             // here's a way they can cheat, they can go look at the trace. That takes enough in-Honeycomb work that I'm OK with it
             "app.multipleChoice.query_data": JSON.stringify(queryDataReturned.query_data),
@@ -148,7 +151,9 @@ type MultipleChoiceInternalState = typeof NoAnswerPicked | PickedOne | DeliverVe
 
 function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceInternalProps<ParticularQueryData>) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-  const [state, setState] = useLocalTracedState<MultipleChoiceInternalState>(NoAnswerPicked);
+  const [state, setState] = useLocalTracedState<MultipleChoiceInternalState>(NoAnswerPicked, {
+    componentName: "MultipleChoiceDisplay",
+  });
 
   // the nondeterminism of this means that I want to calculate it exactly once
   const answers = React.useMemo(
@@ -164,26 +169,32 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const currentAnswer = answers.find((a) => a.key === event.target.value);
-    setState({
-      name: "they have chosen",
-      answer: currentAnswer,
-      button: "Submit",
-      buttonEnabled: true,
-      radioButtonsEnabled: true,
-    });
+    setState(
+      {
+        name: "they have chosen",
+        answer: currentAnswer,
+        button: "Submit",
+        buttonEnabled: true,
+        radioButtonsEnabled: true,
+      },
+      { eventName: "select " + event.target.value }
+    );
   };
 
   const submitAnswer = (event: React.MouseEvent) => {
     const correct = props.formatAnswer(props.chooseCorrectAnswer(props.queryRows)) === (state as PickedOne).answer.text;
     event.preventDefault();
-    setState({
-      name: "deliver verdict",
-      answer: (state as PickedOne).answer,
-      correct,
-      button: "Proceed",
-      buttonEnabled: true,
-      radioButtonsEnabled: false,
-    });
+    setState(
+      {
+        name: "deliver verdict",
+        answer: (state as PickedOne).answer,
+        correct,
+        button: "Proceed",
+        buttonEnabled: true,
+        radioButtonsEnabled: false,
+      },
+      { eventName: "submit answer" }
+    );
   };
 
   const result =
