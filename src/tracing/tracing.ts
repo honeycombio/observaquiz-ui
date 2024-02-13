@@ -17,6 +17,7 @@ import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl } from "./Tr
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
 import { ConstructThePipeline } from "./BoothGameSpanProcessor";
 import { ConstructLogPipeline } from "./BoothGameLogProcessor";
+import { BUILD_INFO } from "./build_info.tmp";
 
 const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";

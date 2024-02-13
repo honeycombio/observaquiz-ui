@@ -4,7 +4,7 @@
 #  be in ..
 #  $0 >> dist/build_info.js
 
-cat src/build_info.js | \
+cat src/tracing/build_info.example.ts | \
   sed "s/COMMIT_SHA/$(git rev-parse HEAD)/" | \
   sed "s/HOSTNAME/${HOSTNAME}/" \
-  > dist/build_info.js
+  > src/tracing/build_info.tmp.ts
