@@ -3,3 +3,4 @@ node_modules/
 dist/
 *.js
 *.tmp.ts
+Pulumi.*.yaml
