@@ -1,7 +1,6 @@
 import React from "react";
-import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
-import { RadioButtonList } from "./RadioButtonList";
+import create_env from "../../../static/images/create-env.gif";
 
 const CreatedANewEnvironment = {
   text: "OK, I created one",
@@ -14,31 +13,32 @@ const UseAnExistingOne = {
 };
 
 function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
-
   const goodButton = (
-    <button
-      className="button primary"
-      onClick={() => props.handleCompletion(CreatedANewEnvironment.result)}>
+    <button className="button primary" onClick={() => props.handleCompletion(CreatedANewEnvironment.result)}>
       {CreatedANewEnvironment.text}
-    </button>);
+    </button>
+  );
   const alternateButton = (
-    <button
-      className="button clear"
-      onClick={() => props.handleCompletion(UseAnExistingOne.result)}>
+    <button className="button clear" onClick={() => props.handleCompletion(UseAnExistingOne.result)}>
       {UseAnExistingOne.text}
-    </button>);
+    </button>
+  );
   return (
     <>
       <p>Since you already have a team, it's a good idea to create an environment for Observaquiz.</p>
-      <p>An environment is like "production" or "test" -- it describes where the data comes from.
-        The data coming from Observaquiz is its own thing, so it belongs in its own environment.</p>
+      <p>
+        An environment is like "production" or "test" -- it describes where the data comes from. The data coming from
+        Observaquiz is its own thing, so it belongs in its own environment.
+      </p>
 
       <p>To make a new environment in Honeycomb:</p>
       <div className="instructions-flex-parent">
         <div className="instructions-list">
           <ul>
-            <li>At the top left, just below the Honeycomb logo, click on the <span className="small-caps">ENVIRONMENT</span>{" "}
-              selector.</li>
+            <li>
+              At the top left, just below the Honeycomb logo, click on the{" "}
+              <span className="small-caps">ENVIRONMENT</span> selector.
+            </li>
             <li>In the menu that pops up, click "Manage Environments."</li>
             <li>In the top right, click "Create Environment."</li>
             <li>Maybe name it "quiz"</li>
@@ -47,10 +47,11 @@ function GetAnEnvironmentInternal(props: GetAnEnvironmentProps) {
           </ul>
         </div>
         <div className="instructions-movie">
-          <img src="/create-env.gif" />
+          <img src={create_env} />
         </div>
       </div>
-      {goodButton}{alternateButton}
+      {goodButton}
+      {alternateButton}
     </>
   );
 }

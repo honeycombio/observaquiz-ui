@@ -4,6 +4,8 @@ import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/Co
 import { callHoneycombAuthEndpoint } from "./honeycombAuth";
 import { ActiveLifecycleSpanType } from "../../tracing/activeLifecycleSpan";
 import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME } from "../../tracing/TracingDestination";
+import screenshot from "../../../static/images/home-api-key-screenshot.png";
+import create_api_key from "../../../static/images/create-an-api-key.gif";
 
 const LOCAL_STORAGE_KEY_API_KEY = "apiKey";
 const LOCAL_STORAGE_KEY_WHETHER_TO_SAVE = "apisaveApiKeyToLocalStorageKey";
@@ -161,7 +163,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
       instructions = (
         <>
           <p>Now grab your API key! The Home screen for your new environment eagerly wants to give you your API key.</p>
-          <img className="screenshot" src="/home-api-key-screenshot.png" />
+          <img className="screenshot" src={screenshot} />
           <button className="button clear pull-right" onClick={props.switchToExistingEnvironment}>
             I don't see this screen
           </button>
@@ -183,7 +185,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
               </ul>
             </div>
             <div className="instructions-movie">
-              <img src="/create-an-api-key.gif" />
+              <img src={create_api_key} />
             </div>
           </div>
         </>

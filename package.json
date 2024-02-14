@@ -4,9 +4,9 @@
   "description": "Take a quiz about observability, while using observability",
   "scripts": {
     "build-info": "./populate_build_info.sh",
-    "parcel-build": "parcel build src/App.tsx",
+    "parcel-build": "parcel build static/index.html",
     "static-build": "cp -r static/* dist",
-    "build": "npm run build-info && npm run parcel-build && npm run static-build",
+    "build": "npm run build-info && npm run parcel-build",
     "clean": "rm -f src/**/*.js && rm -rf dist/* && rm -rf .parcel-cache",
     "serve-js": "parcel src/App.tsx",
     "serve-static": "copy-and-watch static/**/* static/* dist --watch",
