@@ -3,6 +3,7 @@ import "./fakeTracing";
 import express, { Response } from "express";
 import proxy from "express-http-proxy";
 import { trace } from "@opentelemetry/api";
+import localQuestions from "./local-questions.json";
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(express.static("../../dist"));
 app.get("/api/questions", (req, res) => {
   const span = trace.getActiveSpan();
   addTracechildHeader(res);
-  res.sendFile("dist/local-questions.json", { root: __dirname + "/../.." });
+  res.send(localQuestions);
 });
 
 // Now for the fake backend
