@@ -50,8 +50,8 @@ type TeamDescription = "work" | "play" | "both";
 
 type RadioButtonRow = { key: TeamDescription; text: string; moveToState: GetThemATeamState };
 const radioButtons: Array<RadioButtonRow> = [
-  { key: "work", text: "I use Honeycomb at work", moveToState: SelectedWork },
   { key: "play", text: "I have a Honeycomb team that I play around with", moveToState: SelectedPlay },
+  { key: "work", text: "I use Honeycomb at work", moveToState: SelectedWork },
   { key: "both", text: "Both", moveToState: SelectedBoth },
 ];
 
