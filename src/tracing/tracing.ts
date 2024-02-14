@@ -22,11 +22,10 @@ import { BUILD_INFO } from "./build_info.tmp";
 const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";
 
-type WindowWithBuildInfo = typeof window & { BUILD_INFO?: Record<string, string> };
-
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
 
-const buildInfo = (window as WindowWithBuildInfo)?.BUILD_INFO || {};
+const buildInfo = BUILD_INFO || {};
+console.log("build stamp: ", buildInfo["build.uuid"]);
 
 const resource = new Resource({
   [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
