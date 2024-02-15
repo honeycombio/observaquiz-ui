@@ -13,18 +13,14 @@ export HONEYCOMB_API_KEY=<your-key>
 
 This will run a collector on port 4318 that will forward everything to honeycomb and a webserver that serves the app plus a fake backend, and forwards /v1/traces and /v1/logs to the collector.
 
-this will make builds happen whenever you make ts changes:
+this will make builds happen whenever you make changes:
 
-`npm run serve-js`
-
-and this will make copies happen whenever you make html or css changes:
-
-`npm run serve-static`
+`npm run serve`
 
 To continue work:
 
 - make changes
-- npm run build (if you don't have 'serve-js'/'serve-static' running)
+- npm run build (if you don't have 'npm run serve' running)
 - in the browser, cmd-shift-R for "no really, refresh all the things"
 
 To stop:

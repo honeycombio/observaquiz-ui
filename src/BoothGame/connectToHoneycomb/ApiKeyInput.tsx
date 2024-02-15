@@ -180,8 +180,8 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
                 <li>In the top left, click the Environment selector. (It is right under the Honeycomb logo.)</li>
                 <li>In the popout menu, choose "Manage Environments".</li>
                 <li>In the list, find the environment you want to use. Next to that, click "View API Keys".</li>
-                <li>Copy an existing one, or create a new one.</li>
-                <li>Observaquiz needs these permissions: Send Events, Create Datasets.</li>
+                <li>Click "Create Ingest API Key"</li>
+                <li>Name it observaquiz, if you like. Keep "Can create services/datasets" checked.</li>
               </ul>
             </div>
             <div className="instructions-movie">
