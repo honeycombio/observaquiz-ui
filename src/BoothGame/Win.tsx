@@ -26,14 +26,10 @@ function WinInternal(props: WinProps) {
     <div>
       <h1>You win!</h1>
       <p>
-        Congratulations on completing the Observaquiz! Come by the Honeycomb booth at DevOpsDays Wherever to collect
-        your prize.
+        Congratulations on completing the Observaquiz!
       </p>
       <p className="score-report">Your score is: {props.score}</p>
-      <AskThemAboutPrizes report={postSuggestion} />
-      <p className="fine-print">
-        Also, if you think this app is ugly--ME TOO! Please help us. Find us in #devrel and pair with us.
-      </p>
+      <p>Come by the Honeycomb booth to see the leaderboard and collect your prize!</p>
     </div>
   );
 }
