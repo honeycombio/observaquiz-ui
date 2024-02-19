@@ -8,6 +8,10 @@
   --color-darkGrey: #3f4144; */
   --color-error: #ec5802;
   --color-success: #21ec02;
+  --color-hny-lime: #64ba00;
+  --color-hny-pacific: #0298ec;
+  --color-hny-honey: #ffb000;
+  --color-hny-tango: #f96e10;
   /* also good with the primary, tetradic: #CD02EC */
   /* --grid-maxWidth: 120rem;
   --grid-gutter: 2rem;
@@ -59,16 +63,16 @@ img.small-logo {
 }
 
 #booth-game-tracker>.completed-step {
-  background-color: green;
+  background-color: var(--color-hny-lime)
 }
 
 #booth-game-tracker>.you-are-here {
-  background-color: yellow;
+  background-color: var(--color-hny-pacific);
   height: 1.5rem;
 }
 
 #booth-game-tracker>.incomplete-step {
-  background-color: pink;
+  background-color: var(--color-hny-honey);
 }
 
 #tracing-tracker {
