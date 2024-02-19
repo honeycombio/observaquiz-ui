@@ -2,7 +2,14 @@
 # dependency: http-server
 
 # Run the local collector
-docker-compose -f ./local-collector/docker-compose.yml up -d
+
+if [[ -d "../observaquiz-api/" ]]; then
+  echo "Starting collector as defined in observaquiz-api"
+  docker-compose -f ../observaquiz-api/local-collector/docker-compose.yml up -d
+else
+  echo "starting sad little frontend collector"
+  docker-compose -f ./local-collector/docker-compose.yml up -d
+fi
 
 cd test/fake-backend
 

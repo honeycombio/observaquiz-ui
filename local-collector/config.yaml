@@ -32,12 +32,12 @@ exporters:
     endpoint: "api.honeycomb.io:443"
     headers:
       "x-honeycomb-team": "$HONEYCOMB_API_KEY"
-      "x-honeycomb-dataset": "booth-game-logs"
+      "x-honeycomb-dataset": "observaquiz-logs"
   otlp/metrics:
     endpoint: "api.honeycomb.io:443"
     headers:
       "x-honeycomb-team": "$HONEYCOMB_API_KEY"
-      "x-honeycomb-dataset": "booth-game-metrics"
+      "x-honeycomb-dataset": "observaquiz-metrics"
 
 service:
   pipelines:
