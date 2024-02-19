@@ -12,6 +12,7 @@
   --color-hny-pacific: #0298ec;
   --color-hny-honey: #ffb000;
   --color-hny-tango: #f96e10;
+  --color-hny-indigo: #51368d;
   /* also good with the primary, tetradic: #CD02EC */
   /* --grid-maxWidth: 120rem;
   --grid-gutter: 2rem;
@@ -47,10 +48,11 @@ img.small-logo {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  background-color: var(--color-grey);
-  border-radius: 2px;
+  background-color: var(--color-hny-indigo);
+  border-top-right-radius: 2px;
+  border-top-left-radius: 2px;
   align-items: center;
-  margin: 1px 0px 5px 0px;
+  margin: 1px 0px 0px 0px;
   height: 2rem;
 }
 
@@ -68,7 +70,7 @@ img.small-logo {
 
 #booth-game-tracker>.you-are-here {
   background-color: var(--color-hny-pacific);
-  height: 1.5rem;
+  height: 1.3rem;
 }
 
 #booth-game-tracker>.incomplete-step {
@@ -99,9 +101,10 @@ img.small-logo {
 /* TODO: get this transition to work */
 #tracing-tracker-placeholder {
   transition: all 0.5s linear;
-  background-color: var(--color-grey);
-  border-radius: 2px;
-  margin: 1px 0px 16px 0px;
+  background-color: var(--color-hny-indigo);
+  border-bottom-right-radius: 2px;
+  border-bottom-left-radius: 2px;
+  margin: 0px 0px 16px 0px;
 }
 
 .fine-print {
