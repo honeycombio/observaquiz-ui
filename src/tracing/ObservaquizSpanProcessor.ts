@@ -4,7 +4,7 @@ import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor } from "@opentelemet
 import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
-import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
+import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, PROCESSING_REPORT_DELIMITER, attributesForCopies, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 import { SessionIdProcessor } from "./SessionIdProcessor";
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
 
@@ -72,9 +72,6 @@ type SelfDescribingSpanProcessor = SpanProcessor & {
    */
   describeSelf(): string;
 };
-
-const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "observaquiz.processing_report";
-const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
 
 function reportProcessing(span: TraceBaseSpan, who: string) {
   const existingProcessingReport = span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
@@ -264,9 +261,10 @@ class SpanCopier implements SelfDescribingSpanProcessor {
   private copySpan(span: TraceBaseSpan, itsContext: Context) {
     this.copyCount++;
     const itsLibraryName = span.instrumentationLibrary.name;
-    const attributes: Attributes = {};
-    attributes[ATTRIBUTE_NAME_FOR_COPIES] = true;
-    attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "Created by the SpanCopier";
+    const attributes: Attributes = {
+      ...attributesForCopies(),
+      [ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]: "Created by the SpanCopier"
+    }
     const copy: Span = trace.getTracer(itsLibraryName).startSpan(
       span.name,
       {
@@ -302,8 +300,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
       const attributes = { ...span.attributes };
       // now, the things that are particular to the copies -- do not pull these from the originals
       removeAttributesForCopiedOriginals(attributes)
-      delete attributes[ATTRIBUTE_NAME_FOR_COPIES];
-      delete attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
+      delete attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]; // we definitely need this
       openSpanCopy.setAttributes(attributes); // set these at the end, so they're all here
       span.events.forEach((event) => openSpanCopy.addEvent(event.name, event.attributes, event.time));
       openSpanCopy.end(span.endTime);

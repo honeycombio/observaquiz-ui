@@ -6,7 +6,7 @@ import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { SessionIdLogProcessor } from "./SessionIdProcessor";
 import { BaggageLogProcessor } from "./BaggageSpanProcessor";
-import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, ATTRIBUTE_NAME_FOR_COPIES, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
+import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, PROCESSING_REPORT_DELIMITER, attributesForCopies, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 
 
 export function ConstructLogPipeline(params: {
@@ -78,8 +78,6 @@ type SelfDescribingLogRecordProcessor = LogRecordProcessor & {
   describeSelf(): string;
 };
 
-const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "observaquiz.processing_report";
-const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
 
 function reportProcessing(logRecord: LogRecord, who: string) {
   const existingProcessingReport = logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
@@ -249,8 +247,7 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
   private copyLogRecord(logRecord: LogRecord, itsContext: Context) {
     this.copyCount++;
     const itsLibraryName = logRecord.instrumentationScope.name;
-    const attributes: logsAPI.LogAttributes = { ...logRecord.attributes };
-    attributes[ATTRIBUTE_NAME_FOR_COPIES] = true;
+    const attributes: logsAPI.LogAttributes = { ...logRecord.attributes, ...attributesForCopies() };
     attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "Created by the LogRecordCopier";
     logsAPI.logs.getLogger(itsLibraryName).emit({
       ...logRecord,
