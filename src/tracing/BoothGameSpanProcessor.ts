@@ -7,8 +7,11 @@ import { trace, Span } from "@opentelemetry/api";
 
 export const ATTRIBUTE_NAME_FOR_APIKEY = "honeycomb.customer_api_key"; // this will NOT trigger a send on the backend. We are copying everything for a send directly from the frontend.
 
-export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.late_span";
-export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
+export const ATTRIBUTE_NAME_FOR_COPIES = "observaquiz.late_span";
+export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "observaquiz.has_a_copy";
+// export const ATTRIBUTE_NAME_FOR_DESTINATION = "observaquiz.destination";
+// export const ATTRIBUTE_VALUE_FOR_DEVREL_TEAM = "devrel";
+// export const ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM = "participant";
 
 export function ConstructThePipeline(params: {
   normalProcessor: SpanProcessor;
@@ -20,8 +23,8 @@ export function ConstructThePipeline(params: {
     params.normalProcessorDescription
   );
 
-  const boothGameProcessor = new GrowingCompositeSpanProcessor();
-  boothGameProcessor.addProcessor(
+  const observaquizProcessor = new GrowingCompositeSpanProcessor();
+  observaquizProcessor.addProcessor(
     new FilteringSpanProcessor({
       filter: (span) => !span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
       filterDescription: "spans that aren't copies",
@@ -30,7 +33,7 @@ export function ConstructThePipeline(params: {
     "NORMAL"
   );
   const switcher = new SwitcherSpanProcessor(new HoldingSpanProcessor());
-  boothGameProcessor.addProcessor(
+  observaquizProcessor.addProcessor(
     // NOTE: filtering will work in production, but not locally because my collector isn't sending to customers here
     //  new FilteringSpanProcessor({
     //    downstream:
@@ -40,7 +43,7 @@ export function ConstructThePipeline(params: {
     //  }),
     "COPY"
   );
-  boothGameProcessor.addProcessor(
+  observaquizProcessor.addProcessor(
     new FilteringSpanProcessor({
       filter: (span) => !!span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
       downstream: switcher,
@@ -49,7 +52,7 @@ export function ConstructThePipeline(params: {
     "HOLD"
   );
   const learnerOfTeam = new LearnerOfTeam(
-    boothGameProcessor,
+    observaquizProcessor,
     switcher,
     (team) =>
       new WrapSpanProcessorWithDescription(
@@ -57,7 +60,7 @@ export function ConstructThePipeline(params: {
         "I have been constructed to send to team " + team.auth!.team.slug
       )
   );
-  return { learnerOfTeam, boothGameProcessor };
+  return { learnerOfTeam, observaquizProcessor };
 }
 
 type SelfDescribingSpanProcessor = SpanProcessor & {
@@ -71,7 +74,7 @@ type SelfDescribingSpanProcessor = SpanProcessor & {
   describeSelf(): string;
 };
 
-const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "boothgame.processing_report";
+const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "observaquiz.processing_report";
 const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
 
 function reportProcessing(span: TraceBaseSpan, who: string) {
@@ -87,7 +90,7 @@ function reportProcessing(span: TraceBaseSpan, who: string) {
 }
 
 class WrapSpanProcessorWithDescription implements SelfDescribingSpanProcessor {
-  constructor(private readonly processor: SpanProcessor, private readonly description: string) {}
+  constructor(private readonly processor: SpanProcessor, private readonly description: string) { }
   describeSelf(): string {
     return this.description;
   }
@@ -147,10 +150,10 @@ class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
     this.seriesofProcessors.forEach((processor) => processor.onEnd(span));
   }
   shutdown(): Promise<void> {
-    return Promise.all(this.seriesofProcessors.map((processor) => processor.shutdown())).then(() => {});
+    return Promise.all(this.seriesofProcessors.map((processor) => processor.shutdown())).then(() => { });
   }
   forceFlush(): Promise<void> {
-    return Promise.all(this.seriesofProcessors.map((processor) => processor.forceFlush())).then(() => {});
+    return Promise.all(this.seriesofProcessors.map((processor) => processor.forceFlush())).then(() => { });
   }
 }
 
@@ -159,7 +162,7 @@ class LearnerOfTeam {
     private insertProcessorHere: GrowingCompositeSpanProcessor,
     private switcher: SwitcherSpanProcessor,
     private whatToSwitchTo: (team: TracingTeam) => SelfDescribingSpanProcessor
-  ) {}
+  ) { }
 
   public learnCustomerTeam(team: TracingTeam) {
     const attributes: Attributes = {
@@ -183,7 +186,7 @@ function printList(list: Array<string>): string {
 }
 
 class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
-  constructor(private readonly attributes: Attributes) {}
+  constructor(private readonly attributes: Attributes) { }
   describeSelf(): string {
     return (
       "I add fields to the span: \n" +
@@ -195,9 +198,9 @@ class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
     span.setAttributes(this.attributes);
   }
 
-  onEnd(_span: ReadableSpan): void {}
-  async shutdown(): Promise<void> {}
-  async forceFlush(): Promise<void> {}
+  onEnd(_span: ReadableSpan): void { }
+  async shutdown(): Promise<void> { }
+  async forceFlush(): Promise<void> { }
 }
 
 class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
@@ -207,7 +210,7 @@ class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
       filterDescription: string;
       downstream: SelfDescribingSpanProcessor;
     }
-  ) {}
+  ) { }
 
   describeSelf(): string {
     return this.describeSelfInternal(this.params.downstream.describeSelf());
@@ -318,7 +321,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
 }
 
 class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
-  constructor() {}
+  constructor() { }
 
   private startedSpans: Array<[TraceBaseSpan, Context]> = [];
   private endedSpans: Array<ReadableSpan> = [];
@@ -368,12 +371,12 @@ class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
       this.firstDownstream === this.currentDownstream
         ? ""
         : " ┣ " +
-          "Previously sent to: " +
-          this.firstDownstream
-            .describeSelf()
-            .split("\n")
-            .join("\n" + " ┃ ") +
-          "\n";
+        "Previously sent to: " +
+        this.firstDownstream
+          .describeSelf()
+          .split("\n")
+          .join("\n" + " ┃ ") +
+        "\n";
     return this.describeSelfInternal(describePast, this.currentDownstream.describeSelf());
   }
 

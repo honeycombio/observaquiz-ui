@@ -1,4 +1,4 @@
-// Copied from BoothGameSpanProcessor.ts, altered to be logs instead.
+// Copied from observaquizSpanProcessor.ts, altered to be logs instead.
 
 import type { LogRecord, LogRecordProcessor } from "@opentelemetry/sdk-logs";
 import * as logsAPI from "@opentelemetry/api-logs";
@@ -7,10 +7,10 @@ import { Context, Attributes } from "@opentelemetry/api";
 import { SessionIdLogProcessor } from "./SessionIdProcessor";
 import { BaggageLogProcessor } from "./BaggageSpanProcessor";
 
-export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can we change this, I want honeycomb.apikey or boothGame.customer_apikey
+export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can we change this, I want honeycomb.apikey or observaquiz.customer_apikey
 
-export const ATTRIBUTE_NAME_FOR_COPIES = "boothgame.is_a_copy";
-export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "boothgame.has_a_copy";
+export const ATTRIBUTE_NAME_FOR_COPIES = "observaquiz.is_a_copy";
+export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "observaquiz.has_a_copy";
 
 export function ConstructLogPipeline(params: {
   normalProcessor: LogRecordProcessor;
@@ -22,8 +22,8 @@ export function ConstructLogPipeline(params: {
     params.normalProcessorDescription
   );
 
-  const boothGameProcessor = new GrowingCompositeLogRecordProcessor();
-  boothGameProcessor.addProcessor(
+  const observaquizProcessor = new GrowingCompositeLogRecordProcessor();
+  observaquizProcessor.addProcessor(
     new FilteringLogRecordProcessor({
       filter: (LogRecord) => !LogRecord.attributes[ATTRIBUTE_NAME_FOR_COPIES],
       filterDescription: "LogRecords that aren't copies",
@@ -32,7 +32,7 @@ export function ConstructLogPipeline(params: {
     "NORMAL"
   );
   const switcher = new SwitcherLogRecordProcessor(new HoldingLogRecordProcessor());
-  boothGameProcessor.addProcessor(
+  observaquizProcessor.addProcessor(
     // NOTE: filtering will work in production, but not locally because my collector isn't sending to customers here
     //  new FilteringLogRecordProcessor({
     //    downstream:
@@ -42,7 +42,7 @@ export function ConstructLogPipeline(params: {
     //  }),
     "COPY"
   );
-  boothGameProcessor.addProcessor(
+  observaquizProcessor.addProcessor(
     new FilteringLogRecordProcessor({
       filter: (LogRecord) => !!LogRecord.attributes[ATTRIBUTE_NAME_FOR_COPIES],
       downstream: switcher,
@@ -51,7 +51,7 @@ export function ConstructLogPipeline(params: {
     "HOLD"
   );
   const learnerOfTeam = new LearnerOfTeam(
-    boothGameProcessor,
+    observaquizProcessor,
     switcher,
     (team) =>
       new WrapLogRecordProcessorWithDescription(
@@ -59,15 +59,15 @@ export function ConstructLogPipeline(params: {
         "I have been constructed to send to team " + team.auth!.team.slug
       )
   );
-  boothGameProcessor.addProcessor(
+  observaquizProcessor.addProcessor(
     new WrapLogRecordProcessorWithDescription(new SessionIdLogProcessor(), "I add the session ID attribute"),
     "SESSION ID"
   );
-  boothGameProcessor.addProcessor(
+  observaquizProcessor.addProcessor(
     new WrapLogRecordProcessorWithDescription(new BaggageLogProcessor(), "I add attributes for all the baggage"),
     "BAGGAGE"
   );
-  return { learnerOfTeam, boothGameProcessor };
+  return { learnerOfTeam, observaquizProcessor };
 }
 
 type SelfDescribingLogRecordProcessor = LogRecordProcessor & {
@@ -81,7 +81,7 @@ type SelfDescribingLogRecordProcessor = LogRecordProcessor & {
   describeSelf(): string;
 };
 
-const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "boothgame.processing_report";
+const ATTRIBUTE_NAME_FOR_PROCESSING_REPORT = "observaquiz.processing_report";
 const PROCESSING_REPORT_DELIMITER = "\n *-* \n";
 
 function reportProcessing(logRecord: LogRecord, who: string) {

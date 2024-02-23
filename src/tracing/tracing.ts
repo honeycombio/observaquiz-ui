@@ -66,15 +66,15 @@ function initializeTracing() {
     });
   };
 
-  const { learnerOfTeam, boothGameProcessor } = ConstructThePipeline({
+  const { learnerOfTeam, observaquizProcessor } = ConstructThePipeline({
     normalProcessor,
     normalProcessorDescription: "Batch OTLP over HTTP to /v1/traces",
     processorForTeam,
   });
 
-  console.log(boothGameProcessor.describeSelf());
+  console.log(observaquizProcessor.describeSelf());
 
-  provider.addSpanProcessor(boothGameProcessor);
+  provider.addSpanProcessor(observaquizProcessor);
 
   provider.register({
     contextManager: new ZoneContextManager(),
@@ -86,7 +86,7 @@ function initializeTracing() {
 
   console.log("Tracing initialized, version l");
 
-  return { learnerOfTeam, boothGameProcessor };
+  return { learnerOfTeam, observaquizProcessor };
 }
 
 function initializeLogging() {
@@ -113,18 +113,18 @@ function initializeLogging() {
     return new BatchLogRecordProcessor(exporter, { scheduledDelayMillis: 500 });
   };
 
-  const { learnerOfTeam, boothGameProcessor } = ConstructLogPipeline({
+  const { learnerOfTeam, observaquizProcessor } = ConstructLogPipeline({
     normalProcessor,
     normalProcessorDescription: "Batch OTLP over HTTP to /v1/logs",
     processorForTeam,
   });
 
-  console.log(boothGameProcessor.describeSelf());
+  console.log(observaquizProcessor.describeSelf());
 
-  loggerProvider.addLogRecordProcessor(boothGameProcessor);
+  loggerProvider.addLogRecordProcessor(observaquizProcessor);
   logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
 
-  return { learnerOfTeam, boothGameProcessor };
+  return { learnerOfTeam, observaquizProcessor };
 }
 
 function instrumentGlobalErrors() {
@@ -160,7 +160,7 @@ function instrumentGlobalErrors() {
   });
 }
 
-const { learnerOfTeam, boothGameProcessor } = initializeTracing();
+const { learnerOfTeam, observaquizProcessor } = initializeTracing();
 const logInit = initializeLogging();
 instrumentGlobalErrors();
 
@@ -168,6 +168,6 @@ export function learnTeam(team: TracingTeam) {
   learnerOfTeam.learnCustomerTeam(team);
   logInit.learnerOfTeam.learnCustomerTeam(team);
   // you want to see it, it has reconfigured, see.
-  console.log(boothGameProcessor.describeSelf());
-  console.log(logInit.boothGameProcessor.describeSelf());
+  console.log(observaquizProcessor.describeSelf());
+  console.log(logInit.observaquizProcessor.describeSelf());
 }
