@@ -12,3 +12,11 @@ export function setAttributesForCopiedOriginals(logOrSpan: LogRecord | Span) {
     logOrSpan.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true);
     logOrSpan.setAttribute(ATTRIBUTE_NAME_FOR_DESTINATION, ATTRIBUTE_VALUE_FOR_DEVREL_TEAM);
 }
+
+// call this for spans when, at the end, we gather up their attributes and copy them to the copy, again.
+export function removeAttributesForCopiedOriginals(attributes: Attributes) {
+    delete attributes[ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS];
+    if (attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_DEVREL_TEAM) {
+        delete attributes[ATTRIBUTE_NAME_FOR_DESTINATION];
+    }
+}

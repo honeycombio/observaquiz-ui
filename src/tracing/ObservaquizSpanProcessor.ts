@@ -301,6 +301,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     if (openSpanCopy) {
       const attributes = { ...span.attributes };
       // now, the things that are particular to the copies -- do not pull these from the originals
+      removeAttributesForCopiedOriginals(attributes)
       delete attributes[ATTRIBUTE_NAME_FOR_COPIES];
       delete attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
       openSpanCopy.setAttributes(attributes); // set these at the end, so they're all here
