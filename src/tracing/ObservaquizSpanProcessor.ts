@@ -4,7 +4,7 @@ import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor } from "@opentelemet
 import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
-import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, ATTRIBUTE_NAME_FOR_COPIES } from "./ObservaquizProcessorCommon";
+import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 import { SessionIdProcessor } from "./SessionIdProcessor";
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
 
@@ -278,7 +278,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
       itsContext
     );
     reportProcessing(span, "Copy made X");
-    span.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
+    setAttributesForCopiedOriginals(span);
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
     copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
@@ -301,7 +301,6 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     if (openSpanCopy) {
       const attributes = { ...span.attributes };
       // now, the things that are particular to the copies -- do not pull these from the originals
-      delete attributes[ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS];
       delete attributes[ATTRIBUTE_NAME_FOR_COPIES];
       delete attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
       openSpanCopy.setAttributes(attributes); // set these at the end, so they're all here

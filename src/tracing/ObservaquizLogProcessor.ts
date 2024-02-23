@@ -6,7 +6,7 @@ import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { SessionIdLogProcessor } from "./SessionIdProcessor";
 import { BaggageLogProcessor } from "./BaggageSpanProcessor";
-import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, ATTRIBUTE_NAME_FOR_COPIES } from "./ObservaquizProcessorCommon";
+import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, ATTRIBUTE_NAME_FOR_COPIES, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 
 
 export function ConstructLogPipeline(params: {
@@ -257,7 +257,7 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
       context: itsContext,
       attributes,
     });
-    logRecord.setAttribute(ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, true); // note this, it may be useful
+    setAttributesForCopiedOriginals(logRecord)
   }
 
   onEmit(logRecord: LogRecord, parentContext: Context): void {
