@@ -15,8 +15,8 @@ import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl } from "./TracingDestination";
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
-import { ConstructThePipeline } from "./BoothGameSpanProcessor";
-import { ConstructLogPipeline } from "./BoothGameLogProcessor";
+import { ConstructThePipeline } from "./ObservaquizSpanProcessor";
+import { ConstructLogPipeline } from "./ObservaquizLogProcessor";
 import { BUILD_INFO } from "./build_info.tmp";
 
 const serviceName = HONEYCOMB_DATASET_NAME;

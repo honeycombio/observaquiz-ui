@@ -1,5 +1,5 @@
 // let's start this as a straight script.
-import * as BGP from "../../src/tracing/BoothGameSpanProcessor";
+import * as BGP from "../../src/tracing/ObservaquizSpanProcessor";
 import { TestSpanProcessor } from "./TestSpanProcessor";
 import { Resource } from "@opentelemetry/resources";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";

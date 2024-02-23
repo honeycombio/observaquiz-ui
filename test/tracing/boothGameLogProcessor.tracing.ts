@@ -2,7 +2,7 @@ import { Resource } from "@opentelemetry/resources";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { HONEYCOMB_DATASET_NAME } from "../../src/tracing/TracingDestination";
 import { TestLogProcessor } from "./TestLogProcessor";
-import { ConstructLogPipeline } from "../../src/tracing/BoothGameLogProcessor";
+import { ConstructLogPipeline } from "../../src/tracing/ObservaquizLogProcessor";
 import { LoggerProvider } from "@opentelemetry/sdk-logs";
 import * as logsAPI from "@opentelemetry/api-logs";
 

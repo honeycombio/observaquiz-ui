@@ -3,7 +3,7 @@ import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { HONEYCOMB_DATASET_NAME } from "../../src/tracing/TracingDestination";
 import { TestSpanProcessor } from "./TestSpanProcessor";
-import * as BGP from "../../src/tracing/BoothGameSpanProcessor";
+import * as BGP from "../../src/tracing/ObservaquizSpanProcessor";
 
 /** instantiate the classes of interest */
 const normalProcessor = new TestSpanProcessor();

@@ -2,7 +2,7 @@ import {
   ATTRIBUTE_NAME_FOR_APIKEY,
   ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS,
   ATTRIBUTE_NAME_FOR_COPIES,
-} from "../../src/tracing/BoothGameLogProcessor";
+} from "../../src/tracing/ObservaquizLogProcessor";
 import * as Test from "./boothGameLogProcessor.tracing";
 import * as logsAPI from "@opentelemetry/api-logs";
 
