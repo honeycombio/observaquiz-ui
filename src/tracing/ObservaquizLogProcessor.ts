@@ -6,11 +6,8 @@ import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { SessionIdLogProcessor } from "./SessionIdProcessor";
 import { BaggageLogProcessor } from "./BaggageSpanProcessor";
+import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, ATTRIBUTE_NAME_FOR_COPIES } from "./ObservaquizProcessorCommon";
 
-export const ATTRIBUTE_NAME_FOR_APIKEY = "app.honeycomb_api_key"; // TODO: can we change this, I want honeycomb.apikey or observaquiz.customer_apikey
-
-export const ATTRIBUTE_NAME_FOR_COPIES = "observaquiz.is_a_copy";
-export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "observaquiz.has_a_copy";
 
 export function ConstructLogPipeline(params: {
   normalProcessor: LogRecordProcessor;
@@ -97,7 +94,7 @@ function reportProcessing(logRecord: LogRecord, who: string) {
 }
 
 class WrapLogRecordProcessorWithDescription implements SelfDescribingLogRecordProcessor {
-  constructor(private readonly processor: LogRecordProcessor, private readonly description: string) {}
+  constructor(private readonly processor: LogRecordProcessor, private readonly description: string) { }
   describeSelf(): string {
     return this.description;
   }
@@ -151,10 +148,10 @@ class GrowingCompositeLogRecordProcessor implements SelfDescribingLogRecordProce
     );
   }
   shutdown(): Promise<void> {
-    return Promise.all(this.seriesofProcessors.map((processor) => processor.shutdown())).then(() => {});
+    return Promise.all(this.seriesofProcessors.map((processor) => processor.shutdown())).then(() => { });
   }
   forceFlush(): Promise<void> {
-    return Promise.all(this.seriesofProcessors.map((processor) => processor.forceFlush())).then(() => {});
+    return Promise.all(this.seriesofProcessors.map((processor) => processor.forceFlush())).then(() => { });
   }
 }
 
@@ -163,7 +160,7 @@ class LearnerOfTeam {
     private insertProcessorHere: GrowingCompositeLogRecordProcessor,
     private switcher: SwitcherLogRecordProcessor,
     private whatToSwitchTo: (team: TracingTeam) => SelfDescribingLogRecordProcessor
-  ) {}
+  ) { }
 
   public learnCustomerTeam(team: TracingTeam) {
     const attributes: Attributes = {
@@ -187,7 +184,7 @@ function printList(list: Array<string>): string {
 }
 
 class ProcessorThatInsertsAttributes implements SelfDescribingLogRecordProcessor {
-  constructor(private readonly attributes: Attributes) {}
+  constructor(private readonly attributes: Attributes) { }
   describeSelf(): string {
     return (
       "I add fields to the LogRecord: \n" +
@@ -198,8 +195,8 @@ class ProcessorThatInsertsAttributes implements SelfDescribingLogRecordProcessor
     reportProcessing(logRecord, this.describeSelf());
     logRecord.setAttributes(this.attributes);
   }
-  async shutdown(): Promise<void> {}
-  async forceFlush(): Promise<void> {}
+  async shutdown(): Promise<void> { }
+  async forceFlush(): Promise<void> { }
 }
 
 class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
@@ -209,7 +206,7 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
       filterDescription: string;
       downstream: SelfDescribingLogRecordProcessor;
     }
-  ) {}
+  ) { }
 
   describeSelf(): string {
     return this.describeSelfInternal(this.params.downstream.describeSelf());
@@ -281,7 +278,7 @@ class LogRecordCopier implements SelfDescribingLogRecordProcessor {
 }
 
 class HoldingLogRecordProcessor implements SelfDescribingLogRecordProcessor {
-  constructor() {}
+  constructor() { }
 
   private emittedLogRecords: Array<[LogRecord, Context]> = [];
 
@@ -322,12 +319,12 @@ class SwitcherLogRecordProcessor implements SelfDescribingLogRecordProcessor {
       this.firstDownstream === this.currentDownstream
         ? ""
         : " ┣ " +
-          "Previously sent to: " +
-          this.firstDownstream
-            .describeSelf()
-            .split("\n")
-            .join("\n" + " ┃ ") +
-          "\n";
+        "Previously sent to: " +
+        this.firstDownstream
+          .describeSelf()
+          .split("\n")
+          .join("\n" + " ┃ ") +
+        "\n";
     return this.describeSelfInternal(describePast, this.currentDownstream.describeSelf());
   }
 
@@ -359,7 +356,7 @@ function recordEmission(
   logProcessors: LogRecordProcessor[],
   wrapTheChildReport: (childReport: string[]) => string
 ) {
-  var processingRecordBefore = logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
+  var processingRecordBefore = logRecord.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] || "";
   if (!!processingRecordBefore) {
     processingRecordBefore += PROCESSING_REPORT_DELIMITER;
   }

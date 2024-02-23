@@ -4,14 +4,10 @@ import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor } from "@opentelemet
 import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
+import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS, ATTRIBUTE_NAME_FOR_COPIES } from "./ObservaquizProcessorCommon";
+import { SessionIdProcessor } from "./SessionIdProcessor";
+import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
 
-export const ATTRIBUTE_NAME_FOR_APIKEY = "honeycomb.customer_api_key"; // this will NOT trigger a send on the backend. We are copying everything for a send directly from the frontend.
-
-export const ATTRIBUTE_NAME_FOR_COPIES = "observaquiz.late_span";
-export const ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS = "observaquiz.has_a_copy";
-// export const ATTRIBUTE_NAME_FOR_DESTINATION = "observaquiz.destination";
-// export const ATTRIBUTE_VALUE_FOR_DEVREL_TEAM = "devrel";
-// export const ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM = "participant";
 
 export function ConstructThePipeline(params: {
   normalProcessor: SpanProcessor;
@@ -51,6 +47,8 @@ export function ConstructThePipeline(params: {
     }),
     "HOLD"
   );
+  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
+  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
   const learnerOfTeam = new LearnerOfTeam(
     observaquizProcessor,
     switcher,
@@ -60,6 +58,7 @@ export function ConstructThePipeline(params: {
         "I have been constructed to send to team " + team.auth!.team.slug
       )
   );
+
   return { learnerOfTeam, observaquizProcessor };
 }
 
