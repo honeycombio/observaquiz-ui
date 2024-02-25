@@ -17,6 +17,7 @@ import { TracedState, useTracedState } from "../tracing/TracedState";
 import { Question } from "./Question";
 import { Win } from "./Win";
 import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKey";
+import { DataQuestion } from "./analyzeData/DataQuestion";
 
 const HardCodedEvent = {
   eventName: "Frontrunners JS 2024",
@@ -26,7 +27,7 @@ function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
-  const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
+const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
 
   React.useEffect(() => {
     // just once, go through completed steps and catch up our in-memory stuff
@@ -106,7 +107,10 @@ function BoothGameInternal(props: BoothGameProps) {
       );
       break;
     case TopLevelSteps.LEARN:
-      content = <AnalyzeData moveForward={advanceTrackedSteps} />;
+      content = <AnalyzeData defineDataQuestions={advanceIntoNewSubsteps} />;
+      break;
+    case "data-question-1":
+      content = <DataQuestion moveForward={advanceTrackedSteps} />;
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);
