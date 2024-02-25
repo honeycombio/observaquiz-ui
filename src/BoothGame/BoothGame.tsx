@@ -5,6 +5,7 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/Compo
 import { Hello } from "./Hello";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
+import { Event } from "./Event"
 import {
   TopLevelSteps,
   TrackedStep,
@@ -16,6 +17,10 @@ import { TracedState, useTracedState } from "../tracing/TracedState";
 import { Question } from "./Question";
 import { Win } from "./Win";
 import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKey";
+
+const HardCodedEvent = {
+  eventName: "Frontrunners JS 2024",
+};
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -78,7 +83,7 @@ function BoothGameInternal(props: BoothGameProps) {
   var content = null;
   switch (currentStep.id) {
     case "begin-hello":
-      content = <Hello moveForward={helloBegin} />;
+      content = <Hello eventName={HardCodedEvent.eventName} moveForward={helloBegin} />;
       break;
     case "begin-apikey":
       content = <LeadThemToTheirApiKey moveForward={acceptApiKey} />;

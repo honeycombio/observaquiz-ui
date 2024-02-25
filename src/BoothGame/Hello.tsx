@@ -10,7 +10,7 @@ function HelloInternal(props: HelloProps) {
 
   return (
     <div>
-      <h3>Hello at DevOpsDays Wherever 2024!</h3>
+      <h3>Hello at {props.eventName}!</h3>
       <p>You have found the Observaquiz!</p>
       <p>This quiz will sort of test your observability knowledge, while demonstrating some observability.</p>
       <p>Complete it, and then come by the Honeycomb booth for whatever really cool prize we promised you!</p>
@@ -87,6 +87,7 @@ function MonikerForLeaderboard(props: DoStuffWithInputProps) {
 }
 
 export type HelloProps = {
+  eventName: string; 
   moveForward: (result: { moniker: string }) => void;
 };
 
