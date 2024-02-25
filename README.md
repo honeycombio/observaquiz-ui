@@ -30,17 +30,16 @@ To stop:
 
 ## Deploying
 
-Login to pulumi via the CLI
+Do this once: Login to pulumi via the CLI, and pick the stack
 
 ```sh
+cd infra
 pulumi login
+pulumi stack select honeycomb-devrel/prod
 ```
 
-Follow the prompts to login
+Now, from the project root
 
-```sh
-npm run build
-cd infra
-pulumi stack select honeycomb-devrel/booth-game-frontend
-pulumi up
+```
+./deploy
 ```
