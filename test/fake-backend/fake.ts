@@ -5,6 +5,8 @@ import proxy from "express-http-proxy";
 import { trace } from "@opentelemetry/api";
 import localQuestions from "./local-questions.json";
 
+console.log("Are we seeing changes? c")
+
 const app = express();
 
 /* Send to the collector that which is the collector's */
@@ -40,7 +42,7 @@ function addTracechildHeader(res: Response) {
   res.setHeader("x-tracechild", traceparent);
 }
 
-app.post("fake-hny-auth", (req, res) => {
+app.get("/fake-hny-auth", (req, res) => {
   // TODO: could this not return 304 Not Modified, please. how to turn that off??
   const fakeAuthSuccess = {
     team: { slug: "teamity-team", name: "Teamity Team" },
