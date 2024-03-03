@@ -61,6 +61,10 @@ export function isComplete(step: TrackedStep): boolean {
   return !!step.completionResults || (step.substeps && step.substeps.every(isComplete)) || false;
 }
 
+export function isCurrentStep(step: TrackedStep, currentStepPath: string): boolean {
+  return currentStepPath.startsWith(step.id) || currentStepPath.endsWith(step.id); // this won't work forever, but it happens to now
+}
+
 /**
  * The idea here is, when we retrieve the question set, suddenly we know how many substeps PLAY has.
  * We add one for the question set loading which is already complete; and then one for each question.

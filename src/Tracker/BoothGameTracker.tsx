@@ -1,12 +1,12 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { isComplete, TrackedStep, TrackedSteps } from "./trackedSteps";
+import { isComplete, isCurrentStep, TrackedStep, TrackedSteps } from "./trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 
 function paintSteps(steps: TrackedStep[], currentStepPath: string) {
   return steps.map((step, index) => {
     const className =
-      step.id === currentStepPath.split("/")[0] // for right now
+      isCurrentStep(step, currentStepPath)
         ? "you-are-here"
         : isComplete(step)
           ? "completed-step"
