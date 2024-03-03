@@ -5,6 +5,9 @@ import { TracedState, useTracedState } from "../tracing/TracedState";
 
 function paintSteps(steps: TrackedStep[], currentStepPath: string) {
   return steps.map((step, index) => {
+    if (step.invisible) {
+      return <></>
+    }
     const className =
       isCurrentStep(step, currentStepPath)
         ? "you-are-here"
