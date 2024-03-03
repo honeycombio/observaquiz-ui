@@ -1,12 +1,12 @@
 import { learnTeam } from "./tracing/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Configuration, RealHoneycomb } from "./Configuration.js";
+import { Configuration, FakeHoneycomb, RealHoneycomb } from "./Configuration.js";
 import { ObservaquizExecution, TrackedBoothGame } from "./TrackedBoothGame.js";
 import { v4 as uuidv4 } from "uuid"; // Import the 'uuidv4' function from the 'uuid' package
 import { useLocalStorage } from "./tracing/useLocalStorage";
 
-console.log("begin! ap");
+console.log("begin! aq");
 
 function newExecution(resets: number): ObservaquizExecution {
   return {
@@ -24,7 +24,7 @@ function QuizApp() {
   }
 
   return (
-    <Configuration.Provider value={RealHoneycomb}>
+    <Configuration.Provider value={FakeHoneycomb}>
       <TrackedBoothGame
         key={execution.resetCount}
         observaquizExecution={execution}
