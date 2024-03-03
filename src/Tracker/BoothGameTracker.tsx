@@ -12,7 +12,7 @@ function paintSteps(steps: TrackedStep[], currentStepPath: string) {
           ? "completed-step"
           : "incomplete-step";
     return <div key={step.id} title={step.name} className={className} >
-      {step.substeps && paintSteps(step.substeps, currentStepPath)}
+      {step.substeps && <div className="booth-game-tracker">{paintSteps(step.substeps, currentStepPath)}</div>}
     </div>;
   });
 }
