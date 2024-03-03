@@ -1,6 +1,10 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { TrackedStep, } from "../../Tracker/trackedSteps";
+import { DataQuestionParameters } from "./DataQuestionParameters";
+
+const DataQuestion1: DataQuestionParameters = {}
+const DataQuestion2: DataQuestionParameters = {}
 
 function AnalyzeDataInternal(props: AnalyzeDataProps) {
 
@@ -14,8 +18,14 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
   function proceed() {
     props.defineDataQuestions([{
       id: "data-question-1",
-      name: "When was OpenAI the slowest?"
-    }])
+      name: "When was OpenAI the slowest?",
+      parameters: DataQuestion1
+    }, {
+      id: "data-question-2",
+      name: "How many posts are in this trace?",
+      parameters: DataQuestion2
+    }
+    ])
   }
   return (
     <div>

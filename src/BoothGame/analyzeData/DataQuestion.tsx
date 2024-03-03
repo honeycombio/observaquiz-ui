@@ -4,6 +4,7 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
+import { DataQuestionParameters } from "./DataQuestionParameters";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
@@ -77,7 +78,9 @@ function DataQuestionInternal(props: DataQuestionProps) {
     </div>
   );
 }
-export type DataQuestionProps = { moveForward: (result: MultipleChoiceResult) => void };
+
+
+export type DataQuestionProps = { moveForward: (result: MultipleChoiceResult) => void } & DataQuestionParameters;
 export function DataQuestion(props: DataQuestionProps) {
   return (
     <ComponentLifecycleTracing componentName="analyze-data">

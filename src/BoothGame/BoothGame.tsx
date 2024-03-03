@@ -18,6 +18,7 @@ import { Question } from "./Question";
 import { Win } from "./Win";
 import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKey";
 import { DataQuestion } from "./analyzeData/DataQuestion";
+import { DataQuestionParameters } from "./analyzeData/DataQuestionParameters";
 
 const HardCodedEvent = {
   eventName: "Frontrunners JS 2024",
@@ -27,7 +28,7 @@ function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
-const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
+  const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
 
   React.useEffect(() => {
     // just once, go through completed steps and catch up our in-memory stuff
@@ -95,13 +96,13 @@ const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMo
     case "question-1": // really, any question
     case "question-2":
     case "question-3":
-      const parameters = currentStep.parameters! as QuestionParameters;
+      const questionParameters = currentStep.parameters! as QuestionParameters;
       content = (
         <Question
-          key={parameters.questionNumber}
-          questionNumber={parameters.questionNumber}
-          questionId={parameters.questionId}
-          questionText={parameters.questionText}
+          key={questionParameters.questionNumber}
+          questionNumber={questionParameters.questionNumber}
+          questionId={questionParameters.questionId}
+          questionText={questionParameters.questionText}
           moveForward={advanceTrackedSteps}
         />
       );
@@ -110,7 +111,9 @@ const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMo
       content = <AnalyzeData defineDataQuestions={advanceIntoNewSubsteps} />;
       break;
     case "data-question-1":
-      content = <DataQuestion moveForward={advanceTrackedSteps} />;
+    case "data-question-2":
+      const dataQuestionParameters = currentStep.parameters! as DataQuestionParameters;
+      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...dataQuestionParameters} />;
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);
