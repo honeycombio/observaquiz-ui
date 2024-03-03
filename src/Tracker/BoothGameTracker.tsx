@@ -15,7 +15,7 @@ function paintSteps(steps: TrackedStep[], currentStepPath: string) {
           ? "completed-step"
           : "incomplete-step";
     const innerSteps = isComplete(step) ? <></> :
-      !step.substeps ? <></> : <div className="booth-game-tracker">{paintSteps(step.substeps, currentStepPath)}</div>
+      !step.substeps ? <></> : <div className="inner-booth-game-tracker">{paintSteps(step.substeps, currentStepPath)}</div>
     return <div key={step.id} title={step.name} className={className} >
       {innerSteps}
     </div>;

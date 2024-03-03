@@ -77,6 +77,39 @@ img.small-logo {
   background-color: var(--color-hny-honey);
 }
 
+.inner-booth-game-tracker {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: var(--color-hny-indigo);
+  border-top-right-radius: 2px;
+  border-top-left-radius: 2px;
+  align-items: center;
+  margin: 1px 0px 0px 0px;
+  height: 2rem;grid-row-start: ;
+}
+
+.inner-booth-game-tracker div {
+  margin: 2px;
+  height: 1rem;
+  border-radius: 2px;
+  width: 50%;
+  transition: all 0.5s linear;
+}
+
+.inner-booth-game-tracker>.completed-step {
+  background-color: var(--color-hny-lime)
+}
+
+.inner-booth-game-tracker>.you-are-here {
+  background-color: var(--color-hny-pacific);
+  height: 1.3rem;
+}
+
+.inner-booth-game-tracker>.incomplete-step {
+  background-color: var(--color-hny-honey);
+}
+
 #tracing-tracker {
   display: flex;
   flex-direction: row;
