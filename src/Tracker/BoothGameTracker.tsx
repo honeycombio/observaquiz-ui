@@ -11,7 +11,9 @@ function paintSteps(steps: TrackedStep[], currentStepPath: string) {
         : isComplete(step)
           ? "completed-step"
           : "incomplete-step";
-    return <div key={step.id} title={step.name} className={className} ></div>;
+    return <div key={step.id} title={step.name} className={className} >
+      {step.substeps && paintSteps(step.substeps, currentStepPath)}
+    </div>;
   });
 }
 
@@ -22,7 +24,7 @@ function BoothGameTrackerInternal(props: BoothGameTrackerProps) {
   }));
 
   const paintedSteps = paintSteps(steps, currentStepPath)
-  return <div id="booth-game-tracker">{paintedSteps}</div>;
+  return <div id="booth-game-tracker" className="booth-game-tracker">{paintedSteps}</div>;
 }
 
 export type BoothGameTrackerProps = { trackedSteps: TracedState<TrackedSteps> };
