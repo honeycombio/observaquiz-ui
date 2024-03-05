@@ -1,10 +1,7 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { TrackedStep, } from "../../Tracker/trackedSteps";
-import { DataQuestionParameters } from "./DataQuestionParameters";
-
-const DataQuestion1: DataQuestionParameters = {}
-const DataQuestion2: DataQuestionParameters = {}
+import { TheNextQuestionParameters, WhichResponseTookTheLongestQuestionParameters } from "./DataQuestionParameters";
 
 function AnalyzeDataInternal(props: AnalyzeDataProps) {
 
@@ -19,11 +16,11 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
     props.defineDataQuestions([{
       id: "data-question-1",
       name: "When was OpenAI the slowest?",
-      parameters: DataQuestion1
+      parameters: WhichResponseTookTheLongestQuestionParameters
     }, {
       id: "data-question-2",
       name: "How many posts are in this trace?",
-      parameters: DataQuestion2
+      parameters: TheNextQuestionParameters
     }
     ])
   }

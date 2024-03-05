@@ -1,5 +1,11 @@
 
-export type DataQuestionParameters = {}
+export type DataQuestionParameters = {
+};
+
+// Data Question 1
+export const WhichResponseTookTheLongestQuestionParameters = {
+
+};
 
 
 export type DataFromLongestLLMResponse = {
@@ -43,3 +49,7 @@ export function queryForLongestLLMResponse(execution_id: string) {
         limit: 1000,
     };
 }
+
+
+// Data Question 2
+export const TheNextQuestionParameters = {}
