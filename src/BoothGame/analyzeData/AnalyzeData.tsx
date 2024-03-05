@@ -1,9 +1,12 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { TrackedStep, } from "../../Tracker/trackedSteps";
-import { TheNextQuestionParameters, WhichResponseTookTheLongestQuestionParameters } from "./DataQuestionParameters";
+import { TheNextQuestionParameters, whichResponseTookTheLongestQuestionParameters } from "./DataQuestionParameters";
+import { HoneycombTeamContext } from "../HoneycombTeamContext";
 
 function AnalyzeDataInternal(props: AnalyzeDataProps) {
+  const team = React.useContext(HoneycombTeamContext);
+
 
   const proceedButton = React.useRef<HTMLButtonElement>(null);
 
@@ -13,10 +16,13 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
   }, [proceedButton.current]);
 
   function proceed() {
+    if (!team.populated) { // make typescript happy
+      throw new Error("Honeycomb team not populated, not ok");
+    }
     props.defineDataQuestions([{
       id: "data-question-1",
       name: "When was OpenAI the slowest?",
-      parameters: WhichResponseTookTheLongestQuestionParameters
+      parameters: whichResponseTookTheLongestQuestionParameters(team.execution.executionId)
     }, {
       id: "data-question-2",
       name: "How many posts are in this trace?",

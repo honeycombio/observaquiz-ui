@@ -17,8 +17,7 @@ function DataQuestionInternal(props: DataQuestionProps) {
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { prefaceText } = props;
-  const queryDefinition = queryForLongestLLMResponse(team.execution.executionId);
+  const { prefaceText, queryDefinition } = props;
   const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, BACKEND_DATASET_NAME);
   function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
     const maxDuration = Math.max(...data.map((row) => row["MAX(duration_ms)"] as number));

@@ -1,21 +1,21 @@
 import React from "react";
-import { ExecutionId } from "../../tracing/TracingDestination";
+import { ExecutionId, QueryObject } from "../../tracing/TracingDestination";
 
-export type HoneycombQuerySpec = object;
 export type DataQuestionParameters = {
     prefaceText: React.ReactNode
+    queryDefinition: QueryObject
 };
 
 // Data Question 1
-export const WhichResponseTookTheLongestQuestionParameters = {
+export const whichResponseTookTheLongestQuestionParameters = (execution_id: ExecutionId) => ({
     prefaceText: <><p>
         Earlier, Observaquiz called out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those
         took.
     </p>
         <p>Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)</p>
-    </>
-};
-
+    </>,
+    queryDefinition: queryForLongestLLMResponse(execution_id)
+});
 
 export type DataFromLongestLLMResponse = {
     "MAX(duration_ms)": number;
@@ -24,7 +24,7 @@ export type DataFromLongestLLMResponse = {
 /**
  * Run this in dataset 'observaquiz-bff'
  */
-export function queryForLongestLLMResponse(execution_id: ExecutionId) {
+function queryForLongestLLMResponse(execution_id: ExecutionId) {
     return {
         time_range: 600,
         granularity: 0,
@@ -72,5 +72,10 @@ export const TheNextQuestionParameters: DataQuestionParameters = {
         <p>
             How many of spans in this trace are called `HTTP POST`?
         </p>
-    </>
+    </>,
+    queryDefinition: { // TODO: define
+        time_range: 0,
+        granularity: 0,
+        calculations: []
+    }
 }
