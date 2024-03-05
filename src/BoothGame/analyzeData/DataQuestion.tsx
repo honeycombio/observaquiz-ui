@@ -13,8 +13,26 @@ type DataQuestionState = typeof PleaseLookAtTheData | typeof LookedAtTheData;
 
 function DataQuestionInternal(props: DataQuestionProps) {
   const team = React.useContext(HoneycombTeamContext);
-  if (!team.populated) {
+  if (!team.populated) { // make typescript happy
     throw new Error("Honeycomb team not populated, not ok");
+  }
+
+  const prefaceText = <><p>
+    Earlier, Observaquiz called out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those
+    took.
+  </p>
+    <p>Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)</p>
+  </>;
+  const queryDefinition = queryForLongestLLMResponse(team.execution.executionId);
+  const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, BACKEND_DATASET_NAME);
+  function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
+    const maxDuration = Math.max(...data.map((row) => row["MAX(duration_ms)"] as number));
+    const maxRow = data.find((row) => row["MAX(duration_ms)"] === maxDuration);
+    // handle a tie? This one is extremely unlikely to tie
+    return maxRow!;
+  }
+  function formatAnswer(row: DataFromLongestLLMResponse): string {
+    return row["app.post_answer.question"];
   }
 
   const [state, setState] = useLocalTracedState<DataQuestionState>(PleaseLookAtTheData, {
@@ -33,20 +51,6 @@ function DataQuestionInternal(props: DataQuestionProps) {
     setState(LookedAtTheData);
   }
 
-  const queryDefinition = queryForLongestLLMResponse(team.execution.executionId);
-
-  const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, BACKEND_DATASET_NAME);
-
-  function formatAnswer(row: DataFromLongestLLMResponse): string {
-    return row["app.post_answer.question"];
-  }
-  function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
-    const maxDuration = Math.max(...data.map((row) => row["MAX(duration_ms)"] as number));
-    const maxRow = data.find((row) => row["MAX(duration_ms)"] === maxDuration);
-    // handle a tie? This one is extremely unlikely to tie
-    return maxRow!;
-  }
-
   const questionAndAnswer = state.questionVisible ? (
     <MultipleChoice<DataFromLongestLLMResponse>
       queryDefinition={queryDefinition}
@@ -56,13 +60,6 @@ function DataQuestionInternal(props: DataQuestionProps) {
       moveOn={props.moveForward}
     />
   ) : null;
-
-  const prefaceText = <><p>
-    Earlier, Observaquiz called out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those
-    took.
-  </p>
-    <p>Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)</p>
-  </>
 
   return (
     <div>
