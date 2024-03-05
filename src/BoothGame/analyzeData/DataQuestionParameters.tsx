@@ -1,9 +1,10 @@
 import React from "react";
-import { ExecutionId, QueryObject } from "../../tracing/TracingDestination";
+import { BACKEND_DATASET_NAME, ExecutionId, QueryObject } from "../../tracing/TracingDestination";
 
 export type DataQuestionParameters = {
     prefaceText: React.ReactNode
     queryDefinition: QueryObject
+    datasetSlug: string
 };
 
 // Data Question 1
@@ -14,7 +15,8 @@ export const whichResponseTookTheLongestQuestionParameters = (execution_id: Exec
     </p>
         <p>Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)</p>
     </>,
-    queryDefinition: queryForLongestLLMResponse(execution_id)
+    queryDefinition: queryForLongestLLMResponse(execution_id),
+    datasetSlug: BACKEND_DATASET_NAME
 });
 
 export type DataFromLongestLLMResponse = {
@@ -77,5 +79,6 @@ export const TheNextQuestionParameters: DataQuestionParameters = {
         time_range: 0,
         granularity: 0,
         calculations: []
-    }
+    },
+    datasetSlug: BACKEND_DATASET_NAME,
 }
