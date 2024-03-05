@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../../tracing/Co
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
-import { HoneycombQuerySpec } from "./DataQuestionParameters";
+import { QueryObject } from "../../tracing/TracingDestination";
 
 const LoadingAnswers = { name: "loading answers" };
 const ErrorLoadingAnswers = { name: "error loading answers" };
@@ -251,7 +251,7 @@ export type MultipleChoiceResult = { score: number };
 
 // TODO: make a happy type to represent a query. ChatGPT makes this fast
 type MultipleChoiceProps<ParticularQueryData> = {
-  queryDefinition: HoneycombQuerySpec;
+  queryDefinition: QueryObject;
   dataset: string;
   chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
   formatAnswer: (row: ParticularQueryData) => string;
