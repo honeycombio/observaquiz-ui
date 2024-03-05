@@ -17,12 +17,7 @@ function DataQuestionInternal(props: DataQuestionProps) {
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const prefaceText = <><p>
-    Earlier, Observaquiz called out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those
-    took.
-  </p>
-    <p>Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)</p>
-  </>;
+  const prefaceText = {props};
   const queryDefinition = queryForLongestLLMResponse(team.execution.executionId);
   const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, BACKEND_DATASET_NAME);
   function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
