@@ -1,6 +1,7 @@
 import React from "react";
 import { ExecutionId } from "../../tracing/TracingDestination";
 
+export type HoneycombQuerySpec = object;
 export type DataQuestionParameters = {
     prefaceText: React.ReactNode
 };
