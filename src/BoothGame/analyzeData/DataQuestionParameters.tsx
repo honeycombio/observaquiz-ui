@@ -1,4 +1,5 @@
 import React from "react";
+import { ExecutionId } from "../../tracing/TracingDestination";
 
 export type DataQuestionParameters = {
     prefaceText: React.ReactNode
@@ -22,7 +23,7 @@ export type DataFromLongestLLMResponse = {
 /**
  * Run this in dataset 'observaquiz-bff'
  */
-export function queryForLongestLLMResponse(execution_id: string) {
+export function queryForLongestLLMResponse(execution_id: ExecutionId) {
     return {
         time_range: 600,
         granularity: 0,

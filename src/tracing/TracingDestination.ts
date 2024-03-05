@@ -9,11 +9,13 @@ export const HONEYCOMB_DATASET_NAME = "observaquiz-browser";
 export const BACKEND_DATASET_NAME = "observaquiz-bff";
 export const TRACING_TEAM_VERSION = 4;
 
+export type ExecutionId = string;
+
 export type TracingTeam = {
   version: typeof TRACING_TEAM_VERSION;
   execution: {
     startTime: SecondsSinceEpoch;
-    executionId: string;
+    executionId: ExecutionId;
   };
   protagonist?: { moniker: string };
   auth?: TracingTeamFromAuth;
