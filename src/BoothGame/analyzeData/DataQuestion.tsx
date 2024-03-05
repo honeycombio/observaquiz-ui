@@ -4,7 +4,7 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
-import { DataQuestionParameters } from "./DataQuestionParameters";
+import { DataFromLongestLLMResponse, DataQuestionParameters, queryForLongestLLMResponse } from "./DataQuestionParameters";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
@@ -87,46 +87,4 @@ export function DataQuestion(props: DataQuestionProps) {
       <DataQuestionInternal {...props} />
     </ComponentLifecycleTracing>
   );
-}
-
-type DataFromLongestLLMResponse = {
-  "MAX(duration_ms)": number;
-  "app.post_answer.question": string;
-};
-/**
- * Run this in dataset 'observaquiz-bff'
- */
-function queryForLongestLLMResponse(execution_id: string) {
-  return {
-    time_range: 600,
-    granularity: 0,
-    breakdowns: ["app.post_answer.question", "app.llm.input", "app.llm.output"],
-    calculations: [
-      {
-        op: "MAX",
-        column: "duration_ms",
-      },
-    ],
-    filters: [
-      {
-        column: "name",
-        op: "=",
-        value: "Ask LLM for Response",
-      },
-      {
-        column: "app.observaquiz.execution_id",
-        op: "=",
-        value: execution_id,
-      },
-    ],
-    orders: [
-      {
-        column: "duration_ms",
-        op: "MAX",
-        order: "descending",
-      },
-    ],
-    havings: [],
-    limit: 1000,
-  };
 }
