@@ -1,7 +1,7 @@
 import { learnTeam } from "./tracing/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Configuration, FakeHoneycomb, RealHoneycomb } from "./Configuration.js";
+import { Configuration, RealHoneycomb } from "./Configuration.js";
 import { ObservaquizExecution, TrackedBoothGame } from "./TrackedBoothGame.js";
 import { v4 as uuidv4 } from "uuid"; // Import the 'uuidv4' function from the 'uuid' package
 import { useLocalStorage } from "./tracing/useLocalStorage";

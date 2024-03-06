@@ -119,7 +119,7 @@ function BoothGameInternal(props: BoothGameProps) {
       }
       content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...whichResponseTookTheLongestQuestionParameters(team.execution.executionId)} />;
       break;
-    case "data-question-2":
+    case "trace-question-2":
       content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...TheNextQuestionParameters} />;
       break;
     case TopLevelSteps.WIN:
