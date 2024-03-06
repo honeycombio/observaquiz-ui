@@ -10,6 +10,7 @@ export type ComponentLifecycleSpans = {
 };
 
 export type ActiveLifecycleSpanType = {
+  componentName?: string;
   setAttributes: (attributes: Attributes) => void;
   addLog: (name: string, attributes?: Attributes) => void;
   withLog<T>(name: string, attributes: Attributes, fn: () => T): T;
@@ -50,6 +51,7 @@ export function wrapAsActiveLifecycleSpan(
   componentAttributes?: Attributes
 ): ActiveLifecycleSpanType {
   return {
+    componentName,
     addLog: (name: string, attributes?: Attributes) => {
       const uniqueID = uuidv4();
       componentLifecycleLogger.emit({
@@ -101,6 +103,7 @@ export function wrapAsActiveLifecycleSpan(
         },
         context: componentLifecycleSpans.contextToUseAsAParent,
       });
+      // JESS: this does not seem to set the status, it's still 0 when it arrives
       componentLifecycleSpans.spanThatWeWillTryToEnd.setStatus({
         code: SpanStatusCode.ERROR,
         message: errorDescription,
