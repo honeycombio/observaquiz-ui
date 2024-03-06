@@ -5,13 +5,13 @@ import { RadioButtonList } from "./RadioButtonList";
 
 const SignupButton = {
   text: "Sign up",
-  href: "https://ui.honeycomb.io/signup",
+  href: "https://ui.honeycomb.io/signup?utm_medium=events&utm_source=frontrunners&utm_campaign=observaquiz&utm_content=sign-up",
   result: { honeycombLogin: "new" } as DoTheyHaveALoginResult,
 };
 
 const LoginButton = {
   text: "Log in",
-  href: "https://ui.honeycomb.io/login",
+  href: "https://ui.honeycomb.io/login?utm_medium=events&utm_source=frontrunners&utm_campaign=observaquiz&utm_content=login",
   result: { honeycombLogin: "existing" } as DoTheyHaveALoginResult,
 };
 
