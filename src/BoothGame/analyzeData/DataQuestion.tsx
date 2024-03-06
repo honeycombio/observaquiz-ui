@@ -46,6 +46,8 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
     />
   ) : null;
 
+  console.log("Is it the prefaceText? ", prefaceText)
+
   return (
     <div>
       {prefaceText}
