@@ -62,7 +62,7 @@ export function isComplete(step: TrackedStep): boolean {
 }
 
 export function isCurrentStep(step: TrackedStep, currentStepPath: string): boolean {
-  return currentStepPath.startsWith(step.id) || currentStepPath.endsWith(step.id); // this won't work forever, but it happens to now
+  return currentStepPath.startsWith(step.id) || currentStepPath.endsWith("/" + step.id); // this won't work forever, but it happens to now
 }
 
 /**

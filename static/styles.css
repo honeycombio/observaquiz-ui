@@ -31,7 +31,19 @@ footer {
   padding: 1rem;
 }
 
+header {
+  margin: 5px;
+  text-align: center;
+}
+
 img.small-logo {
+  display: inline;
+  object-fit: scale-down;
+  height: 4rem;
+  margin-right: 1rem;
+}
+
+img.observaquiz-horizontal-logo {
   display: inline;
   object-fit: scale-down;
   height: 4rem;
@@ -89,9 +101,9 @@ img.small-logo {
 }
 
 .inner-booth-game-tracker>div {
-  height: 20px;
-  border-radius: 10px;
-  width: 20px;
+  height: 1.3rem;
+  border-radius: 0.65rem;
+  width: 1.3rem;
   transition: all 0.5s linear;
 }
 
@@ -100,13 +112,22 @@ img.small-logo {
 }
 
 .inner-booth-game-tracker>.you-are-here {
-  background-color: var(--color-hny-pacific);
-  border: 1px solid var(--color-hny-indigo);
+  background-color: var(--color-hny-tango);
+  height: 1.8rem;
+  width: 1.8rem;
+  border-radius: 0.9rem;
 }
 
 .inner-booth-game-tracker>.incomplete-step {
   background-color: var(--color-hny-honey);
 }
+
+.completed-step .inner-booth-game-tracker>.completed-step {
+  background-color: var(--color-hny-lime);
+  height: 0rem;
+  width: 0rem;
+}
+
 
 #tracing-tracker {
   display: flex;
