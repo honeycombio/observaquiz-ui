@@ -85,6 +85,7 @@ export const TheNextQuestionParameters: DataQuestionParameters<CountTheSpansResp
     prefaceText: <>
         <p>
             This trace represents one call to our Observaquiz backend.
+        </p><p className="fine-print">
             Each row in the trace is called a span; it represents some unit of work that was part of
             fulfilling the request. Each span has a name, and a portion of the timeline representing when it occurred
             and how long it took.
