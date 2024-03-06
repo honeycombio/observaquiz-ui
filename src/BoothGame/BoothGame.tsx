@@ -18,7 +18,8 @@ import { Question } from "./Question";
 import { Win } from "./Win";
 import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKey";
 import { DataQuestion } from "./analyzeData/DataQuestion";
-import { DataQuestionParameters } from "./analyzeData/DataQuestionParameters";
+import { TheNextQuestionParameters, whichResponseTookTheLongestQuestionParameters } from "./analyzeData/DataQuestionParameters";
+import { HoneycombTeamContext } from "./HoneycombTeamContext";
 
 const HardCodedEvent = {
   eventName: "Frontrunners JS 2024",
@@ -26,6 +27,7 @@ const HardCodedEvent = {
 
 function BoothGameInternal(props: BoothGameProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
+  const team = React.useContext(HoneycombTeamContext);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
   const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
@@ -111,9 +113,13 @@ function BoothGameInternal(props: BoothGameProps) {
       content = <AnalyzeData defineDataQuestions={advanceIntoNewSubsteps} />;
       break;
     case "data-question-1":
+      if (!team.populated) {
+        throw new Error("Honeycomb team not populated, not ok");
+      }
+      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...whichResponseTookTheLongestQuestionParameters(team.execution.executionId)} />;
+      break;
     case "data-question-2":
-      const dataQuestionParameters = currentStep.parameters! as DataQuestionParameters<any>; // trust.
-      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...dataQuestionParameters} />;
+      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...TheNextQuestionParameters} />;
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);

@@ -16,4 +16,4 @@ type ConfigurationType = {
   honeycomb_auth_url: string;
 };
 
-export const Configuration = React.createContext<ConfigurationType>(RealHoneycomb);
+export const Configuration = React.createContext<ConfigurationType>(FakeHoneycomb);

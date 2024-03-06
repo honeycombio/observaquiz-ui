@@ -22,11 +22,10 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
     props.defineDataQuestions([{
       id: "data-question-1",
       name: "When was OpenAI the slowest?",
-      parameters: whichResponseTookTheLongestQuestionParameters(team.execution.executionId)
+      // parameters are now hard-coded in BoothGame
     }, {
       id: "data-question-2",
       name: "How many posts are in this trace?",
-      parameters: TheNextQuestionParameters
     }
     ])
   }

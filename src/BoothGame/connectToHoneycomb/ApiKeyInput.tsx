@@ -62,6 +62,7 @@ function saveApiKeyInLocalStorageInTheFuture() {
 function ApiKeyInputInternal(props: ApiKeyInputProps) {
   const span = useContext(ActiveLifecycleSpan);
   const config = useContext(Configuration);
+  console.log("Config: ", config)
 
   const [loadingness, setLoadingness] = React.useState(false);
   const [enteredApiKey, setEnteredApiKey] = React.useState("");
@@ -229,7 +230,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
               {loadingness ? "..." : "Submit"}
             </button>
           </p>
-          <p className="error-response">{errorResponse}</p>
+          <p className="error">{errorResponse}</p>
           <p>
             <input
               type="checkbox"
