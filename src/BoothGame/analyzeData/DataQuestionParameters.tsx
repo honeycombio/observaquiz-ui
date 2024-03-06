@@ -2,7 +2,7 @@ import React from "react";
 import { BACKEND_DATASET_NAME, ExecutionId, QueryObject } from "../../tracing/TracingDestination";
 
 export type DataQuestionParameters<T> = {
-    prefaceText: string[], // this is incredibly stupid but i can't figure out the error i get when i pass a ReactNode
+    prefaceText: React.ReactNode
     queryDefinition: QueryObject
     datasetSlug: string
     chooseCorrectAnswer: (data: Array<T>) => T
@@ -11,10 +11,15 @@ export type DataQuestionParameters<T> = {
 console.log("Fuck you again")
 // Data Question 1
 export const whichResponseTookTheLongestQuestionParameters = (execution_id: ExecutionId) => ({
-    prefaceText: [
-        "Earlier, Observaquiz called out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those took.",
-        "Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)"
-    ],
+    prefaceText: <>
+        <p>
+            Earlier, Observaquiz called out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those took.
+        </p>
+        <p>
+            Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)
+        </p>
+    </>
+    ,
     queryDefinition: queryForLongestLLMResponse(execution_id),
     datasetSlug: BACKEND_DATASET_NAME,
     chooseCorrectAnswer,
@@ -77,18 +82,17 @@ function queryForLongestLLMResponse(execution_id: ExecutionId) {
 
 // Data Question 2
 export const TheNextQuestionParameters: DataQuestionParameters<CountTheSpansResponse> = {
-    // prefaceText: <>
-    //     <p>
-    //         This trace represents one call to our Observaquiz backend.
-    //         Each row in the trace is called a span; it represents some unit of work that was part of
-    //         fulfilling the request. Each span has a name, and a portion of the timeline representing when it occurred
-    //         and how long it took.
-    //     </p>
-    //     <p>
-    //         How many of spans in this trace are called `HTTP POST`?
-    //     </p>
-    // </>,
-    prefaceText: [],
+    prefaceText: <>
+        <p>
+            This trace represents one call to our Observaquiz backend.
+            Each row in the trace is called a span; it represents some unit of work that was part of
+            fulfilling the request. Each span has a name, and a portion of the timeline representing when it occurred
+            and how long it took.
+        </p>
+        <p>
+            How many spans in this trace are called `HTTP POST`?
+        </p>
+    </>,
     queryDefinition: { // TODO: define
         time_range: 0,
         granularity: 0,

@@ -48,11 +48,10 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
 
   console.log("Is it the prefaceText? ", prefaceText)
 
-  const preface = prefaceText.map((text, index) => <p key={index}>{text}</p>);
 
   return (
     <div>
-      {preface}
+      {prefaceText}
       <a
         id="see-query"
         className="button primary"
