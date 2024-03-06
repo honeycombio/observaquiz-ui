@@ -18,8 +18,9 @@ import { Question } from "./Question";
 import { Win } from "./Win";
 import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKey";
 import { DataQuestion } from "./analyzeData/DataQuestion";
-import { TheNextQuestionParameters, whichResponseTookTheLongestQuestionParameters } from "./analyzeData/DataQuestionParameters";
+import { whichResponseTookTheLongestQuestionParameters } from "./analyzeData/DataQuestionParameters";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
+import { TheNextQuestionParameters } from "./analyzeData/TraceQuestion";
 
 const HardCodedEvent = {
   eventName: "Frontrunners JS 2024",

@@ -79,29 +79,3 @@ function queryForLongestLLMResponse(execution_id: ExecutionId) {
     };
 }
 
-
-// Data Question 2
-export const TheNextQuestionParameters: DataQuestionParameters<CountTheSpansResponse> = {
-    prefaceText: <>
-        <p>
-            This trace represents one call to our Observaquiz backend.
-        </p><p className="fine-print">
-            Each row in the trace is called a span; it represents some unit of work that was part of
-            fulfilling the request. Each span has a name, and a portion of the timeline representing when it occurred
-            and how long it took.
-        </p>
-        <p>
-            How many spans in this trace are called `HTTP POST`?
-        </p>
-    </>,
-    queryDefinition: { // TODO: define
-        time_range: 0,
-        granularity: 0,
-        calculations: []
-    },
-    datasetSlug: BACKEND_DATASET_NAME,
-    chooseCorrectAnswer: (data: Array<CountTheSpansResponse>) => ({} as CountTheSpansResponse)
-    , formatAnswer: (row: CountTheSpansResponse) => "Wow look at this amazing choice, definitely"
-}
-
-export type CountTheSpansResponse = {}
