@@ -1,10 +1,12 @@
 import React from "react";
 import { BACKEND_DATASET_NAME, ExecutionId, QueryObject } from "../../tracing/TracingDestination";
 
-export type DataQuestionParameters = {
+export type DataQuestionParameters<T> = {
     prefaceText: React.ReactNode
     queryDefinition: QueryObject
     datasetSlug: string
+    chooseCorrectAnswer: (data: Array<T>) => T
+    formatAnswer: (row: T) => string
 };
 
 // Data Question 1
@@ -16,8 +18,21 @@ export const whichResponseTookTheLongestQuestionParameters = (execution_id: Exec
         <p>Please click and look at these results. (hint: scroll down to see the table below the graph. The slowest one is at the top)</p>
     </>,
     queryDefinition: queryForLongestLLMResponse(execution_id),
-    datasetSlug: BACKEND_DATASET_NAME
+    datasetSlug: BACKEND_DATASET_NAME,
+    chooseCorrectAnswer,
+    formatAnswer
 });
+
+function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
+    const maxDuration = Math.max(...data.map((row) => row["MAX(duration_ms)"] as number));
+    const maxRow = data.find((row) => row["MAX(duration_ms)"] === maxDuration);
+    // handle a tie? This one is extremely unlikely to tie
+    return maxRow!;
+}
+
+function formatAnswer(row: DataFromLongestLLMResponse): string {
+    return row["app.post_answer.question"];
+}
 
 export type DataFromLongestLLMResponse = {
     "MAX(duration_ms)": number;
@@ -63,7 +78,7 @@ function queryForLongestLLMResponse(execution_id: ExecutionId) {
 
 
 // Data Question 2
-export const TheNextQuestionParameters: DataQuestionParameters = {
+export const TheNextQuestionParameters: DataQuestionParameters<CountTheSpansResponse> = {
     prefaceText: <>
         <p>
             This trace represents one call to our Observaquiz backend.
@@ -81,4 +96,8 @@ export const TheNextQuestionParameters: DataQuestionParameters = {
         calculations: []
     },
     datasetSlug: BACKEND_DATASET_NAME,
+    chooseCorrectAnswer: (data: Array<CountTheSpansResponse>) => ({} as CountTheSpansResponse)
+    , formatAnswer: (row: CountTheSpansResponse) => "Wow look at this amazing choice, definitely"
 }
+
+export type CountTheSpansResponse = {}

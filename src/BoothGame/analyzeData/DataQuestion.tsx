@@ -4,30 +4,21 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
-import { DataFromLongestLLMResponse, DataQuestionParameters } from "./DataQuestionParameters";
+import { DataQuestionParameters } from "./DataQuestionParameters";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
 
 type DataQuestionState = typeof PleaseLookAtTheData | typeof LookedAtTheData;
 
-function DataQuestionInternal(props: DataQuestionProps) {
+function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
   const team = React.useContext(HoneycombTeamContext);
   if (!team.populated) { // make typescript happy
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { prefaceText, queryDefinition, datasetSlug } = props;
-  const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, datasetSlug );
-  function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
-    const maxDuration = Math.max(...data.map((row) => row["MAX(duration_ms)"] as number));
-    const maxRow = data.find((row) => row["MAX(duration_ms)"] === maxDuration);
-    // handle a tie? This one is extremely unlikely to tie
-    return maxRow!;
-  }
-  function formatAnswer(row: DataFromLongestLLMResponse): string {
-    return row["app.post_answer.question"];
-  }
+  const { prefaceText, queryDefinition, datasetSlug, chooseCorrectAnswer, formatAnswer } = props;
+  const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, datasetSlug);
 
   const [state, setState] = useLocalTracedState<DataQuestionState>(PleaseLookAtTheData, {
     componentName: "analyzeData",
@@ -46,7 +37,7 @@ function DataQuestionInternal(props: DataQuestionProps) {
   }
 
   const questionAndAnswer = state.questionVisible ? (
-    <MultipleChoice<DataFromLongestLLMResponse>
+    <MultipleChoice<T>
       queryDefinition={queryDefinition}
       dataset={BACKEND_DATASET_NAME}
       formatAnswer={formatAnswer}
@@ -74,8 +65,8 @@ function DataQuestionInternal(props: DataQuestionProps) {
 }
 
 
-export type DataQuestionProps = { moveForward: (result: MultipleChoiceResult) => void } & DataQuestionParameters;
-export function DataQuestion(props: DataQuestionProps) {
+export type DataQuestionProps<T> = { moveForward: (result: MultipleChoiceResult) => void } & DataQuestionParameters<T>;
+export function DataQuestion<T>(props: DataQuestionProps<T>) {
   return (
     <ComponentLifecycleTracing componentName="analyze-data">
       <DataQuestionInternal {...props} />

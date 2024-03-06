@@ -112,7 +112,7 @@ function BoothGameInternal(props: BoothGameProps) {
       break;
     case "data-question-1":
     case "data-question-2":
-      const dataQuestionParameters = currentStep.parameters! as DataQuestionParameters;
+      const dataQuestionParameters = currentStep.parameters! as DataQuestionParameters<any>; // trust.
       content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...dataQuestionParameters} />;
       break;
     case TopLevelSteps.WIN:
