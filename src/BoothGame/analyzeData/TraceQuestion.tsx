@@ -27,7 +27,9 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
     componentName: "analyzeTrace",
   });
 
+  console.log("Rendering trace question")
   React.useEffect(() => {
+    console.log("Attempting to pick a trace")
     pickATrace(team, activeLifecycleSpan).then((traceId) => {
       console.log("Trace of interest ", traceId);
     })
@@ -37,7 +39,6 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   const linkButton = React.useRef<HTMLAnchorElement>(null);
 
   React.useEffect(() => {
-    console.log("Focus on link, please", linkButton);
     linkButton.current?.focus();
   }, [linkButton.current]);
 
@@ -55,9 +56,6 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
       moveOn={props.moveForward}
     />
   ) : null;
-
-  console.log("Is it the prefaceText? ", prefaceText)
-
 
   return (
     <div>

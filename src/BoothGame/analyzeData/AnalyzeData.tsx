@@ -11,7 +11,6 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
   const proceedButton = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
-    console.log("Focus on link, please", proceedButton);
     proceedButton.current?.focus();
   }, [proceedButton.current]);
 

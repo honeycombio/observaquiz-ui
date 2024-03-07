@@ -27,7 +27,6 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
   const linkButton = React.useRef<HTMLAnchorElement>(null);
 
   React.useEffect(() => {
-    console.log("Focus on link, please", linkButton);
     linkButton.current?.focus();
   }, [linkButton.current]);
 
@@ -45,9 +44,6 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
       moveOn={props.moveForward}
     />
   ) : null;
-
-  console.log("Is it the prefaceText? ", prefaceText)
-
 
   return (
     <div>

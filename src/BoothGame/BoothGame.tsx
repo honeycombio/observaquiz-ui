@@ -20,7 +20,7 @@ import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKe
 import { DataQuestion } from "./analyzeData/DataQuestion";
 import { whichResponseTookTheLongestQuestionParameters } from "./analyzeData/DataQuestionParameters";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
-import { TheNextQuestionParameters } from "./analyzeData/TraceQuestion";
+import { TheNextQuestionParameters, TraceQuestion } from "./analyzeData/TraceQuestion";
 
 const HardCodedEvent = {
   eventName: "Frontrunners JS 2024",
@@ -120,7 +120,7 @@ function BoothGameInternal(props: BoothGameProps) {
       content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...whichResponseTookTheLongestQuestionParameters(team.execution.executionId)} />;
       break;
     case "trace-question-2":
-      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...TheNextQuestionParameters} />;
+      content = <TraceQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...TheNextQuestionParameters} />;
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);

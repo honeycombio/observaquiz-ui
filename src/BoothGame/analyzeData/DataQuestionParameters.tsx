@@ -8,7 +8,6 @@ export type DataQuestionParameters<T> = {
     chooseCorrectAnswer: (data: Array<T>) => T
     formatAnswer: (row: T) => string
 };
-console.log("Fuck you again")
 // Data Question 1
 export const whichResponseTookTheLongestQuestionParameters = (execution_id: ExecutionId) => ({
     prefaceText: <>

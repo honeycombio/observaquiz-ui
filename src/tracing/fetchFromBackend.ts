@@ -23,7 +23,7 @@ export function fetchFromBackend(params: {
     "fetch from backend",
     { "request.url": url, "http.method": method, "request.body": body },
     (span) =>
-      fetch(url, {
+      fetch("https://quiz.onlyspans.com/" + url, {
         method,
         headers: {
           "Content-Type": "application/json",
