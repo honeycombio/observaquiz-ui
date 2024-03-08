@@ -1,6 +1,7 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { TrackedStep, } from "../../Tracker/trackedSteps";
+import { whichResponseTookTheLongestQuestionParameters } from "./DataQuestionParameters";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 
 function AnalyzeDataInternal(props: AnalyzeDataProps) {
@@ -22,11 +23,11 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
       name: "When was OpenAI the slowest?",
       // parameters are now hard-coded in BoothGame
     }
-    // TODO: wanted to get a single trace for this question, but it's not working
-    // , {
-    //   id: "trace-question-2",
-    //   name: "How many posts are in this trace?",
-    // }
+      // TODO: wanted to get a single trace for this question, but it's not working
+      , {
+      id: "trace-question-2",
+      name: "How many posts are in this trace?",
+    }
     ])
   }
   return (

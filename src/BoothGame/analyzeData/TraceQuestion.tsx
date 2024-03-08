@@ -7,11 +7,11 @@ import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
 import { ActiveLifecycleSpanType } from "../../tracing/activeLifecycleSpan";
 
-const PleaseLookAtTheData = { questionVisible: false, };
-const LookedAtTheData = { questionVisible: true };
+type PleaseLookAtTheData = { questionVisible: false, traceId: string, datasetSlug: string, loading: false };
+const LookedAtTheData = { questionVisible: true, loading: false };
 const FindTheTraceOfInterest = { questionVisible: false, loading: true };
 
-type TraceQuestionState = typeof FindTheTraceOfInterest | typeof PleaseLookAtTheData | typeof LookedAtTheData;
+type TraceQuestionState = typeof FindTheTraceOfInterest | PleaseLookAtTheData | typeof LookedAtTheData;
 
 function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   const team = React.useContext(HoneycombTeamContext);
@@ -32,6 +32,7 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
     console.log("Attempting to pick a trace")
     pickATrace(team, activeLifecycleSpan).then((traceId) => {
       console.log("Trace of interest ", traceId);
+      setState({ questionVisible: false, traceId, datasetSlug: BACKEND_DATASET_NAME, loading: false });
     })
     // use the QDAPI to find the trace of interest
   }, []);
@@ -57,21 +58,22 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
     />
   ) : null;
 
+  const button = state.loading ? <div className="loading"></div> : <a
+    id="see-query"
+    className="button primary"
+    target="_blank"
+    href={queryLink}
+    onClick={lookAtResults}
+    ref={linkButton}
+  > See the trace in Honeycomb
+  </a>;
+
   return (
     <div>
       {prefaceText}
-      <a
-        id="see-query"
-        className="button primary"
-        target="_blank"
-        href={queryLink}
-        onClick={lookAtResults}
-        ref={linkButton}
-      >
-        See query results in Honeycomb
-      </a>
+      {button}
       {questionAndAnswer}
-    </div>
+    </div >
   );
 }
 
