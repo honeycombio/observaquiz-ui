@@ -19,6 +19,7 @@ export type ActiveLifecycleSpanType = {
   inSpanAsync<T>(name: string, attributes: Attributes, fn: (span?: Span) => Promise<T>): Promise<T>;
   spanContext(): SpanContext | undefined;
   inContext<T>(fn: () => T): T;
+  traceId: string;
 };
 
 export const nilSpan: ActiveLifecycleSpanType = {
@@ -30,6 +31,7 @@ export const nilSpan: ActiveLifecycleSpanType = {
   inSpan: (name: string, attributes: Attributes, fn: () => any) => fn(),
   inSpanAsync: (name: string, attributes: Attributes, fn: (span?: Span) => any) => fn(undefined),
   inContext: (fn: () => any) => fn(),
+  traceId: "00000"
 };
 
 const componentLifecycleLogger = logsAPI.logs.getLogger("app/component-lifecycle");
@@ -51,6 +53,7 @@ export function wrapAsActiveLifecycleSpan(
   componentAttributes?: Attributes
 ): ActiveLifecycleSpanType {
   return {
+    traceId: componentLifecycleSpans.spanThatWeSendRightAway.spanContext().traceId,
     componentName,
     addLog: (name: string, attributes?: Attributes) => {
       const uniqueID = uuidv4();

@@ -1,17 +1,19 @@
 import React from "react";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
-import { BACKEND_DATASET_NAME, QueryObject, getQueryTemplateLink } from "../../tracing/TracingDestination";
+import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME, QueryObject, getQueryTemplateLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext, HoneycombTeamContextType } from "../HoneycombTeamContext";
 import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
-import { ActiveLifecycleSpanType } from "../../tracing/activeLifecycleSpan";
+import { ActiveLifecycleSpanType, getLinkToCurrentSpan } from "../../tracing/activeLifecycleSpan";
 
-type PleaseLookAtTheData = { questionVisible: false, traceId: string, datasetSlug: string, loading: false };
-const LookedAtTheData = { questionVisible: true, loading: false };
-const FindTheTraceOfInterest = { questionVisible: false, loading: true };
+type PleaseLookAtTheData = { stateName: "pleaseLookAtData", questionVisible: false, traceId: string, datasetSlug: string, loading: false };
+type LookedAtTheData = { stateName: "lookedAtData", questionVisible: true, loading: false };
+const stateLookedAtTheData: LookedAtTheData = { stateName: "lookedAtData", questionVisible: true, loading: false };
+type FindTheTraceOfInterest = { stateName: "findTheTrace", questionVisible: false, loading: true };
+const stateFindTheTraceOfInterest: FindTheTraceOfInterest = { stateName: "findTheTrace", questionVisible: false, loading: true };
 
-type TraceQuestionState = typeof FindTheTraceOfInterest | PleaseLookAtTheData | typeof LookedAtTheData;
+type TraceQuestionState = FindTheTraceOfInterest | PleaseLookAtTheData | LookedAtTheData;
 
 function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   const team = React.useContext(HoneycombTeamContext);
@@ -21,19 +23,20 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   }
 
   const { prefaceText, queryDefinition, datasetSlug, chooseCorrectAnswer, formatAnswer } = props;
-  const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, datasetSlug);
+  const queryLink = getLinkToCurrentSpan(team, activeLifecycleSpan);
 
-  const [state, setState] = useLocalTracedState<TraceQuestionState>(FindTheTraceOfInterest, {
+  const [state, setState] = useLocalTracedState<TraceQuestionState>(stateFindTheTraceOfInterest, {
     componentName: "analyzeTrace",
   });
 
   console.log("Rendering trace question")
   React.useEffect(() => {
     console.log("Attempting to pick a trace")
-    pickATrace(team, activeLifecycleSpan).then((traceId) => {
-      console.log("Trace of interest ", traceId);
-      setState({ questionVisible: false, traceId, datasetSlug: BACKEND_DATASET_NAME, loading: false });
-    })
+    //  pickATrace(team, activeLifecycleSpan).then((traceId) => {
+    //   console.log("Trace of interest ", traceId);
+    const traceId = activeLifecycleSpan.traceId
+    setState({ stateName: "pleaseLookAtData", questionVisible: false, traceId, datasetSlug, loading: false });
+    //  })
     // use the QDAPI to find the trace of interest
   }, []);
 
@@ -45,12 +48,12 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
 
   function lookAtResults() {
     // do not prevent default. It opens a link in a new tab
-    setState(LookedAtTheData);
+    setState(stateLookedAtTheData);
   }
 
-  const questionAndAnswer = state.questionVisible ? (
+  const questionAndAnswer = state.stateName === "pleaseLookAtData" ? (
     <MultipleChoice<T>
-      queryDefinition={queryDefinition}
+      queryDefinition={queryDefinitionFromTrace(state.traceId)}
       dataset={BACKEND_DATASET_NAME}
       formatAnswer={formatAnswer}
       chooseCorrectAnswer={chooseCorrectAnswer}
@@ -109,14 +112,25 @@ export const TheNextQuestionParameters: TraceQuestionParameters<CountTheSpansRes
       How many spans in this trace are called `HTTP POST`?
     </p>
   </>,
-  queryDefinition: { // TODO: define
-    time_range: 0,
+  queryDefinition: { // CANT: need trace id
+    time_range: 7200,
     granularity: 0,
-    calculations: []
+    calculations: [{ op: "COUNT" }],
+    filters: [{ column: "trace.traceId", op: "=", value: "HTTP POST" }],
   },
-  datasetSlug: BACKEND_DATASET_NAME,
+  datasetSlug: HONEYCOMB_DATASET_NAME, //BACKEND_DATASET_NAME,
   chooseCorrectAnswer: (data: Array<CountTheSpansResponse>) => ({} as CountTheSpansResponse)
   , formatAnswer: (row: CountTheSpansResponse) => "Wow look at this amazing choice, definitely"
+}
+
+function queryDefinitionFromTrace(traceId: string) {
+  return {
+    time_range: 7200,
+    granularity: 0,
+    calculations: [{ op: "COUNT" }],
+    filters: [{ column: "trace.traceId", op: "=", value: traceId }],
+    group_by: ["trace.traceId"]
+  }
 }
 
 export type CountTheSpansResponse = {}
