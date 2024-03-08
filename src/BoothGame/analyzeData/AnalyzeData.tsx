@@ -22,10 +22,12 @@ function AnalyzeDataInternal(props: AnalyzeDataProps) {
       id: "data-question-1",
       name: "When was OpenAI the slowest?",
       // parameters are now hard-coded in BoothGame
-    }, {
-      id: "trace-question-2",
-      name: "How many posts are in this trace?",
     }
+    // TODO: wanted to get a single trace for this question, but it's not working
+    // , {
+    //   id: "trace-question-2",
+    //   name: "How many posts are in this trace?",
+    // }
     ])
   }
   return (
