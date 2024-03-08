@@ -1,7 +1,6 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { TrackedStep, } from "../../Tracker/trackedSteps";
-import { TheNextQuestionParameters, whichResponseTookTheLongestQuestionParameters } from "./DataQuestionParameters";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 
 function AnalyzeDataInternal(props: AnalyzeDataProps) {
