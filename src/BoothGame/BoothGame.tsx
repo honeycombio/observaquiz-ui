@@ -23,7 +23,7 @@ import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { TheNextQuestionParameters, TraceQuestion } from "./analyzeData/TraceQuestion";
 
 const HardCodedEvent = {
-  eventName: "Frontrunners JS 2024",
+  eventName: "Observability Day 2024, San Francisco",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
