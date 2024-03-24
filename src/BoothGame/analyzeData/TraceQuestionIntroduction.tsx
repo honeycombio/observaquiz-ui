@@ -21,7 +21,7 @@ function isReadyForQuestion(state: TraceQuestionState): state is ShowTheQuestion
   return state.stateName === "Show the question"
 }
 
-function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
+function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionProps<T>) {
   const team = React.useContext(HoneycombTeamContext);
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   if (!team.populated) { // make typescript happy
@@ -188,11 +188,11 @@ export type TraceQuestionParameters<T> = {
   formatAnswer: (row: T) => string
 };
 
-export type TraceQuestionProps<T> = { moveForward: (result: MultipleChoiceResult) => void } & TraceQuestionParameters<T>;
-export function TraceQuestion<T>(props: TraceQuestionProps<T>) {
+export type TraceQuestionIntroductionProps<T> = { moveForward: (result: MultipleChoiceResult) => void } & TraceQuestionParameters<T>;
+export function TraceQuestionIntroduction<T>(props: TraceQuestionIntroductionProps<T>) {
   return (
     <ComponentLifecycleTracing componentName="analyze-trace">
-      <TraceQuestionInternal {...props} />
+      <TraceQuestionIntroductionInternal {...props} />
     </ComponentLifecycleTracing>
   );
 }
