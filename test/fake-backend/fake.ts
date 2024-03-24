@@ -101,16 +101,28 @@ const QUERY_DATA_BY_NAME: Record<string, object[]> = {
   ],
   "span count by name": [
     {
-      "name": "HTTP POST",
-      "COUNT": 6,
+      "COUNT": 2,
+      "name": "HTTP POST"
     },
     {
-      "name": "George",
-      "COUNT": 3,
+      "COUNT": 2,
+      "name": "HTTP GET"
     },
     {
-      "name": "calculate some stuff",
       "COUNT": 1,
+      "name": "Poll for Honeycomb Query Result"
+    },
+    {
+      "COUNT": 1,
+      "name": "POST /api/queryData"
+    },
+    {
+      "COUNT": 1,
+      "name": "Start Honeycomb Query Run"
+    },
+    {
+      "COUNT": 1,
+      "name": "Create Honeycomb Query"
     }
   ]
 }
