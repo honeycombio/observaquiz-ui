@@ -59,25 +59,61 @@ app.get("/fake-hny-auth", (req, res) => {
 
 app.post("/api/queryData", (req, res) => {
   const body = req.body;
-  var query_data: unknown = [{ name: "spannity span", count: 43 }];
-  if (body.query_name === "Slowest response from LLM") {
-    query_data = [
-      {
-        "app.post_answer.question": "What is your favorite color?",
-        "MAX(duration_ms)": 1005,
-      },
-      {
-        "app.post_answer.question": "Why is this so slow?",
-        "MAX(duration_ms)": 3056,
-      },
-      {
-        "app.post_answer.question": "How much wood would a woodchuck chuck?",
-        "MAX(duration_ms)": 2087,
-      },
-    ];
+  const query_data = QUERY_DATA_BY_NAME[body.query_name];
+  if (!query_data) {
+    res.status(422).send({
+      "error": "I don't have cached results for that query.", "known queries": Object.keys(QUERY_DATA_BY_NAME),
+      "received": body.query_name
+    })
+    return;
   }
   res.send({ query_id: "queryfoo", result_id: "fooresult", error: "", query_data });
 });
+
+const QUERY_DATA_BY_NAME: Record<string, object[]> = {
+  "Slowest response from LLM": [
+    {
+      "app.post_answer.question": "What is your favorite color?",
+      "MAX(duration_ms)": 1005,
+    },
+    {
+      "app.post_answer.question": "Why is this so slow?",
+      "MAX(duration_ms)": 3056,
+    },
+    {
+      "app.post_answer.question": "How much wood would a woodchuck chuck?",
+      "MAX(duration_ms)": 2087,
+    },
+  ],
+  "Trace with the most spans": [
+    {
+      "trace.trace_id": "139085234985134098e7513a",
+      "COUNT": 6,
+    },
+    {
+      "trace.trace_id": "aaaaa5234985134098e7513a",
+      "COUNT": 3,
+    },
+    {
+      "trace.trace_id": "bbbbb5234985134098e7513a",
+      "COUNT": 1,
+    }
+  ],
+  "span count by name": [
+    {
+      "name": "HTTP POST",
+      "COUNT": 6,
+    },
+    {
+      "name": "George",
+      "COUNT": 3,
+    },
+    {
+      "name": "calculate some stuff",
+      "COUNT": 1,
+    }
+  ]
+}
 
 app.listen(4000, () => {
   console.log("http://localhost:4000/");

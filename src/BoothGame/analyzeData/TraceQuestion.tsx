@@ -32,12 +32,11 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   console.log("Rendering trace question")
   React.useEffect(() => {
     console.log("Attempting to pick a trace")
-    //  pickATrace(team, activeLifecycleSpan).then((traceId) => {
-    //   console.log("Trace of interest ", traceId);
-    const traceId = activeLifecycleSpan.traceId
-    setState({ stateName: "pleaseLookAtData", questionVisible: false, traceId, datasetSlug, loading: false });
-    //  })
-    // use the QDAPI to find the trace of interest
+    pickATrace(team, activeLifecycleSpan).then((traceId) => {
+      console.log("Trace of interest ", traceId);
+      setState({ stateName: "pleaseLookAtData", questionVisible: false, traceId, datasetSlug, loading: false });
+      // use the QDAPI to find the trace of interest
+    })
   }, []);
 
   const linkButton = React.useRef<HTMLAnchorElement>(null);
@@ -141,7 +140,8 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
     throw new Error("team not populated, not ok")
   }
   const queryDefinition = {
-    "time_range": 7200,
+    "query_name": "count events by trace ID", // useful for faking
+    "time_range": 7200, // TODO: get this to the beginning of the execution
     "breakdowns": [
       "trace.trace_id"
     ],
@@ -157,7 +157,6 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
         "value": honeycombTeam.execution.executionId
       }
     ],
-    "filter_combination": "AND",
     "orders": [
       {
         "op": "COUNT",
