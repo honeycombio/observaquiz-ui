@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../../tracing/Co
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
-import { QueryObject } from "../../tracing/TracingDestination";
+import { QueryObject, secondsSinceTheExecutionBegan } from "../../tracing/TracingDestination";
 
 const LoadingAnswers = { name: "loading answers" };
 const ErrorLoadingAnswers = { name: "error loading answers" };
@@ -37,8 +37,12 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
       setState(ErrorLoadingAnswers, { reason: "honeycomb team not populated" });
       return;
     }
+    const queryDefinitionSinceBeginningOfExecution = {
+      ...props.queryDefinition,
+      time_range: secondsSinceTheExecutionBegan(honeycombTeam)
+    }
     const queryDataRequestBody = {
-      query: props.queryDefinition,
+      query: queryDefinitionSinceBeginningOfExecution,
       query_name: queryName,
       dataset_slug: props.dataset,
       attendee_api_key: honeycombTeam.auth!.apiKey,
