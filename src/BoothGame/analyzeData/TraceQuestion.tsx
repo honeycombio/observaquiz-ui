@@ -16,7 +16,7 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { prefaceText, queryDefinition, datasetSlug, traceId, scoreAnswer, listAnswers } = props;
+  const { queryDefinition, datasetSlug, traceId, scoreAnswer, listAnswers } = props;
   const traceLink = getTraceLink(team, traceId, datasetSlug);
 
   const [state, setState] = useLocalTracedState<TraceQuestionState>(PleaseLookAtTheData, {
@@ -37,7 +37,7 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   const formatAnswer = () => "six"
   const chooseCorrectAnswer = (a: any[]) => a[0]
 
-const questionAndAnswer = state.questionVisible ? (
+  const questionAndAnswer = state.questionVisible ? (
     <MultipleChoice<T>
       questionText={<>How many spans in this trace are named 'HTTP POST'?</>}
       queryName="span count by name"
@@ -51,7 +51,6 @@ const questionAndAnswer = state.questionVisible ? (
 
   return (
     <div>
-      {prefaceText}
       <a
         id="see-query"
         className="button primary"
@@ -77,7 +76,6 @@ type Score = {
 }
 
 export type TraceQuestionParameters<T> = {
-  prefaceText: React.ReactNode
   traceId: string
   queryDefinition: QueryObject
   datasetSlug: string
