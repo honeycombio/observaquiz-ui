@@ -29,7 +29,7 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { introductoryText, questionPrefaceText, queryDefinition, datasetSlug } = props;
+  const { introductoryText, queryDefinition, datasetSlug } = props;
 
   const [state, setState] = useLocalTracedState<TraceQuestionState>(FindTheTraceOfInterest, {
     componentName: "traceQuestionIntroduction",
@@ -76,13 +76,10 @@ export const TheNextQuestionParameters: TraceQuestionParameters<CountTheSpansRes
       and how long it took.
     </p>
   </>,
-  questionPrefaceText: <p>
-    How many spans in this trace are called `HTTP POST`?
-  </p>,
   queryDefinition: (traceId: string) => ({
     granularity: 0,
     calculations: [{ op: "COUNT" }],
-    filters: [{ column: "trace.traceId", op: "=", value: traceId }],
+    filters: [{ column: "trace.trace_id", op: "=", value: traceId }],
     breakdowns: ["name"]
   }),
   datasetSlug: BACKEND_DATASET_NAME,
@@ -205,7 +202,6 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
 
 export type TraceQuestionParameters<T> = {
   introductoryText: React.ReactNode
-  questionPrefaceText: React.ReactNode
   queryDefinition: (traceId: string) => QueryObject
   datasetSlug: string
   interpretData: (data: T[]) => WhatMultipleChoiceNeedsToKnow;

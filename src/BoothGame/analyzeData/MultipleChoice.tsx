@@ -66,28 +66,18 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
     }).then((json) => {
       console.log("Answers retrieved", json);
       const queryDataReturned = json as QueryDataResult<ParticularQueryData>;
-      if (queryDataReturned.error) {
-        activeLifecycleSpan.addError(
-          "error fetching answers",
-          new Error("failed to fetch query data: " + queryDataReturned.error)
-        );
-        setState(ErrorLoadingAnswers);
-      } else {
-        if (!queryDataReturned.query_data) {
-          activeLifecycleSpan.addError(
-            "no answers fetched",
-            new Error("what even is in here: " + JSON.stringify(queryDataReturned))
-          );
-          setState(ErrorLoadingAnswers);
-        }
-        setState(haveQueryData(queryDataReturned.query_data as ParticularQueryData[]), {
-          eventName: "have answers",
-          attributes: {
-            // here's a way they can cheat, they can go look at the trace. That takes enough in-Honeycomb work that I'm OK with it
-            "app.multipleChoice.query_data": JSON.stringify(queryDataReturned.query_data),
-          },
-        });
-      }
+      if (queryDataReturned.error) { throw new Error("failed to fetch query data: " + queryDataReturned.error) }
+      if (!queryDataReturned.query_data) { throw new Error("No query data is here") }
+
+      setState(haveQueryData(queryDataReturned.query_data as ParticularQueryData[]), {
+        eventName: "have answers",
+        attributes: {
+          "app.multipleChoice.query_data": JSON.stringify(queryDataReturned.query_data),
+        },
+      });
+    }).catch((e: Error) => {
+      activeLifecycleSpan.addError("error fetching answers", e);
+      setState(ErrorLoadingAnswers);
     });
   }, []);
 
