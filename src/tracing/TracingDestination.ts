@@ -74,6 +74,24 @@ export function getQueryTemplateLink(
   return `${getUrlToDataset(team, dataset)}?query=${querystring}`;
 }
 
+export function getTraceLink(
+  tracingTeam: TracingTeam,
+  traceId: string,
+  dataset: string = HONEYCOMB_DATASET_NAME
+) {
+  const startTime = Math.floor(tracingTeam.execution.startTime); // decimals get us a 404
+  const rightNow = Math.floor(Date.now() / 1000);
+  return (
+    getUrlToDataset(tracingTeam.auth!, dataset) +
+    "/trace?trace_id=" +
+    traceId +
+    "&trace_start_ts=" +
+    (startTime - 60) +
+    "&trace_end_ts=" +
+    (rightNow + 60)
+  );
+}
+
 // This does not describe the full of possibilities but it'll do for now
 type Calculation = {
   op: string;

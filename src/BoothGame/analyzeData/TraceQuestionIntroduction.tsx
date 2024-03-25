@@ -7,6 +7,7 @@ import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
 import { ActiveLifecycleSpanType, getLinkToCurrentSpan } from "../../tracing/activeLifecycleSpan";
 import { DataQuestion } from "./DataQuestion";
+import { TraceQuestion } from "./TraceQuestion";
 
 type TraceOfInterestData = {
   traceId: string,
@@ -31,7 +32,7 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
   const { introductoryText, questionPrefaceText, queryDefinition, datasetSlug, chooseCorrectAnswer, formatAnswer } = props;
 
   const [state, setState] = useLocalTracedState<TraceQuestionState>(FindTheTraceOfInterest, {
-    componentName: "analyzeTrace",
+    componentName: "traceQuestionIntroduction",
   });
 
   console.log("Rendering trace question")
@@ -46,12 +47,13 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
 
 
   const questionAndAnswer = isReadyForQuestion(state) ? (
-    <DataQuestion<T>
+    <TraceQuestion<T>
       prefaceText={questionPrefaceText}
       queryDefinition={queryDefinition(state.traceId)}
+      traceId={state.traceId}
       datasetSlug={state.datasetSlug}
-      formatAnswer={formatAnswer}
-      chooseCorrectAnswer={chooseCorrectAnswer}
+      listAnswers={formatAnswer as any} // not implemented
+      scoreAnswer={chooseCorrectAnswer as any} // not implemented
       moveForward={props.moveForward}
     />
   ) : null;
@@ -188,10 +190,11 @@ export type TraceQuestionParameters<T> = {
   formatAnswer: (row: T) => string
 };
 
+
 export type TraceQuestionIntroductionProps<T> = { moveForward: (result: MultipleChoiceResult) => void } & TraceQuestionParameters<T>;
 export function TraceQuestionIntroduction<T>(props: TraceQuestionIntroductionProps<T>) {
   return (
-    <ComponentLifecycleTracing componentName="analyze-trace">
+    <ComponentLifecycleTracing componentName="traceQuestionIntroduction">
       <TraceQuestionIntroductionInternal {...props} />
     </ComponentLifecycleTracing>
   );
