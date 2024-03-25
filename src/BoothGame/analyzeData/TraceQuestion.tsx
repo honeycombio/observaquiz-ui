@@ -37,8 +37,10 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   const formatAnswer = () => "six"
   const chooseCorrectAnswer = (a: any[]) => a[0]
 
-  const questionAndAnswer = state.questionVisible ? (
+const questionAndAnswer = state.questionVisible ? (
     <MultipleChoice<T>
+      questionText={<>How many spans in this trace are named 'HTTP POST'?</>}
+      queryName="span count by name"
       queryDefinition={queryDefinition}
       dataset={BACKEND_DATASET_NAME}
       formatAnswer={formatAnswer}
@@ -65,11 +67,10 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   );
 }
 
-type Answer = {
-  display: string,
-  id: string
-}
-
+type AnswerOption = {
+  key: string;
+  text: string;
+};
 type Score = {
   score: number,
   remark: string
@@ -80,8 +81,8 @@ export type TraceQuestionParameters<T> = {
   traceId: string
   queryDefinition: QueryObject
   datasetSlug: string
-  scoreAnswer: (answer: Answer) => Score
-  listAnswers: (data: Array<T>) => Answer
+  scoreAnswer: (answer: AnswerOption) => Score
+  listAnswers: (data: Array<T>) => AnswerOption
 };
 
 export type TraceQuestionProps<T> = { moveForward: (result: MultipleChoiceResult) => void } & TraceQuestionParameters<T>;

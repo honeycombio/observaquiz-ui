@@ -26,6 +26,7 @@ type QueryDataResult<ParticularQueryData> = {
 function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const honeycombTeam = React.useContext(HoneycombTeamContext);
+  const { queryName } = props;
 
   const [state, setState] = useLocalTracedState<MultipleChoiceOuterState<ParticularQueryData>>(LoadingAnswers, {
     componentName: "MultipleChoiceFetcher",
@@ -38,7 +39,7 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
     }
     const queryDataRequestBody = {
       query: props.queryDefinition,
-      query_name: "Slowest response from LLM", // TODO: parameter
+      query_name: queryName,
       dataset_slug: props.dataset,
       attendee_api_key: honeycombTeam.auth!.apiKey,
     };
@@ -107,6 +108,7 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
 }
 
 type MultipleChoiceInternalProps<ParticularQueryData> = {
+  questionText: React.ReactNode
   queryRows: ParticularQueryData[];
   chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
   formatAnswer: (row: ParticularQueryData) => string;
@@ -165,8 +167,6 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
       })),
     [props.queryRows, props.formatAnswer]
   );
-
-  const questionText = "Which question led to the slowest response?";
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const currentAnswer = answers.find((a) => a.key === event.target.value);
@@ -233,7 +233,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
   const whatToDoNext = state.button === "Submit" ? submitAnswer : proceeeeed;
   return (
     <div id="multiple-choice">
-      <p className="question-text">{questionText}</p>
+      <p className="question-text">{props.questionText}</p>
       <ul>{answers.map(radioButtonFromData)}</ul>
       <p>{result}</p>
       <p>
@@ -251,7 +251,9 @@ export type MultipleChoiceResult = { score: number };
 
 // TODO: make a happy type to represent a query. ChatGPT makes this fast
 type MultipleChoiceProps<ParticularQueryData> = {
+  questionText: React.ReactNode
   queryDefinition: QueryObject;
+  queryName: string;
   dataset: string;
   chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
   formatAnswer: (row: ParticularQueryData) => string;

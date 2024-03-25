@@ -37,7 +37,9 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
 
   const questionAndAnswer = state.questionVisible ? (
     <MultipleChoice<T>
+      questionText={<>Which question led to the slowest response?</>}
       queryDefinition={queryDefinition}
+      queryName="Slowest response from LLM"
       dataset={BACKEND_DATASET_NAME}
       formatAnswer={formatAnswer}
       chooseCorrectAnswer={chooseCorrectAnswer}
