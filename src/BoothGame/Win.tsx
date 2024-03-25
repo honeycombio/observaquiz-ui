@@ -24,12 +24,12 @@ function WinInternal(props: WinProps) {
 
   return (
     <div>
-      <h1>You win!</h1>
+      <h1>Success!</h1>
       <p>
         Congratulations on completing the Observaquiz!
       </p>
       <p className="score-report">Your score is: {props.score}</p>
-      <p>Come by the Honeycomb booth to see the leaderboard and collect your prize!</p>
+      <p>Come by the Observaquiz station to see the leaderboard!</p>
     </div>
   );
 }
