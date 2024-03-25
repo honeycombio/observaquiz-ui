@@ -48,7 +48,7 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
 
   const questionAndAnswer = isReadyForQuestion(state) ? (
     <TraceQuestion<T>
-      queryDefinition={queryDefinition(team, state.traceId)}
+      queryDefinition={queryDefinition(state.traceId)}
       traceId={state.traceId}
       datasetSlug={state.datasetSlug}
       interpretData={props.interpretData}
@@ -79,8 +79,7 @@ export const TheNextQuestionParameters: TraceQuestionParameters<CountTheSpansRes
   questionPrefaceText: <p>
     How many spans in this trace are called `HTTP POST`?
   </p>,
-  queryDefinition: (team: TracingTeam, traceId: string) => ({
-    time_range: secondsSinceTheExecutionBegan(team), // TODO: use start of execution ID 
+  queryDefinition: (traceId: string) => ({
     granularity: 0,
     calculations: [{ op: "COUNT" }],
     filters: [{ column: "trace.traceId", op: "=", value: traceId }],
@@ -124,7 +123,7 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
   }
   const queryDefinition = {
     "query_name": "count events by trace ID", // useful for faking
-    "time_range": secondsSinceTheExecutionBegan(honeycombTeam), // TODO: get this to the beginning of the execution
+    "time_range": secondsSinceTheExecutionBegan(honeycombTeam),
     "breakdowns": [
       "trace.trace_id"
     ],
@@ -207,7 +206,7 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
 export type TraceQuestionParameters<T> = {
   introductoryText: React.ReactNode
   questionPrefaceText: React.ReactNode
-  queryDefinition: (team: TracingTeam, traceId: string) => QueryObject
+  queryDefinition: (traceId: string) => QueryObject
   datasetSlug: string
   interpretData: (data: T[]) => WhatMultipleChoiceNeedsToKnow;
 };

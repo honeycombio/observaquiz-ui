@@ -117,7 +117,7 @@ type Order = {
 };
 
 export type QueryObject = {
-  time_range: number;
+  time_range?: number;
   granularity: number;
   breakdowns?: string[];
   calculations: Calculation[];
