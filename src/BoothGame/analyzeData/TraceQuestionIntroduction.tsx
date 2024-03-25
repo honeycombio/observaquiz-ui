@@ -124,7 +124,7 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
   }
   const queryDefinition = {
     "query_name": "count events by trace ID", // useful for faking
-    "time_range": 7200, // TODO: get this to the beginning of the execution
+    "time_range": secondsSinceTheExecutionBegan(honeycombTeam), // TODO: get this to the beginning of the execution
     "breakdowns": [
       "trace.trace_id"
     ],
