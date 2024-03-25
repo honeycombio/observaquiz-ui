@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTraci
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, QueryObject, getTraceLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
-import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
+import { MultipleChoice, MultipleChoiceResult, WhatMultipleChoiceNeedsToKnow } from "./MultipleChoice";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
@@ -16,7 +16,7 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { queryDefinition, datasetSlug, traceId, scoreAnswer, listAnswers } = props;
+  const { queryDefinition, datasetSlug, traceId } = props;
   const traceLink = getTraceLink(team, traceId, datasetSlug);
 
   const [state, setState] = useLocalTracedState<TraceQuestionState>(PleaseLookAtTheData, {
@@ -34,8 +34,6 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
     setState(LookedAtTheData);
   }
 
-  const formatAnswer = () => "six"
-  const chooseCorrectAnswer = (a: any[]) => a[0]
 
   const questionAndAnswer = state.questionVisible ? (
     <MultipleChoice<T>
@@ -43,8 +41,7 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
       queryName="span count by name"
       queryDefinition={queryDefinition}
       dataset={BACKEND_DATASET_NAME}
-      formatAnswer={formatAnswer}
-      chooseCorrectAnswer={chooseCorrectAnswer}
+      interpretData={props.interpretData}
       moveOn={props.moveForward}
     />
   ) : null;
@@ -79,8 +76,7 @@ export type TraceQuestionParameters<T> = {
   traceId: string
   queryDefinition: QueryObject
   datasetSlug: string
-  scoreAnswer: (answer: AnswerOption) => Score
-  listAnswers: (data: Array<T>) => AnswerOption
+  interpretData: (data: T[]) => WhatMultipleChoiceNeedsToKnow;
 };
 
 export type TraceQuestionProps<T> = { moveForward: (result: MultipleChoiceResult) => void } & TraceQuestionParameters<T>;

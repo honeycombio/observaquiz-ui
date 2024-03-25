@@ -1,12 +1,12 @@
 import React from "react";
 import { BACKEND_DATASET_NAME, ExecutionId, QueryObject } from "../../tracing/TracingDestination";
+import { WhatMultipleChoiceNeedsToKnow } from "./MultipleChoice";
 
 export type DataQuestionParameters<T> = {
     prefaceText: React.ReactNode
     queryDefinition: QueryObject
     datasetSlug: string
-    chooseCorrectAnswer: (data: Array<T>) => T
-    formatAnswer: (row: T) => string
+    interpretData: (data: T[]) => WhatMultipleChoiceNeedsToKnow;
 };
 // Data Question 1
 export const whichResponseTookTheLongestQuestionParameters = (execution_id: ExecutionId) => ({
@@ -21,9 +21,26 @@ export const whichResponseTookTheLongestQuestionParameters = (execution_id: Exec
     ,
     queryDefinition: queryForLongestLLMResponse(execution_id),
     datasetSlug: BACKEND_DATASET_NAME,
-    chooseCorrectAnswer,
-    formatAnswer
+    interpretData
 });
+
+function interpretData(data: DataFromLongestLLMResponse[]): WhatMultipleChoiceNeedsToKnow {
+    const correctAnswer = chooseCorrectAnswer(data);
+    return {
+        answers: data.map((d, i) => ({ key: "answer " + i, text: formatAnswer(d) })),
+        scoreAnswer: (answer) => {
+            const theirAnswerText = answer.text;
+            const correctAnswerText = formatAnswer(correctAnswer);
+            const theirAnswerDuration = data.find(d => d["app.post_answer.question"] === theirAnswerText)!["MAX(duration_ms)"];
+            const correctAnswerDuration = correctAnswer["MAX(duration_ms)"];
+            if (correctAnswerText === theirAnswerText) {
+                return { points: 300, remark: "Right!! 300 points." }
+            } else {
+                return { points: 0, remark: `I disagree. "${theirAnswerText}" took ${theirAnswerDuration}ms to answer, while "${correctAnswerText}" took ${correctAnswerDuration}ms.` }
+            }
+        }
+    }
+}
 
 function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromLongestLLMResponse {
     const maxDuration = Math.max(...data.map((row) => row["MAX(duration_ms)"] as number));

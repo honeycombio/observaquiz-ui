@@ -79,10 +79,6 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
           attributes: {
             // here's a way they can cheat, they can go look at the trace. That takes enough in-Honeycomb work that I'm OK with it
             "app.multipleChoice.query_data": JSON.stringify(queryDataReturned.query_data),
-            "app.multipleChoice.answers": queryDataReturned.query_data.map(props.formatAnswer),
-            "app.multipleChoice.rightAnswer": props.formatAnswer(
-              props.chooseCorrectAnswer(queryDataReturned.query_data)
-            ),
           },
         });
       }
@@ -104,21 +100,26 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
     );
   }
 
-  return <MultipleChoiceInternal {...props} queryRows={(state as HaveQueryData<ParticularQueryData>).queryRows} />;
+  const queryRows = (state as HaveQueryData<ParticularQueryData>).queryRows
+  return <MultipleChoiceInternal {...props} {...props.interpretData(queryRows)} />;
 }
 
-type MultipleChoiceInternalProps<ParticularQueryData> = {
+type MultipleChoiceInternalProps = {
   questionText: React.ReactNode
-  queryRows: ParticularQueryData[];
-  chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
-  formatAnswer: (row: ParticularQueryData) => string;
+  answers: AnswerOption[],
+  scoreAnswer: (a: AnswerOption) => Score
   moveOn: (result: MultipleChoiceResult) => void;
 };
 
-type AnswerOption = {
+export type AnswerOption = {
   key: string;
   text: string;
 };
+
+export type Score = {
+  points: number,
+  remark: string
+}
 
 function shuffle<T>(unshuffled: T[]) {
   return unshuffled
@@ -144,7 +145,7 @@ type PickedOne = {
 type DeliverVerdict = {
   name: "deliver verdict";
   answer: AnswerOption;
-  correct: boolean;
+  score: Score;
   button: "Proceed";
   buttonEnabled: true;
   radioButtonsEnabled: false;
@@ -152,7 +153,7 @@ type DeliverVerdict = {
 
 type MultipleChoiceInternalState = typeof NoAnswerPicked | PickedOne | DeliverVerdict;
 
-function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceInternalProps<ParticularQueryData>) {
+function MultipleChoiceInternal(props: MultipleChoiceInternalProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const [state, setState] = useLocalTracedState<MultipleChoiceInternalState>(NoAnswerPicked, {
     componentName: "MultipleChoiceDisplay",
@@ -161,11 +162,8 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
   // the nondeterminism of this means that I want to calculate it exactly once
   const answers = React.useMemo(
     () =>
-      shuffle([...new Set(props.queryRows.map(props.formatAnswer))]).map((answer, index) => ({
-        text: answer,
-        key: "answer" + index,
-      })),
-    [props.queryRows, props.formatAnswer]
+      shuffle(props.answers),
+    [props.answers]
   );
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,13 +181,13 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
   };
 
   const submitAnswer = (event: React.MouseEvent) => {
-    const correct = props.formatAnswer(props.chooseCorrectAnswer(props.queryRows)) === (state as PickedOne).answer.text;
+    const score = props.scoreAnswer((state as PickedOne).answer);
     event.preventDefault();
     setState(
       {
         name: "deliver verdict",
         answer: (state as PickedOne).answer,
-        correct,
+        score,
         button: "Proceed",
         buttonEnabled: true,
         radioButtonsEnabled: false,
@@ -200,9 +198,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
 
   const result =
     state.name === "deliver verdict"
-      ? (state as DeliverVerdict).correct
-        ? "Right!!! 300 points!"
-        : "Hmm, I disagree. 0 points"
+      ? (state as DeliverVerdict).score.remark
       : "";
 
   function radioButtonFromData(row: AnswerOption, index: number) {
@@ -227,7 +223,7 @@ function MultipleChoiceInternal<ParticularQueryData>(props: MultipleChoiceIntern
 
   function proceeeeed(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     activeLifecycleSpan.addLog("move on");
-    props.moveOn({ score: (state as DeliverVerdict).correct ? 300 : 0 });
+    props.moveOn({ score: (state as DeliverVerdict).score.points });
   }
 
   const whatToDoNext = state.button === "Submit" ? submitAnswer : proceeeeed;
@@ -249,14 +245,18 @@ export type OverviewRowFromQuery = Record<string, string | number>;
 
 export type MultipleChoiceResult = { score: number };
 
+export type WhatMultipleChoiceNeedsToKnow = {
+  answers: AnswerOption[],
+  scoreAnswer: (a: AnswerOption) => Score
+}
+
 // TODO: make a happy type to represent a query. ChatGPT makes this fast
 type MultipleChoiceProps<ParticularQueryData> = {
   questionText: React.ReactNode
   queryDefinition: QueryObject;
   queryName: string;
   dataset: string;
-  chooseCorrectAnswer: (data: ParticularQueryData[]) => ParticularQueryData;
-  formatAnswer: (row: ParticularQueryData) => string;
+  interpretData: (data: ParticularQueryData[]) => WhatMultipleChoiceNeedsToKnow;
   moveOn: (result: MultipleChoiceResult) => void;
 };
 export function MultipleChoice<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {

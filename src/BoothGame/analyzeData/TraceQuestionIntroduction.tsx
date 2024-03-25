@@ -3,7 +3,7 @@ import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/Co
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME, QueryObject } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext, HoneycombTeamContextType } from "../HoneycombTeamContext";
-import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
+import { AnswerOption, MultipleChoice, MultipleChoiceResult, Score, WhatMultipleChoiceNeedsToKnow } from "./MultipleChoice";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
 import { ActiveLifecycleSpanType, getLinkToCurrentSpan } from "../../tracing/activeLifecycleSpan";
 import { DataQuestion } from "./DataQuestion";
@@ -29,7 +29,7 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { introductoryText, questionPrefaceText, queryDefinition, datasetSlug, chooseCorrectAnswer, formatAnswer } = props;
+  const { introductoryText, questionPrefaceText, queryDefinition, datasetSlug } = props;
 
   const [state, setState] = useLocalTracedState<TraceQuestionState>(FindTheTraceOfInterest, {
     componentName: "traceQuestionIntroduction",
@@ -48,12 +48,10 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
 
   const questionAndAnswer = isReadyForQuestion(state) ? (
     <TraceQuestion<T>
-      prefaceText={questionPrefaceText}
       queryDefinition={queryDefinition(state.traceId)}
       traceId={state.traceId}
       datasetSlug={state.datasetSlug}
-      listAnswers={formatAnswer as any} // not implemented
-      scoreAnswer={chooseCorrectAnswer as any} // not implemented
+      interpretData={props.interpretData}
       moveForward={props.moveForward}
     />
   ) : null;
@@ -89,11 +87,34 @@ export const TheNextQuestionParameters: TraceQuestionParameters<CountTheSpansRes
     breakdowns: ["name"]
   }),
   datasetSlug: BACKEND_DATASET_NAME,
-  chooseCorrectAnswer: (data: Array<CountTheSpansResponse>) => ({} as CountTheSpansResponse)
-  , formatAnswer: (row: CountTheSpansResponse) => "Wow look at this amazing choice, definitely"
+  interpretData: dealWithData
 }
 
-export type CountTheSpansResponse = {}
+
+/*
+    {
+      "COUNT": 2,
+      "name": "HTTP POST"
+    },
+    */
+type CountTheSpansResponse = {
+  "COUNT": number;
+  "name": string;
+}
+
+function dealWithData(data: CountTheSpansResponse[]): WhatMultipleChoiceNeedsToKnow {
+  const howManyHttpPosts: CountTheSpansResponse | undefined = data.find((a: CountTheSpansResponse) => a.name === "HTTP POST")
+  const correctNumber = howManyHttpPosts ? howManyHttpPosts.COUNT : 0;
+  const someNumbers: number[] = [...new Set([0, 1, 3, 6, correctNumber])].sort();
+  return {
+    answers: someNumbers.map(n => ({ key: "" + n, text: "" + n })),
+    scoreAnswer: (a) => {
+      return a.key === "" + correctNumber ? { points: 300, remark: "Correct!! 300 points." } : { points: 0, remark: "Hmm, I saw " + correctNumber }
+    }
+  }
+}
+
+
 
 function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan: ActiveLifecycleSpanType) {
   if (!honeycombTeam.populated) {
@@ -186,8 +207,7 @@ export type TraceQuestionParameters<T> = {
   questionPrefaceText: React.ReactNode
   queryDefinition: (traceId: string) => QueryObject
   datasetSlug: string
-  chooseCorrectAnswer: (data: Array<T>) => T
-  formatAnswer: (row: T) => string
+  interpretData: (data: T[]) => WhatMultipleChoiceNeedsToKnow;
 };
 
 

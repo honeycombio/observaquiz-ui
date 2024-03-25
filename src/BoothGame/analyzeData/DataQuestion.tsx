@@ -17,7 +17,7 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { prefaceText, queryDefinition, datasetSlug, chooseCorrectAnswer, formatAnswer } = props;
+  const { prefaceText, queryDefinition, datasetSlug, interpretData } = props;
   const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, datasetSlug);
 
   const [state, setState] = useLocalTracedState<DataQuestionState>(PleaseLookAtTheData, {
@@ -41,9 +41,8 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
       queryDefinition={queryDefinition}
       queryName="Slowest response from LLM"
       dataset={BACKEND_DATASET_NAME}
-      formatAnswer={formatAnswer}
-      chooseCorrectAnswer={chooseCorrectAnswer}
       moveOn={props.moveForward}
+      interpretData={props.interpretData}
     />
   ) : null;
 
