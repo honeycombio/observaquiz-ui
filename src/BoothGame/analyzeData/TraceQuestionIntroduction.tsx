@@ -109,7 +109,9 @@ function dealWithData(data: CountTheSpansResponse[]): WhatMultipleChoiceNeedsToK
   return {
     answers: someNumbers.map(n => ({ key: "" + n, text: "" + n })),
     scoreAnswer: (a) => {
-      return a.key === "" + correctNumber ? { points: 300, remark: "Correct!! 300 points." } : { points: 0, remark: "Hmm, I saw " + correctNumber }
+      return a.key === "" + correctNumber ?
+        { points: 300, remark: "Correct!! 300 points." } :
+        { points: 0, remark: "Hmm, I saw " + correctNumber + ". 0 points" }
     }
   }
 }

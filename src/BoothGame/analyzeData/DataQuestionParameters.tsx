@@ -27,7 +27,7 @@ export const whichResponseTookTheLongestQuestionParameters = (execution_id: Exec
 function interpretData(data: DataFromLongestLLMResponse[]): WhatMultipleChoiceNeedsToKnow {
     const correctAnswer = chooseCorrectAnswer(data);
     return {
-        answers: data.map((d, i) => ({ key: "answer " + i, text: formatAnswer(d) })),
+        answers: shuffle(data.map((d, i) => ({ key: "answer " + i, text: formatAnswer(d) }))),
         scoreAnswer: (answer) => {
             const theirAnswerText = answer.text;
             const correctAnswerText = formatAnswer(correctAnswer);
@@ -51,6 +51,13 @@ function chooseCorrectAnswer(data: Array<DataFromLongestLLMResponse>): DataFromL
 
 function formatAnswer(row: DataFromLongestLLMResponse): string {
     return row["app.post_answer.question"];
+}
+
+function shuffle<T>(unshuffled: T[]) {
+    return unshuffled
+        .map((value) => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
 }
 
 export type DataFromLongestLLMResponse = {

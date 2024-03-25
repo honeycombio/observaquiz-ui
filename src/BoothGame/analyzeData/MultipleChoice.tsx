@@ -121,13 +121,6 @@ export type Score = {
   remark: string
 }
 
-function shuffle<T>(unshuffled: T[]) {
-  return unshuffled
-    .map((value) => ({ value, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ value }) => value);
-}
-
 const NoAnswerPicked = {
   name: "no answer picked",
   answer: undefined,
@@ -159,12 +152,7 @@ function MultipleChoiceInternal(props: MultipleChoiceInternalProps) {
     componentName: "MultipleChoiceDisplay",
   });
 
-  // the nondeterminism of this means that I want to calculate it exactly once
-  const answers = React.useMemo(
-    () =>
-      shuffle(props.answers),
-    [props.answers]
-  );
+  const answers = props.answers
 
   const handleSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const currentAnswer = answers.find((a) => a.key === event.target.value);
