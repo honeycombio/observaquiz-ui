@@ -37,9 +37,11 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
       setState(ErrorLoadingAnswers, { reason: "honeycomb team not populated" });
       return;
     }
+    const howLongToGoBack = secondsSinceTheExecutionBegan(honeycombTeam)
+    activeLifecycleSpan.setAttributes({ "app.queryData.how_long_to_go_back": howLongToGoBack });
     const queryDefinitionSinceBeginningOfExecution = {
       ...props.queryDefinition,
-      time_range: secondsSinceTheExecutionBegan(honeycombTeam)
+      time_range: howLongToGoBack
     }
     const queryDataRequestBody = {
       query: queryDefinitionSinceBeginningOfExecution,
