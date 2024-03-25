@@ -1,7 +1,7 @@
 import React from "react";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
-import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME, QueryObject } from "../../tracing/TracingDestination";
+import { BACKEND_DATASET_NAME, HONEYCOMB_DATASET_NAME, QueryObject, TracingTeam, secondsSinceTheExecutionBegan } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext, HoneycombTeamContextType } from "../HoneycombTeamContext";
 import { AnswerOption, MultipleChoice, MultipleChoiceResult, Score, WhatMultipleChoiceNeedsToKnow } from "./MultipleChoice";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
@@ -48,7 +48,7 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
 
   const questionAndAnswer = isReadyForQuestion(state) ? (
     <TraceQuestion<T>
-      queryDefinition={queryDefinition(state.traceId)}
+      queryDefinition={queryDefinition(team, state.traceId)}
       traceId={state.traceId}
       datasetSlug={state.datasetSlug}
       interpretData={props.interpretData}
@@ -79,8 +79,8 @@ export const TheNextQuestionParameters: TraceQuestionParameters<CountTheSpansRes
   questionPrefaceText: <p>
     How many spans in this trace are called `HTTP POST`?
   </p>,
-  queryDefinition: (traceId: string) => ({
-    time_range: 7200, // TODO: use start of execution ID 
+  queryDefinition: (team: TracingTeam, traceId: string) => ({
+    time_range: secondsSinceTheExecutionBegan(team), // TODO: use start of execution ID 
     granularity: 0,
     calculations: [{ op: "COUNT" }],
     filters: [{ column: "trace.traceId", op: "=", value: traceId }],
@@ -207,7 +207,7 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
 export type TraceQuestionParameters<T> = {
   introductoryText: React.ReactNode
   questionPrefaceText: React.ReactNode
-  queryDefinition: (traceId: string) => QueryObject
+  queryDefinition: (team: TracingTeam, traceId: string) => QueryObject
   datasetSlug: string
   interpretData: (data: T[]) => WhatMultipleChoiceNeedsToKnow;
 };

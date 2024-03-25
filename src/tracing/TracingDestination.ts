@@ -74,6 +74,12 @@ export function getQueryTemplateLink(
   return `${getUrlToDataset(team, dataset)}?query=${querystring}`;
 }
 
+export function secondsSinceTheExecutionBegan(team: TracingTeam) {
+  const startTime = Math.floor(team.execution.startTime); // decimals get us a 404
+  const rightNow = Math.floor(Date.now() / 1000);
+  return rightNow - startTime;
+}
+
 export function getTraceLink(
   tracingTeam: TracingTeam,
   traceId: string,
