@@ -221,7 +221,6 @@ function TextQuestionInternal(props: QuestionProps) {
   };
 
   const opinionButtons = <>
-    Opinionate Here:
     {opinions.map((option, i) =>
       <label>
         <input
