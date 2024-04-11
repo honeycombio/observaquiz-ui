@@ -17,7 +17,7 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
     throw new Error("Honeycomb team not populated, not ok");
   }
 
-  const { prefaceText, queryDefinition, datasetSlug, interpretData } = props;
+  const { prefaceText, queryDefinition, datasetSlug } = props;
   const queryLink = getQueryTemplateLink(team.auth!, queryDefinition, datasetSlug);
 
   const [state, setState] = useLocalTracedState<DataQuestionState>(PleaseLookAtTheData, {

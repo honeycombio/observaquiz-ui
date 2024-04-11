@@ -14,7 +14,7 @@ import {
   findCurrentStep,
 } from "../Tracker/trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
-import { Question } from "./Question";
+import { TextQuestion } from "./TextQuestion";
 import { Win } from "./Win";
 import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKey";
 import { DataQuestion } from "./analyzeData/DataQuestion";
@@ -101,7 +101,7 @@ function BoothGameInternal(props: BoothGameProps) {
     case "question-3":
       const questionParameters = currentStep.parameters! as QuestionParameters;
       content = (
-        <Question
+        <TextQuestion
           key={questionParameters.questionNumber}
           questionNumber={questionParameters.questionNumber}
           questionId={questionParameters.questionId}

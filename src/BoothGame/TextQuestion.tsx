@@ -56,7 +56,7 @@ type QuestionState =
   | typeof ShowingResponse
   | typeof ErrorState;
 
-function QuestionInternal(props: QuestionProps) {
+function TextQuestionInternal(props: QuestionProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const honeycombTeam = React.useContext(HoneycombTeamContext);
   const { questionText, questionId } = props;
@@ -158,19 +158,19 @@ function QuestionInternal(props: QuestionProps) {
     state.nextStep === "submit answer"
       ? submitAnswer
       : state.nextStep === "next question"
-      ? nextQuestion
-      : state.nextStep === "cancel"
-      ? cancel
-      : () => console.log("Mystery button"); // this should never happen
+        ? nextQuestion
+        : state.nextStep === "cancel"
+          ? cancel
+          : () => console.log("Mystery button"); // this should never happen
 
   var buttonText =
     state.nextStep === "submit answer"
       ? "Submit"
       : state.nextStep === "next question"
-      ? "Next Question"
-      : state.nextStep === "cancel"
-      ? "Cancel"
-      : "Mystery Button";
+        ? "Next Question"
+        : state.nextStep === "cancel"
+          ? "Cancel"
+          : "Mystery Button";
 
   var lessExcitingButton: React.ReactNode = undefined;
   switch (state.alternativeNextStep) {
@@ -239,7 +239,7 @@ export type QuestionResult = {
 };
 
 // this displays a question, receives an answer, and then provides a response.
-export function Question(props: QuestionProps) {
+export function TextQuestion(props: QuestionProps) {
   return (
     <ComponentLifecycleTracing
       componentName="question"
@@ -247,7 +247,7 @@ export function Question(props: QuestionProps) {
       attributesForAllChildren={{ "app.question.text": props.questionText }}
       attributes={{ "app.question.id": props.questionId, "app.question.number": props.questionNumber }}
     >
-      <QuestionInternal {...props} />
+      <TextQuestionInternal {...props} />
     </ComponentLifecycleTracing>
   );
 }
