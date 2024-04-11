@@ -155,6 +155,7 @@ function TextQuestionInternal(props: QuestionProps) {
     activeLifecycleSpan;
     fetchResponseToAnswer(activeLifecycleSpan, honeycombTeam, { questionId, questionText, answerContent }).then(
       (response) => {
+        // TODO: also get the DeepChecks ID of the response, so we can report the opinion.
         if (response.status === "failure") {
           setResponse(response.error || "it didn't even give me an error");
           setState(ErrorState, { reason: "failed to fetch response" });
@@ -171,6 +172,7 @@ function TextQuestionInternal(props: QuestionProps) {
 
   function nextQuestion(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
+    // TODO: report the opinion
     activeLifecycleSpan.withLog("next question", {}, () =>
       // no need to change state, this component will be replaced
       props.moveForward({ score: highScore })
