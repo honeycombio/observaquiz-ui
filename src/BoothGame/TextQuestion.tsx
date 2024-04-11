@@ -69,6 +69,14 @@ const ErrorState = {
   focusOn: "button",
 };
 
+type OpinionOption = "meh" | "yeah" | "whoa"
+
+const opinions: Array<{ value: OpinionOption, label: string }> = [
+  { value: "meh", label: "Meh" },
+  { value: "yeah", label: "Sure, OK" },
+  { value: "whoa", label: "I didn't know that" }
+]
+
 type QuestionState =
   | typeof NoAnswerYet
   | typeof Answering
@@ -83,6 +91,7 @@ function TextQuestionInternal(props: QuestionProps) {
   const { questionText, questionId } = props;
 
   const [answerContent, setAnswerContent] = React.useState<string>("");
+  const [opinion, setOpinion] = useLocalTracedState<OpinionOption | null>(null);
   const [response, setResponse] = React.useState<string | undefined>(undefined);
   const [highScore, setHighScore] = React.useState<number>(-2);
   const [state, setState] = useLocalTracedState<QuestionState>(NoAnswerYet, {
@@ -204,13 +213,12 @@ function TextQuestionInternal(props: QuestionProps) {
       break;
   }
 
-  const handleOpinion = () => { };
-
-  const opinions = [
-    { value: "meh", label: "Meh" },
-    { value: "yeah", label: "Sure, OK" },
-    { value: "whoa", label: "I didn't know that" }
-  ]
+  const handleOpinion = (e: ChangeEvent<HTMLInputElement>) => {
+    const opinion = e.target.value as OpinionOption;
+    setOpinion(opinion, { attributes: { "app.question.response": response, "app.question.opinion": opinion } });
+    activeLifecycleSpan.setAttributes({ "app.question.opinion": opinion })
+    setState(OpinionGiven);
+  };
 
   const opinionButtons = <>
     <form>
@@ -222,7 +230,7 @@ function TextQuestionInternal(props: QuestionProps) {
             type="radio"
             value={option.value}
             key={"opinion" + i}
-            checked={false}
+            checked={opinion === option.value}
             onChange={handleOpinion}
           />
           {option.label}
