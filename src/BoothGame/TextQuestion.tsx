@@ -221,22 +221,20 @@ function TextQuestionInternal(props: QuestionProps) {
   };
 
   const opinionButtons = <>
-    <form>
-      Opinionate Here:
-      {opinions.map((option, i) =>
-        <label>
-          <input
-            className="radio"
-            type="radio"
-            value={option.value}
-            key={"opinion" + i}
-            checked={opinion === option.value}
-            onChange={handleOpinion}
-          />
-          {option.label}
-        </label>
-      )}
-    </form>
+    Opinionate Here:
+    {opinions.map((option, i) =>
+      <label>
+        <input
+          className="radio"
+          type="radio"
+          value={option.value}
+          key={"opinion" + i}
+          checked={opinion === option.value}
+          onChange={handleOpinion}
+        />
+        {option.label}
+      </label>
+    )}
   </>
 
   const usefulContent =
