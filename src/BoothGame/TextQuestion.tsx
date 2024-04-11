@@ -45,7 +45,7 @@ const ShowingResponse = {
   nextStepEnabled: false,
   askForOpinion: true,
   alternativeNextStep: "try again",
-  focusOn: "opinion",
+  focusOn: "default opinion",
 };
 
 // they have selected an opinion about the response.
@@ -71,10 +71,10 @@ const ErrorState = {
 
 type OpinionOption = "meh" | "yeah" | "whoa"
 
-const opinions: Array<{ value: OpinionOption, label: string }> = [
-  { value: "meh", label: "Meh" },
-  { value: "yeah", label: "Sure, OK" },
-  { value: "whoa", label: "I didn't know that" }
+const opinions: Array<{ value: OpinionOption, label: string, default: boolean }> = [
+  { value: "meh", label: "Meh", default: false },
+  { value: "yeah", label: "Sure, OK", default: true },
+  { value: "whoa", label: "I didn't know that", default: false }
 ]
 
 type QuestionState =
@@ -105,14 +105,20 @@ function TextQuestionInternal(props: QuestionProps) {
 
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const textArea = React.useRef<HTMLTextAreaElement>(null);
+  const defaultOpinionRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    console.log("considering focus");
     // Focus the button when the component renders or updates
     if (state.focusOn == "button") {
       buttonRef.current?.focus();
     }
     if (state.focusOn == "text area") {
       textArea.current?.focus();
+    }
+    if (state.focusOn == "default opinion") {
+      console.log("focusing on " + defaultOpinionRef.current)
+      defaultOpinionRef.current?.focus();
     }
   }, [state]);
 
@@ -215,7 +221,13 @@ function TextQuestionInternal(props: QuestionProps) {
 
   const handleOpinion = (e: ChangeEvent<HTMLInputElement>) => {
     const opinion = e.target.value as OpinionOption;
-    setOpinion(opinion, { attributes: { "app.question.response": response, "app.question.opinion": opinion } });
+    setOpinion(opinion, {
+      attributes: {
+        "app.question.response": response,
+        "app.question.opinion": opinion,
+        "app.question.defaultOpinion": opinions.find((o) => o.default)?.value
+      }
+    });
     activeLifecycleSpan.setAttributes({ "app.question.opinion": opinion })
     setState(OpinionGiven);
   };
@@ -227,6 +239,7 @@ function TextQuestionInternal(props: QuestionProps) {
           className="radio"
           type="radio"
           value={option.value}
+          ref={option.default ? defaultOpinionRef : null}
           key={"opinion" + i}
           checked={opinion === option.value}
           onChange={handleOpinion}
