@@ -4,37 +4,56 @@ import { fetchResponseToAnswer } from "./respondToAnswer";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
 
+// Show the question
 const NoAnswerYet = {
   name: "no answer yet",
   inputEnabled: true,
   nextStep: "submit answer",
   nextStepEnabled: false,
+  askForOpinion: false,
   alternativeNextStep: undefined,
   focusOn: "text area",
 };
 
+// they have typed something in the box
 const Answering = {
   name: "answering",
   inputEnabled: true,
   nextStep: "submit answer",
   nextStepEnabled: true,
+  askForOpinion: false,
   alternativeNextStep: undefined,
   focusOn: "nothing",
 };
 
+// they entered their response, now ask the bff
 const LoadingResponse = {
   name: "loading response",
   inputEnabled: false,
   nextStep: "cancel",
   nextStepEnabled: true,
+  askForOpinion: false,
   alternativeNextStep: undefined,
   focusOn: "button",
 };
 
+// we have a response, they should read it and give their opinion
 const ShowingResponse = {
   name: "showing response",
   inputEnabled: false,
   nextStep: "next question",
+  nextStepEnabled: false,
+  askForOpinion: true,
+  alternativeNextStep: "try again",
+  focusOn: "opinion",
+};
+
+// they have selected an opinion about the response.
+const OpinionGiven = {
+  name: "opinion given",
+  inputEnabled: false,
+  nextStep: "next question",
+  askForOpinion: true,
   nextStepEnabled: true,
   alternativeNextStep: "try again",
   focusOn: "button",
@@ -45,6 +64,7 @@ const ErrorState = {
   inputEnabled: true,
   nextStep: "submit answer",
   nextStepEnabled: true,
+  askForOpinion: false,
   alternativeNextStep: undefined,
   focusOn: "button",
 };
@@ -54,6 +74,7 @@ type QuestionState =
   | typeof Answering
   | typeof LoadingResponse
   | typeof ShowingResponse
+  | typeof OpinionGiven
   | typeof ErrorState;
 
 function TextQuestionInternal(props: QuestionProps) {
@@ -183,6 +204,33 @@ function TextQuestionInternal(props: QuestionProps) {
       break;
   }
 
+  const handleOpinion = () => { };
+
+  const opinions = [
+    { value: "meh", label: "Meh" },
+    { value: "yeah", label: "Sure, OK" },
+    { value: "whoa", label: "I didn't know that" }
+  ]
+
+  const opinionButtons = <>
+    <form>
+      Opinionate Here:
+      {opinions.map((option, i) =>
+        <label>
+          <input
+            className="radio"
+            type="radio"
+            value={option.value}
+            key={"opinion" + i}
+            checked={false}
+            onChange={handleOpinion}
+          />
+          {option.label}
+        </label>
+      )}
+    </form>
+  </>
+
   const usefulContent =
     state.name === "loading response" ? (
       <progress>progress</progress>
@@ -206,6 +254,7 @@ function TextQuestionInternal(props: QuestionProps) {
         />
       </p>
       <p className="answer-response">{usefulContent}</p>
+      {state.askForOpinion && <p> {opinionButtons}</p>}
       <p>
         <button
           id="question-go"
