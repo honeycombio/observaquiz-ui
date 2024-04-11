@@ -11,6 +11,9 @@ else
   docker-compose -f ./local-collector/docker-compose.yml up -d
 fi
 
+# start up the JS buildy stuff
+npm run serve &
+
 cd test/fake-backend
 
 if [[ ! -d "node_modules" ]]; then
