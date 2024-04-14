@@ -36,6 +36,19 @@ app.post("/api/questions/:questionId/answer", (req, res) => {
   res.send(randomElement);
 });
 
+app.post("/api/opinion", (req, res) => {
+  const requestJson = req.body
+  res.send(
+    {
+      ...requestJson,
+      "annotation": "good",
+      "success": true,
+      "reported": true,
+      "message": "this is a fake response to /api/opinion"
+    }
+  )
+})
+
 function addTracechildHeader(res: Response) {
   const currentSpanContext = trace.getActiveSpan()!.spanContext();
   const traceparent = `00-${currentSpanContext.traceId}-${currentSpanContext.spanId}-01`;
@@ -135,36 +148,44 @@ const possibleResponses = [
   {
     score: 90,
     response: "You really know what I'm talking about.",
+    "evaluation_id": "04f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
   {
     score: 20,
     response: "Oh come on, at least write about seeing inside your system.",
+    "evaluation_id": "b4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
   {
     score: 80,
     response: "something like that",
+    "evaluation_id": "94f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
   {
     score: 75,
     response: "I marked off 0.6 points because you didn't say 'o11y' which is the cool way to say it.",
+    "evaluation_id": "a4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
   {
     score: 20,
     response: "I don't know, I'm just a computer.",
+    "evaluation_id": "c4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
   {
     score: 76,
     response:
       "Observability is so much more than that. It is the ability to see inside your system, because it tells you.",
+    "evaluation_id": "f4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
   {
     score: 85,
     response:
       "Once you have observability, you can see inside your system. Your mind will be blown and your body expanded, your thoughts will touch the stars and the stars will gleam with your astonishing insights. The universe will never be the same again.",
+    "evaluation_id": "e4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
   {
     score: 100,
     response:
       "Ding ding ding! You got it! Observability is the ability to see inside your system. It's the ability to ask questions about what's happening inside your system and get answers. It's the ability to understand what's happening inside your system. It's the ability to see inside your system.",
+    "evaluation_id": "d4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
 ];
