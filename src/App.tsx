@@ -1,12 +1,12 @@
 import { learnTeam } from "./tracing/tracing";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Configuration, FakeHoneycomb, Production, RealHoneycomb } from "./Configuration";
+import { Configuration, FakeHoneycomb, Production } from "./Configuration";
 import { ObservaquizExecution, TrackedBoothGame } from "./TrackedBoothGame";
 import { v4 as uuidv4 } from "uuid"; // Import the 'uuidv4' function from the 'uuid' package
 import { useLocalStorage } from "./tracing/useLocalStorage";
 
-console.log("begin! as");
+console.log("begin! at");
 
 function newExecution(resets: number): ObservaquizExecution {
   return {

@@ -212,3 +212,9 @@ section.step {
   border: 2px var(--color-darkGrey) inset;
   padding: 2px;
 }
+
+.opinion-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-right: 0.5rem;
+}

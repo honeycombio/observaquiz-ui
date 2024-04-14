@@ -3,6 +3,9 @@ import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/Compo
 import { fetchResponseToAnswer } from "./respondToAnswer";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
+import smileyguy from "../../static/images/smileyguy.png";
+import mehguy from "../../static/images/mehguy.png";
+import sadguy from "../../static/images/sadguy.png";
 
 // Show the question
 const NoAnswerYet = {
@@ -71,10 +74,10 @@ const ErrorState = {
 
 type OpinionOption = "meh" | "yeah" | "whoa"
 
-const opinions: Array<{ value: OpinionOption, label: string, default: boolean }> = [
-  { value: "meh", label: "Meh", default: false },
-  { value: "yeah", label: "Sure, OK", default: true },
-  { value: "whoa", label: "I didn't know that", default: false }
+const opinions: Array<{ value: OpinionOption, image: "*.png", label: string, default: boolean }> = [
+  { value: "yeah", image: smileyguy, label: "Sure, OK", default: true },
+  { value: "meh", image: mehguy, label: "Meh", default: false },
+  { value: "whoa", image: sadguy, label: "I didn't know that", default: false }
 ]
 
 type QuestionState =
@@ -246,7 +249,7 @@ function TextQuestionInternal(props: QuestionProps) {
           checked={opinion === option.value}
           onChange={handleOpinion}
         />
-        {option.label}
+        <img className="opinion-icon" src={option.image} alt={option.label} />
       </label>
     )}
   </>
