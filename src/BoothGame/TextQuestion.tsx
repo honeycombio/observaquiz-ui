@@ -77,8 +77,8 @@ const ErrorState = {
 type OpinionOption = "meh" | "boo" | "whoa"
 
 const opinions: Array<{ value: OpinionOption, image: "*.png", label: string, default: boolean }> = [
-  { value: "whoa", image: smileyguy, label: "Great!", default: true },
-  { value: "meh", image: mehguy, label: "Meh", default: false },
+  { value: "whoa", image: smileyguy, label: "Great!", default: false },
+  { value: "meh", image: mehguy, label: "Meh", default: true },
   { value: "boo", image: sadguy, label: "I don't like it", default: false }
 ]
 
