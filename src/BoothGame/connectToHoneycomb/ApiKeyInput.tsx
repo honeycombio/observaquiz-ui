@@ -89,7 +89,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   }
 
   function enterStateOfDenial() {
-    span.addLog("denied", { "app.honeycomb_api_key": enteredApiKey });
+    span.addLog("denied", { "app.honeycomb.apiKey": enteredApiKey });
     setErrorResponse("That key didn't work. Try again?");
     setEnteredApiKey("");
     setLoadingness(false);
@@ -100,7 +100,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
     span.addLog("Unhandled", {
       "error.stack": new Error().stack,
       "error.message": reason,
-      "app.honeycomb_api_key": enteredApiKey,
+      "app.honeycomb.apiKey": enteredApiKey,
     });
     setErrorResponse("Something went wrong. Come by the booth and see if we can help?");
     setLoadingness(false);
@@ -111,7 +111,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
   function formSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); // don't actually submit the form
     var useThis = enteredApiKey;
-    span.addLog("form submit", { "app.honeycomb_api_key": useThis });
+    span.addLog("form submit", { "app.honeycomb.apiKey": useThis });
 
     enterStateOfLoading();
     // TODO: add a withActiveSpan method, and put it around this
@@ -119,7 +119,7 @@ function ApiKeyInputInternal(props: ApiKeyInputProps) {
       callHoneycombAuthEndpoint(config.honeycomb_auth_url, useThis, span).then((result) => {
         if (result.result === "ok") {
           span.addLog("accepted", {
-            "app.honeycomb_api_key": useThis,
+            "app.honeycomb.apiKey": useThis,
             "app.honeycomb.authResponse": JSON.stringify(result.response),
           });
           if (saveToLocalStorage) {
