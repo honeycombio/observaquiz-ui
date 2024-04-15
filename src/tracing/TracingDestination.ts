@@ -43,14 +43,14 @@ function honeycombUrl(region: HoneycombRegion): string {
 export function honeycombTelemetryUrl(region: HoneycombRegion): string {
 
   // Let the collector handle this.
-  //return "";
+  return "";
 
-  switch (region) {
-    case "us":
-      return "https://api.honeycomb.io";
-    case "eu":
-      return "https://api.eu1.honeycomb.io";
-  }
+  // switch (region) {
+  //   case "us":
+  //     return "https://api.honeycomb.io";
+  //   case "eu":
+  //     return "https://api.eu1.honeycomb.io";
+  // }
 }
 
 export function getUrlToDataset(
