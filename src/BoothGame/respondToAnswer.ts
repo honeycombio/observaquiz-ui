@@ -13,6 +13,7 @@ export type ResponseFromAI =
 type AnswersAPIResponse = {
   score: number;
   response: string;
+  evaluation_id: string
 };
 
 function verifyResponse(

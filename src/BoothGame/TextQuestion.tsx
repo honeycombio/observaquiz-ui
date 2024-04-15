@@ -1,11 +1,13 @@
 import React, { ChangeEvent, useEffect } from "react";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { fetchResponseToAnswer } from "./respondToAnswer";
-import { HoneycombTeamContext } from "./HoneycombTeamContext";
+import { HoneycombTeamContext, HoneycombTeamContextType } from "./HoneycombTeamContext";
 import { useLocalTracedState } from "../tracing/LocalTracedState";
 import smileyguy from "../../static/images/smileyguy.png";
 import mehguy from "../../static/images/mehguy.png";
 import sadguy from "../../static/images/sadguy.png";
+import { fetchFromBackend } from "../tracing/fetchFromBackend";
+import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
 
 // Show the question
 const NoAnswerYet = {
@@ -72,13 +74,33 @@ const ErrorState = {
   focusOn: "button",
 };
 
-type OpinionOption = "meh" | "yeah" | "whoa"
+type OpinionOption = "meh" | "boo" | "whoa"
 
 const opinions: Array<{ value: OpinionOption, image: "*.png", label: string, default: boolean }> = [
-  { value: "yeah", image: smileyguy, label: "Sure, OK", default: true },
+  { value: "whoa", image: smileyguy, label: "Great!", default: true },
   { value: "meh", image: mehguy, label: "Meh", default: false },
-  { value: "whoa", image: sadguy, label: "I didn't know that", default: false }
+  { value: "boo", image: sadguy, label: "I don't like it", default: false }
 ]
+
+function reportOpinion(span: ActiveLifecycleSpanType, honeycombTeam: HoneycombTeamContextType, evaluationId: string, opinion: OpinionOption) {
+  /* span: ActiveLifecycleSpanType;
+  honeycombTeam: ThingWithTheHeaders;
+  method: string;
+  url: string;
+  body?: string;
+  attributesFromJson?: (json: any) => Attributes; */
+  const bodyContent = {
+    evaluationId, opinion
+  }
+  // fire and forget
+  fetchFromBackend({
+    span,
+    honeycombTeam,
+    url: "api/opinion",
+    method: "POST",
+    body: JSON.stringify(bodyContent)
+  });
+}
 
 type QuestionState =
   | typeof NoAnswerYet
@@ -95,6 +117,7 @@ function TextQuestionInternal(props: QuestionProps) {
 
   const [answerContent, setAnswerContent] = React.useState<string>("");
   const [opinion, setOpinion] = useLocalTracedState<OpinionOption | null>(null);
+  const [evaluationId, setEvaluationId] = React.useState<string>("");
   const [response, setResponse] = React.useState<string | undefined>(undefined);
   const [highScore, setHighScore] = React.useState<number>(-2);
   const [state, setState] = useLocalTracedState<QuestionState>(NoAnswerYet, {
@@ -167,6 +190,7 @@ function TextQuestionInternal(props: QuestionProps) {
           // success
           const interpretation = `I give that a ${response.response.score}. ${response.response.response}`;
           setResponse(interpretation);
+          setEvaluationId(response.response.evaluation_id);
           setState(ShowingResponse, { reason: "answer received" });
         }
       }
@@ -175,7 +199,7 @@ function TextQuestionInternal(props: QuestionProps) {
 
   function nextQuestion(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.preventDefault();
-    // TODO: report the opinion
+    reportOpinion(activeLifecycleSpan, honeycombTeam, evaluationId, opinion!); // it doesn't matter if this fails. Fire & Forget.
     activeLifecycleSpan.withLog("next question", {}, () =>
       // no need to change state, this component will be replaced
       props.moveForward({ score: highScore })
