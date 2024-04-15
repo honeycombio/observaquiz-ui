@@ -90,7 +90,7 @@ function reportOpinion(span: ActiveLifecycleSpanType, honeycombTeam: HoneycombTe
   body?: string;
   attributesFromJson?: (json: any) => Attributes; */
   const bodyContent = {
-    evaluationId, opinion
+    evaluation_id: evaluationId, opinion
   }
   // fire and forget
   fetchFromBackend({
