@@ -188,7 +188,7 @@ function TextQuestionInternal(props: QuestionProps) {
         } else {
           setHighScore(Math.max(highScore, response.response.score));
           // success
-          const interpretation = `I give that a ${response.response.score}. ${response.response.response}`;
+          const interpretation = `I give that a ${response.response.score}/${response.response.possible_score}. ${response.response.response}`;
           setResponse(interpretation);
           setEvaluationId(response.response.evaluation_id);
           setState(ShowingResponse, { reason: "answer received" });

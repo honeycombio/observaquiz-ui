@@ -188,4 +188,4 @@ const possibleResponses = [
       "Ding ding ding! You got it! Observability is the ability to see inside your system. It's the ability to ask questions about what's happening inside your system and get answers. It's the ability to understand what's happening inside your system. It's the ability to see inside your system.",
     "evaluation_id": "d4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
-];
+].map(o => { (o as any)["possible_score"] = 100 });

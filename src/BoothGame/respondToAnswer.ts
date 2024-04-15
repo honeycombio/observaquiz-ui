@@ -1,17 +1,17 @@
 import { ActiveLifecycleSpanType } from "../tracing/activeLifecycleSpan";
-import { Attributes } from "@opentelemetry/api";
 import { HoneycombTeamContextType } from "./HoneycombTeamContext";
 import { fetchFromBackend } from "../tracing/fetchFromBackend";
 
 export type ResponseFromAI =
   | {
-      status: "success";
-      response: AnswersAPIResponse;
-    }
+    status: "success";
+    response: AnswersAPIResponse;
+  }
   | { status: "failure"; error: string };
 
 type AnswersAPIResponse = {
   score: number;
+  possible_score: number;
   response: string;
   evaluation_id: string
 };
