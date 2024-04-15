@@ -37,7 +37,7 @@ export async function callHoneycombAuthEndpoint(
   apiKey: string,
   span: ActiveLifecycleSpanType
 ): Promise<AuthResponse> {
-  span.setAttributes({ "app.honeycomb.apiKey": apiKey });
+  span.setAttributes({ "app.honeycomb_api_key": apiKey });
   return fetch(honeycomb_auth_url, {
     method: "GET",
     headers: {
