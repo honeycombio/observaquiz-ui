@@ -23,7 +23,7 @@ import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
 
 const HardCodedEvent = {
-  eventName: "Observability Day 2024, San Francisco",
+  eventName: "LLM Application Observability",
 };
 
 function BoothGameInternal(props: BoothGameProps) {

@@ -12,8 +12,8 @@ function HelloInternal(props: HelloProps) {
     <div>
       <h3>Hello at {props.eventName}!</h3>
       <p>You have found the Observaquiz!</p>
-      <p>This quiz will sort of test your observability knowledge, while demonstrating some observability.</p>
-      <p>Complete it, and then come by the Honeycomb booth for whatever really cool prize we promised you!</p>
+      <p>This quiz will sort of test your observability knowledge, while helping you experience observability in Honeycomb.</p>
+      <p>Complete it, and see some observability data of your own.</p>
       <MonikerForLeaderboard report={saveMoniker} />
     </div>
   );

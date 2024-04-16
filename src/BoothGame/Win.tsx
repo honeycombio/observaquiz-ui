@@ -29,7 +29,7 @@ function WinInternal(props: WinProps) {
         Congratulations on completing the Observaquiz!
       </p>
       <p className="score-report">Your score is: {props.score}</p>
-      <p>Come by the Observaquiz station to see the leaderboard!</p>
+      <p>Would you like some Honeycomb stickers? Email devrel@honeycomb.io with your postal address and we'll mail you some. At least one sticker will be unofficial and surprising.</p>
     </div>
   );
 }
