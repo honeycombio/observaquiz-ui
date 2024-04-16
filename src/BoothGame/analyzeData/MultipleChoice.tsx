@@ -38,6 +38,7 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
       return;
     }
     const howLongToGoBack = secondsSinceTheExecutionBegan(honeycombTeam)
+    // TODO: I think we should _not_ do this here. Make them pass it in. Because they might also link to the query and it needs to be consistent
     activeLifecycleSpan.setAttributes({ "app.queryData.how_long_to_go_back": howLongToGoBack });
     const queryDefinitionSinceBeginningOfExecution = {
       ...props.queryDefinition,
