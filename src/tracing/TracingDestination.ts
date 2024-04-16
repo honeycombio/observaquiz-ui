@@ -79,7 +79,7 @@ export function getQueryTemplateLink(
 }
 
 export function secondsSinceTheExecutionBegan(team: TracingTeam) {
-  const startTime = Math.floor(team.execution.startTime); // decimals get us a 404
+  const startTime = Math.floor(team.execution.startTime); // decimals get us a 404 from queryData API
   const rightNow = Math.floor(Date.now() / 1000);
   return rightNow - startTime;
 }

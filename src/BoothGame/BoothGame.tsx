@@ -117,7 +117,7 @@ function BoothGameInternal(props: BoothGameProps) {
       if (!team.populated) {
         throw new Error("Honeycomb team not populated, not ok");
       }
-      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...whichResponseTookTheLongestQuestionParameters(team)} />;
+      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...whichResponseTookTheLongestQuestionParameters(activeLifecycleSpan, team)} />;
       break;
     case "trace-question-2":
       content = <TraceQuestionIntroduction key={currentStep.id} moveForward={advanceTrackedSteps} {...TheNextQuestionParameters} />;

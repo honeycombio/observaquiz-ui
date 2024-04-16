@@ -1,7 +1,7 @@
 import React from "react";
 import { BACKEND_DATASET_NAME, ExecutionId, QueryObject, TracingTeam, secondsSinceTheExecutionBegan } from "../../tracing/TracingDestination";
 import { WhatMultipleChoiceNeedsToKnow } from "./MultipleChoice";
-import { HoneycombTeamContextType } from "../HoneycombTeamContext";
+import { ActiveLifecycleSpanType } from "../../tracing/activeLifecycleSpan";
 
 export type DataQuestionParameters<T> = {
     prefaceText: React.ReactNode
@@ -10,7 +10,7 @@ export type DataQuestionParameters<T> = {
     interpretData: (data: T[]) => WhatMultipleChoiceNeedsToKnow;
 };
 // Data Question 1
-export const whichResponseTookTheLongestQuestionParameters = (honeycombTeam: TracingTeam) => ({
+export const whichResponseTookTheLongestQuestionParameters = (activeLifecycleSpan: ActiveLifecycleSpanType, honeycombTeam: TracingTeam) => ({
     prefaceText: <>
         <p>
             Earlier, Observaquiz called out to OpenAI to get a response to your answers. In Honeycomb, we can run a query about how long those took.
@@ -20,9 +20,7 @@ export const whichResponseTookTheLongestQuestionParameters = (honeycombTeam: Tra
         </p>
     </>
     ,
-
-    
-    queryDefinition: queryForLongestLLMResponse(honeycombTeam),
+    queryDefinition: queryForLongestLLMResponse(activeLifecycleSpan, honeycombTeam),
     datasetSlug: BACKEND_DATASET_NAME,
     interpretData
 });
@@ -70,9 +68,13 @@ export type DataFromLongestLLMResponse = {
 /**
  * Run this in dataset 'observaquiz-bff'
  */
-function queryForLongestLLMResponse(honeycombTeam: TracingTeam) {
-    const howLongToGoBack = secondsSinceTheExecutionBegan(honeycombTeam)
-   // activeLifecycleSpan.setAttributes({ "app.queryData.how_long_to_go_back": howLongToGoBack });
+function queryForLongestLLMResponse(activeLifecycleSpan: ActiveLifecycleSpanType, team: TracingTeam) {
+    const howLongToGoBack = secondsSinceTheExecutionBegan(team) + 600; // this needs to work for a while
+    activeLifecycleSpan.setAttributes({
+        "app.queryData.how_long_to_go_back": howLongToGoBack,
+        "app.queryData.executionStartTime": team.execution.startTime,
+        "app.queryData.now": Date.now()
+    });
     return {
         time_range: howLongToGoBack,
         granularity: 0,
@@ -92,7 +94,7 @@ function queryForLongestLLMResponse(honeycombTeam: TracingTeam) {
             {
                 column: "app.observaquiz.execution_id",
                 op: "=",
-                value: execution_id,
+                value: team.execution.executionId,
             },
         ],
         orders: [
