@@ -33,6 +33,7 @@ app.get("/api/questions", (req, res) => {
 app.post("/api/questions/:questionId/answer", (req, res) => {
   const randomElement = possibleResponses[Math.floor(Math.random() * possibleResponses.length)];
   addTracechildHeader(res);
+  trace.getActiveSpan()?.setAttribute("response.body", JSON.stringify(randomElement));
   res.send(randomElement);
 });
 
@@ -188,4 +189,4 @@ const possibleResponses = [
       "Ding ding ding! You got it! Observability is the ability to see inside your system. It's the ability to ask questions about what's happening inside your system and get answers. It's the ability to understand what's happening inside your system. It's the ability to see inside your system.",
     "evaluation_id": "d4f70881cb40cb781c4bf51b889a0e25-25965795a284ca8f"
   },
-].map(o => { (o as any)["possible_score"] = 100 });
+].map(o => { (o as any)["possible_score"] = 100; return o });
