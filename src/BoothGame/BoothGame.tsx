@@ -23,7 +23,7 @@ import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
 
 const HardCodedEvent = {
-  eventName: "LLM Application Observability",
+  eventName: "Principles of Software Development",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
