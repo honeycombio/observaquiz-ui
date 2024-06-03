@@ -5,6 +5,27 @@ receivers:
 
 processors:
   batch:
+  filter:
+    error_mode: ignore
+    traces:
+      span:
+        - attributes["app.honeycomb_api_key"] == nil
+
+  filter/devrel:
+    error_mode: ignore
+    traces:
+      span:
+        - attributes["observaquiz.destination"] == "devrel" or attributes["observaquiz.destination"] == nil
+
+  filter/participant:
+    error_mode: ignore
+    traces:
+      span:
+        - attributes["observaquiz.destination"] == "participant" or attributes["observaquiz.destination"] == nil
+
+  groupbyattrs/honeycomb_api_key:
+    keys:
+      - app.honeycomb_api_key
   transform/labelme:
     metric_statements:
       - context: resource
@@ -23,11 +44,30 @@ processors:
           - set(attributes["collector.location"], "${COLLECTOR_LOCATION}")
           - set(attributes["collector.collector"], "${COLLECTOR_NAME}")
 
+  transform/hash_api_key:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          - set(attributes["app.honeycomb_api_key"], SHA256(attributes["app.honeycomb_api_key"])) where attributes["app.honeycomb_api_key"] != nil
+
+  transform/drop_api_key:
+    error_mode: ignore
+    trace_statements:
+      - context: resource
+        statements:
+          - delete_key(attributes, "app.honeycomb_api_key")
+
 exporters:
   otlp:
     endpoint: "api.honeycomb.io:443"
     headers:
       "x-honeycomb-team": "$HONEYCOMB_API_KEY"
+  otlp/attendee_traces:
+    endpoint: "api.honeycomb.io:443"
+    auth:
+      authenticator: headers_setter
+
   otlp/logs:
     endpoint: "api.honeycomb.io:443"
     headers:
@@ -39,12 +79,39 @@ exporters:
       "x-honeycomb-team": "$HONEYCOMB_API_KEY"
       "x-honeycomb-dataset": "observaquiz-metrics"
 
+
+extensions:
+  health_check:
+  headers_setter:
+    headers:
+      - action: insert
+        key: x-honeycomb-team
+        from_context: app.honeycomb_api_key
+
+connectors:
+  resourceattr_to_context:
+
+  ###
+  ### the collector should check observaquiz.destination on the spans. If it's "devrel" send it to us; if it's 
+  ### "participant" then send it to the one in the header. (If it's empty, send it to both, that's a backend span)
+
 service:
+  extensions: [health_check, headers_setter]
   pipelines:
-    traces:
+    traces/devrel:
       receivers: [otlp]
-      processors: [batch, transform/labelme]
+      processors: [batch, transform/labelme, transform/hash_api_key]
       exporters: [otlp]
+
+    traces/attendee_ingest:
+      receivers: [otlp]
+      processors: [filter, groupbyattrs/honeycomb_api_key]
+      exporters: [resourceattr_to_context]
+    traces/attendee_export:
+      receivers: [resourceattr_to_context]
+      processors: [transform/drop_api_key]
+      exporters: [otlp/attendee_traces]
+
     metrics:
       receivers: [otlp]
       processors: [batch, transform/labelme]
