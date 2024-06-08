@@ -3,13 +3,9 @@
 
 # Run the local collector
 
-if [[ -d "../observaquiz-api/" ]]; then
-  echo "Starting collector as defined in observaquiz-api"
-  docker-compose -f ../observaquiz-api/local-collector/docker-compose.yml up -d
-else
-  echo "starting sad little frontend collector"
-  docker-compose -f ./local-collector/docker-compose.yml up -d
-fi
+
+echo "starting frontend collector"
+docker-compose -f ./local-collector/docker-compose.yml up -d
 
 # start up the JS buildy stuff
 npm run serve &
