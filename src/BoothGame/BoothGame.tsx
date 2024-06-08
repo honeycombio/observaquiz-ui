@@ -23,7 +23,7 @@ import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
 
 const HardCodedEvent = {
-  eventName: "Principles of Software Development",
+  eventName: "Monitorama",
 };
 
 function BoothGameInternal(props: BoothGameProps) {

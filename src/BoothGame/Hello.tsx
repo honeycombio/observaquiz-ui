@@ -10,10 +10,10 @@ function HelloInternal(props: HelloProps) {
 
   return (
     <div>
-      <h3>Hello at {props.eventName}!</h3>
+      <h3>Hello, {props.eventName}!</h3>
       <p>You have found the Observaquiz!</p>
       <p>This quiz will sort of test your observability knowledge, while helping you experience observability in Honeycomb.</p>
-      <p>Complete it, and see some observability data of your own.</p>
+      <p>Complete it, then come by the Honeycomb booth for a prize!</p>
       <MonikerForLeaderboard report={saveMoniker} />
     </div>
   );
@@ -87,7 +87,7 @@ function MonikerForLeaderboard(props: DoStuffWithInputProps) {
 }
 
 export type HelloProps = {
-  eventName: string; 
+  eventName: string;
   moveForward: (result: { moniker: string }) => void;
 };
 
