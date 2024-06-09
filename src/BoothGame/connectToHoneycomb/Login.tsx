@@ -2,6 +2,7 @@ import React from "react";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
 import { RadioButtonList } from "./RadioButtonList";
+import popOutIndicator from "../../../static/images/arrowSquareUpRight.svg";
 
 const SignupButton = {
   text: "Sign up",
@@ -99,7 +100,7 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
   if (state.button) {
     button = (
       <a href={state.button.href} target="_blank" tabIndex={0} className="button primary" onClick={buttonClick} ref={buttonRef}>
-        {state.button.text}
+        {state.button.text} <img className="buttonPopOut" src={popOutIndicator} alt="Opens in a new tab" />
       </a>
     );
   }

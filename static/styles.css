@@ -218,3 +218,7 @@ section.step {
   height: 3rem;
   margin-right: 0.5rem;
 }
+
+.buttonPopOut {
+  color: white
+}
