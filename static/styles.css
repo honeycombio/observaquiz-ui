@@ -220,5 +220,6 @@ section.step {
 }
 
 .buttonPopOut {
-  color: white
+  color: white;
+  height: 1em;
 }
