@@ -22,7 +22,7 @@ function WinInternal(props: WinProps) {
         Congratulations on completing the Observaquiz!
       </p>
       <p className="score-report">Your score is: {props.score}</p>
-      <p>You get a prize! Tell Jessitron that you did it.</p>
+      <p>Come by the Honeycomb booth at Monitorama to see how this compares with other scores, and to collect your prize!</p>
     </div>
   );
 }
