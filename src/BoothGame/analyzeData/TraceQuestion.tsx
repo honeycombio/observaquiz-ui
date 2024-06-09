@@ -4,6 +4,7 @@ import { useLocalTracedState } from "../../tracing/LocalTracedState";
 import { BACKEND_DATASET_NAME, QueryObject, getTraceLink } from "../../tracing/TracingDestination";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { MultipleChoice, MultipleChoiceResult, WhatMultipleChoiceNeedsToKnow } from "./MultipleChoice";
+import popOutIndicator from "../../../static/images/arrowSquareUpRight.svg";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
@@ -56,7 +57,7 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
         onClick={lookAtResults}
         ref={linkButton}
       >
-        See the trace in Honeycomb
+        See the trace in Honeycomb <img className="buttonPopOut" src={popOutIndicator} alt="Opens in a new tab" />
       </a>
       {questionAndAnswer}
     </div>

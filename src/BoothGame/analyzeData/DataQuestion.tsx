@@ -5,6 +5,7 @@ import { BACKEND_DATASET_NAME, getQueryTemplateLink } from "../../tracing/Tracin
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
 import { DataQuestionParameters } from "./DataQuestionParameters";
+import popOutIndicator from "../../../static/images/arrowSquareUpRight.svg";
 
 const PleaseLookAtTheData = { questionVisible: false };
 const LookedAtTheData = { questionVisible: true };
@@ -57,7 +58,7 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
         onClick={lookAtResults}
         ref={linkButton}
       >
-        See query results in Honeycomb
+        See query results in Honeycomb <img className="buttonPopOut" src={popOutIndicator} alt="Opens in a new tab" />
       </a>
       {questionAndAnswer}
     </div>

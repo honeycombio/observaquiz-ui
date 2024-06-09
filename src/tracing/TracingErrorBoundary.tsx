@@ -4,6 +4,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { HowToReset } from "../resetQuiz";
 import { getLinkToCurrentSpan } from "./activeLifecycleSpan";
 import { HoneycombTeamContext } from "../BoothGame/HoneycombTeamContext";
+import popOutIndicator from "../../static/images/arrowSquareUpRight.svg";
 
 export type TracingErrorBoundaryProps = { children: React.ReactNode } & HowToReset;
 
@@ -36,7 +37,7 @@ export function TracingErrorBoundary(props: TracingErrorBoundaryProps) {
           {" "}
           If you want to investigate what happened, then:{" "}
           <a target="_blank" href={linkToErrorSpan()}>
-            See the error in Honeycomb
+            See the error in Honeycomb <img className="buttonPopOut" src={popOutIndicator} alt="Opens in a new tab" />
           </a>
         </p>
       )}
