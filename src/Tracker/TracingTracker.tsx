@@ -3,7 +3,6 @@ import React from "react";
 import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { getLinkToCurrentSpan } from "../tracing/activeLifecycleSpan";
 import { HoneycombTeamContext } from "../BoothGame/HoneycombTeamContext";
-import popOutIndicator from "../../static/images/arrowSquareUpRight.svg";
 
 function TracingTrackerInternal(props: TracingTrackerProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
@@ -17,7 +16,7 @@ function TracingTrackerInternal(props: TracingTrackerProps) {
       <p>Environment: {honeycombTeam.auth!.environment.name}</p>
       <p>
         <a target="_blank" href={getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan)}>
-          See current trace <img className="buttonPopOut" src={popOutIndicator} alt="Opens in a new tab" />
+          See current trace
         </a>
       </p>
     </div>
