@@ -471,7 +471,8 @@ export class DiagnosticsOnlyExporter implements SpanExporter {
   // the ExportResult type seems hard to import, hence the 'any' here
   export(spans: ReadableSpan[], resultCallback: (result: any) => void): void {
     const spansWithApiKey = spans.filter((span) => !!span.attributes[ATTRIBUTE_NAME_FOR_APIKEY]).length
-    console.log(`'Exporter: ${this.description}, exporting spans: ${spans.length}, with API key: ${spansWithApiKey}`)
+    const attributesFromOneSpan = Object.entries(spans[0].attributes).map(([k, v]) => `  ${k}=${v}`).join("\n")
+    console.log(`Exporter: ${this.description}, exporting spans: ${spans.length}, with API key: ${spansWithApiKey}\n${attributesFromOneSpan}`)
     resultCallback({ code: 0 });
   }
   async shutdown(): Promise<void> {
