@@ -263,8 +263,9 @@ function TextQuestionInternal(props: QuestionProps) {
 
   const opinionButtons = <>
     {opinions.map((option, i) =>
-      <label>
+      <label htmlFor={"opinion" + i} key={"opinion" + i + "Label"}>
         <input
+          id={"opinion" + i}
           className="radio"
           type="radio"
           value={option.value}
@@ -275,7 +276,8 @@ function TextQuestionInternal(props: QuestionProps) {
         />
         <img className="opinion-icon" src={option.image} alt={option.label} />
       </label>
-    )}
+    )
+    }
   </>
 
   const usefulContent =
