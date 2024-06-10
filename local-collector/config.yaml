@@ -5,7 +5,7 @@ receivers:
 
 processors:
   batch:
-  filter:
+  filter/noapikey:
     error_mode: ignore
     traces:
       span:
@@ -105,7 +105,7 @@ service:
 
     traces/attendee_ingest:
       receivers: [otlp]
-      processors: [filter, groupbyattrs/honeycomb_api_key]
+      processors: [filter/noapikey, groupbyattrs/honeycomb_api_key]
       exporters: [resourceattr_to_context]
     traces/attendee_export:
       receivers: [resourceattr_to_context]
