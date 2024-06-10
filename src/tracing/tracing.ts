@@ -59,7 +59,7 @@ function initializeTracing(config: ConfigurationType) {
   };
 
   // alternative
-  const addParticipantApiKeyAndSendToOurCollector = constructExporterThatAddsApiKey(exporter) 
+  const addParticipantApiKeyAndSendToOurCollector = constructExporterThatAddsApiKey(exporter)
 
   const { learnerOfTeam, observaquizProcessor } = ConstructThePipeline({
     devrelExporter: exportToDevrelTeam,
@@ -155,21 +155,25 @@ function instrumentGlobalErrors() {
   });
 }
 
-const { learnerOfTeam, observaquizProcessor } = initializeTracing(Airplane);
-const logInit = initializeLogging();
-instrumentGlobalErrors();
+export function initializeTelemetry(configuration: ConfigurationType): LearnTeam {
+  const { learnerOfTeam, observaquizProcessor } = initializeTracing(configuration);
+  const logInit = initializeLogging();
+  instrumentGlobalErrors();
 
-export const learnTeam: LearnTeam = {
-  learnParticipantTeam(team: TracingTeam) {
-    learnerOfTeam.learnParticipantTeam(team);
-    logInit.learnerOfTeam.learnCustomerTeam(team);
-    // you want to see it! it has reconfigured, see.
-    console.log(observaquizProcessor.describeSelf());
-    console.log(logInit.observaquizProcessor.describeSelf());
-  },
-
-  reset() {
-    learnerOfTeam.reset()
+  const learnTeam: LearnTeam = {
+    learnParticipantTeam(team: TracingTeam) {
+      learnerOfTeam.learnParticipantTeam(team);
+      logInit.learnerOfTeam.learnCustomerTeam(team);
+      // you want to see it! it has reconfigured, see.
+      console.log(observaquizProcessor.describeSelf());
+      console.log(logInit.observaquizProcessor.describeSelf());
+    },
+  
+    reset() {
+      learnerOfTeam.reset()
+    }
   }
+  return learnTeam;
 }
+
 
