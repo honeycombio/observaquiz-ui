@@ -1,4 +1,4 @@
-FROM ghcr.io/martinjt/ocb-config-builder:nightly as build
+FROM --platform=linux/amd64 ghcr.io/martinjt/ocb-config-builder:nightly as build
 ENV ADDITIONAL_REPOS=github.com/martinjt/resourceattrtocontextconnector
 COPY config.yaml /config.yaml
 RUN ocbconfigbuilder
