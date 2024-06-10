@@ -147,6 +147,34 @@ class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
   }
 }
 
+class UpdatableProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
+  private attributes: Attributes = {};
+
+  setTheseAttributes(newAttributes: Attributes) {
+    this.attributes = newAttributes;
+  }
+
+  clearAttributes() {
+    this.attributes = {}
+  }
+
+  describeSelf(): string {
+    return (
+      "I add fields to the span, currently: \n" +
+      printList(Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString()))
+    );
+  }
+
+  onStart(span: TraceBaseSpan, _parentContext: Context): void {
+    reportProcessing(span, this.describeSelf());
+    span.setAttributes(this.attributes);
+  }
+
+  onEnd(_span: ReadableSpan): void { }
+  async shutdown(): Promise<void> { }
+  async forceFlush(): Promise<void> { }
+}
+
 class LearnerOfTeam {
   constructor(
     private insertProcessorHere: GrowingCompositeSpanProcessor,
@@ -427,13 +455,14 @@ function recordProcessingOnStart(
 
 export class DiagnosticsOnlyExporter implements SpanExporter {
 
-  constructor(public description: String) { 
+  constructor(public description: String) {
     console.log(`Diagnostic exporter constructed: ${this.description}`)
   }
 
   // the ExportResult type seems hard to import, hence the 'any' here
   export(spans: ReadableSpan[], resultCallback: (result: any) => void): void {
-    console.log(`'Exporting' ${spans.length} spans: ${this.description}`)
+    const spansWithApiKey = spans.filter((span) => !!span.attributes[ATTRIBUTE_NAME_FOR_APIKEY]).length
+    console.log(`'Exporter: ${this.description}, exporting spans: ${spans.length}, with API key: ${spansWithApiKey}`)
     resultCallback({ code: 0 });
   }
   async shutdown(): Promise<void> {
