@@ -109,8 +109,8 @@ class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
   private routeDescriptions: Array<string | undefined> = []; // parallel array to seriesofProcessors. guess i should put them in an object together
 
   public addProcessor(processor: SelfDescribingSpanProcessor, routeDescription?: string) {
-    this.seriesofProcessors.unshift(processor); // new ones are first
-    this.routeDescriptions.unshift(routeDescription);
+    this.seriesofProcessors.push(processor); // new ones are last
+    this.routeDescriptions.push(routeDescription);
   }
 
   describeSelf(): string {
@@ -211,6 +211,7 @@ function printList(list: Array<string>): string {
   return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
 }
 
+// TODO: remove? doesn't seem to be used anymore, we use the Updatable one
 class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
   constructor(private readonly attributes: Attributes) { }
   describeSelf(): string {
