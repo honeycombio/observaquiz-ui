@@ -1,7 +1,7 @@
 // A second attempt at the booth game processor.
 
 import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor, SpanExporter } from "@opentelemetry/sdk-trace-base";
-import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
+import { HONEYCOMB_DATASET_NAME, LearnTeam, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
 import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_DESTINATION, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, ATTRIBUTE_VALUE_FOR_DEVREL_TEAM, ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM, PROCESSING_REPORT_DELIMITER, attributesForCopies, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
@@ -38,8 +38,10 @@ export function ConstructThePipeline(params: {
     }),
     "NORMAL"
   );
-  const switcher = new SwitcherSpanProcessor(new HoldingSpanProcessor());
 
+  // for the spans that go to the participant: we will first hold them, and then send them,
+  // once we have their team API key.
+  const switcher = new SwitcherSpanProcessor(() => new HoldingSpanProcessor());
   observaquizProcessor.addProcessor(
     new FilteringSpanProcessor({
       filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM,
@@ -49,6 +51,7 @@ export function ConstructThePipeline(params: {
     "HOLD"
   );
 
+  // This is the part that changes stuff when we learn the team
   const learnerOfTeam = new LearnerOfTeam(
     switcher,
     setTeamFieldsOnceWeHaveThem,
@@ -184,14 +187,16 @@ class UpdatableProcessorThatInsertsAttributes implements SelfDescribingSpanProce
   async forceFlush(): Promise<void> { }
 }
 
-class LearnerOfTeam {
+
+
+class LearnerOfTeam implements LearnTeam {
   constructor(
     private switcher: SwitcherSpanProcessor,
     private setTeamFieldsOnceWeHaveThem: UpdatableProcessorThatInsertsAttributes,
     private whatToSwitchTo: (team: TracingTeam) => SelfDescribingSpanProcessor
   ) { }
 
-  public learnCustomerTeam(team: TracingTeam) {
+  public learnParticipantTeam(team: TracingTeam) {
     const attributes: Attributes = {
       "honeycomb.team.slug": team.auth!.team.slug,
       "honeycomb.region": team.auth!.region,
@@ -202,6 +207,11 @@ class LearnerOfTeam {
     };
     this.setTeamFieldsOnceWeHaveThem.setTheseAttributes(attributes);
     this.switcher.switchTo(this.whatToSwitchTo(team));
+  }
+
+  public reset() {
+    this.switcher.reset();
+    this.setTeamFieldsOnceWeHaveThem.clearAttributes();
   }
 }
 
@@ -396,49 +406,51 @@ class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
 
 /** this one accepts a pile of spans at initialization and sends them. */
 class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
-  private currentDownstream: SelfDescribingSpanProcessor;
+  private state: { name: "holding", downstream: HoldingSpanProcessor } | { name: "sending", downstream: SelfDescribingSpanProcessor };
 
   public switchTo(downstream: SelfDescribingSpanProcessor) {
-    this.firstDownstream.flushTo(downstream);
-    this.currentDownstream = downstream;
+    if (this.state.name === "holding") {
+      this.state.downstream.flushTo(downstream)
+    };
+    this.state = { name: "sending", downstream }
+  }
+
+  public reset() {
+    if (this.state.name === "sending") {
+        this.state.downstream.forceFlush();
+        this.state.downstream.shutdown();
+        this.state = { name: "holding", downstream: this.constructInitialDownstream()}
+    } else {
+      console.log("INFO: switcher.reset() called when we were already holding spans. Continuing to hold")
+    }
   }
 
   describeSelf(): string {
-    const describePast =
-      this.firstDownstream === this.currentDownstream
-        ? ""
-        : " ┣ " +
-        "Previously sent to: " +
-        this.firstDownstream
-          .describeSelf()
-          .split("\n")
-          .join("\n" + " ┃ ") +
-        "\n";
-    return this.describeSelfInternal(describePast, this.currentDownstream.describeSelf());
+    return this.describeSelfInternal(this.state.downstream.describeSelf());
   }
 
-  describeSelfInternal(describePast: string, describeCurrent: string): string {
+  describeSelfInternal(describeCurrent: string): string {
     return (
-      "I am a switcher.\n" + describePast + " ┗ " + " Now sending to: " + describeCurrent.split("\n").join("\n" + "   ")
+      "I am a switcher.\n" + " ┗ " + " Now sending to: " + describeCurrent.split("\n").join("\n" + "   ")
     );
   }
 
-  constructor(private readonly firstDownstream: HoldingSpanProcessor) {
-    this.currentDownstream = firstDownstream;
+  constructor(private readonly constructInitialDownstream: () => HoldingSpanProcessor) {
+    this.state = { name: "holding", downstream: constructInitialDownstream() }
   }
   onStart(span: TraceBaseSpan, parentContext: Context): void {
-    recordProcessingOnStart(span, parentContext, [this.currentDownstream], (childReports) =>
-      this.describeSelfInternal("", childReports[0])
+    recordProcessingOnStart(span, parentContext, [this.state.downstream], (childReports) =>
+      this.describeSelfInternal(childReports[0])
     );
   }
   onEnd(span: ReadableSpan): void {
-    this.currentDownstream.onEnd(span);
+    this.state.downstream.onEnd(span);
   }
   shutdown(): Promise<void> {
-    return this.currentDownstream.shutdown();
+    return this.state.downstream.shutdown();
   }
   forceFlush(): Promise<void> {
-    return this.currentDownstream.forceFlush();
+    return this.state.downstream.forceFlush();
   }
 }
 

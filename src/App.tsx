@@ -22,6 +22,7 @@ function QuizApp() {
 
   function reset() {
     console.log("Resetting");
+    learnTeam.reset()
     saveExecution(newExecution(execution.resetCount + 1));
   }
 
@@ -31,7 +32,7 @@ function QuizApp() {
         key={execution.resetCount}
         observaquizExecution={execution}
         howToReset={reset}
-        learnTeam={learnTeam}
+        learnTeam={learnTeam.learnParticipantTeam}
       />
     </Configuration.Provider>
   );

@@ -27,6 +27,11 @@ export type TracingTeamFromAuth = {
   apiKey: string;
 };
 
+export interface LearnTeam {
+  learnParticipantTeam(team: TracingTeam): void;
+  reset(): void;
+}
+
 export type SecondsSinceEpoch = number;
 
 export type HoneycombRegion = "us" | "eu"; // could add dogfood if we want to test there

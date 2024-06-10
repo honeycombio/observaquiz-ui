@@ -12,7 +12,7 @@ import { LoggerProvider, BatchLogRecordProcessor } from "@opentelemetry/sdk-logs
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
-import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl } from "./TracingDestination";
+import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl, LearnTeam } from "./TracingDestination";
 import { ConstructThePipeline, DiagnosticsOnlyExporter } from "./ObservaquizSpanProcessor";
 import { ConstructLogPipeline } from "./ObservaquizLogProcessor";
 import { BUILD_INFO } from "./build_info.tmp";
@@ -156,10 +156,17 @@ const { learnerOfTeam, observaquizProcessor } = initializeTracing(Airplane);
 const logInit = initializeLogging();
 instrumentGlobalErrors();
 
-export function learnTeam(team: TracingTeam) {
-  learnerOfTeam.learnCustomerTeam(team);
-  logInit.learnerOfTeam.learnCustomerTeam(team);
-  // you want to see it, it has reconfigured, see.
-  console.log(observaquizProcessor.describeSelf());
-  console.log(logInit.observaquizProcessor.describeSelf());
+export const learnTeam: LearnTeam = {
+  learnParticipantTeam(team: TracingTeam) {
+    learnerOfTeam.learnParticipantTeam(team);
+    logInit.learnerOfTeam.learnCustomerTeam(team);
+    // you want to see it! it has reconfigured, see.
+    console.log(observaquizProcessor.describeSelf());
+    console.log(logInit.observaquizProcessor.describeSelf());
+  },
+
+  reset() {
+    learnerOfTeam.reset()
+  }
 }
+
