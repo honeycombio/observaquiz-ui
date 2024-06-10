@@ -13,9 +13,10 @@ import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl } from "./TracingDestination";
-import { ConstructThePipeline } from "./ObservaquizSpanProcessor";
+import { ConstructThePipeline, DiagnosticsOnlyExporter } from "./ObservaquizSpanProcessor";
 import { ConstructLogPipeline } from "./ObservaquizLogProcessor";
 import { BUILD_INFO } from "./build_info.tmp";
+import { Airplane, ConfigurationType } from "../Configuration";
 
 const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";
@@ -34,15 +35,13 @@ const resource = new Resource({
   ...buildInfo,
 });
 
-function initializeTracing() {
+function initializeTracing(config: ConfigurationType) {
   const provider = new WebTracerProvider({
     resource,
   });
 
-  const exporter = configureCompositeExporter([
-    new OTLPTraceExporter({ url: collectorUrl }),
-    // new ConsoleSpanExporter(),
-  ]);
+  const exporter = config.airplane_mode ? new DiagnosticsOnlyExporter("DevRel Team") :
+    new OTLPTraceExporter({ url: collectorUrl });
 
 
   const exportToDevrelTeam = new BatchSpanProcessor(exporter, {
@@ -50,7 +49,7 @@ function initializeTracing() {
   });
 
   const exportDirectlyToTheirTeam = (team: TracingTeam) => {
-    const exporter = new OTLPTraceExporter({
+    const exporter = config.airplane_mode ? new DiagnosticsOnlyExporter("Participant Team") : new OTLPTraceExporter({
       url: honeycombTelemetryUrl(team.auth!.region) + "/v1/traces",
       headers: { "x-honeycomb-team": team.auth!.apiKey },
     });
@@ -153,7 +152,7 @@ function instrumentGlobalErrors() {
   });
 }
 
-const { learnerOfTeam, observaquizProcessor } = initializeTracing();
+const { learnerOfTeam, observaquizProcessor } = initializeTracing(Airplane);
 const logInit = initializeLogging();
 instrumentGlobalErrors();
 

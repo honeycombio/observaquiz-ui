@@ -1,6 +1,6 @@
 // A second attempt at the booth game processor.
 
-import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor, SpanExporter } from "@opentelemetry/sdk-trace-base";
 import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
@@ -18,12 +18,12 @@ export function ConstructThePipeline(params: {
     params.devrelExporter,
     params.devrelExporterDescription
   );
-  
+
   const observaquizProcessor = new GrowingCompositeSpanProcessor(); // I probably don't need the growing anymore
   observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
   observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
   observaquizProcessor.addProcessor(new SpanCopier(), "COPY"); // this sets ATTRIBUTE_NAME_FOR_DESTINATION for each span to 'devrel' or 'participant'
-  
+
   observaquizProcessor.addProcessor( // devrel spans go here
     new FilteringSpanProcessor({
       filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_DEVREL_TEAM,
@@ -33,7 +33,7 @@ export function ConstructThePipeline(params: {
     "NORMAL"
   );
   const switcher = new SwitcherSpanProcessor(new HoldingSpanProcessor());
- 
+
   observaquizProcessor.addProcessor(
     new FilteringSpanProcessor({
       filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM,
@@ -422,4 +422,23 @@ function recordProcessingOnStart(
 
   span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] =
     processingRecordBefore + wrapTheChildReport(processingRecordsFromChildren);
+}
+
+
+export class DiagnosticsOnlyExporter implements SpanExporter {
+
+  constructor(public description: String) { }
+
+  // the ExportResult type seems hard to import, hence the 'any' here
+  export(spans: ReadableSpan[], resultCallback: (result: any) => void): void {
+    console.log(`'Exporting' ${spans.length} spans: ${this.description}`)
+    resultCallback({ code: 0 });
+  }
+  async shutdown(): Promise<void> {
+    console.log(`Shutting down diagnostic exporter: ${this.description}`);
+  }
+  async forceFlush?(): Promise<void> {
+    console.log(`Flushing diagnostic exporter: ${this.description}`);
+  }
+
 }

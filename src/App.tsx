@@ -1,12 +1,14 @@
-import { learnTeam } from "./tracing/tracing";
+import { Configuration, Airplane, Production } from "./Configuration";
+const configuration = Airplane;
+import { learnTeam } from "./tracing/tracing"; // TODO: pass configuration to initialization
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Configuration, FakeHoneycomb, Production } from "./Configuration";
 import { ObservaquizExecution, TrackedBoothGame } from "./TrackedBoothGame";
 import { v4 as uuidv4 } from "uuid"; // Import the 'uuidv4' function from the 'uuid' package
 import { useLocalStorage } from "./tracing/useLocalStorage";
 
 console.log("begin! at");
+
 
 function newExecution(resets: number): ObservaquizExecution {
   return {
@@ -24,7 +26,7 @@ function QuizApp() {
   }
 
   return (
-    <Configuration.Provider value={Production}>
+    <Configuration.Provider value={configuration}>
       <TrackedBoothGame
         key={execution.resetCount}
         observaquizExecution={execution}
