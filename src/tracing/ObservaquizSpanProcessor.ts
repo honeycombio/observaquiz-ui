@@ -1,6 +1,6 @@
 // A second attempt at the booth game processor.
 
-import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor, SpanExporter } from "@opentelemetry/sdk-trace-base";
+import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor, SpanExporter, BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { HONEYCOMB_DATASET_NAME, LearnTeam, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
@@ -222,7 +222,6 @@ function printList(list: Array<string>): string {
   return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
 }
 
-// TODO: remove? doesn't seem to be used anymore, we use the Updatable one
 class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
   constructor(private readonly attributes: Attributes) { }
   describeSelf(): string {
@@ -417,9 +416,9 @@ class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
 
   public reset() {
     if (this.state.name === "sending") {
-        this.state.downstream.forceFlush();
-        this.state.downstream.shutdown();
-        this.state = { name: "holding", downstream: this.constructInitialDownstream()}
+      this.state.downstream.forceFlush();
+      this.state.downstream.shutdown();
+      this.state = { name: "holding", downstream: this.constructInitialDownstream() }
     } else {
       console.log("INFO: switcher.reset() called when we were already holding spans. Continuing to hold")
     }
@@ -495,5 +494,16 @@ export class DiagnosticsOnlyExporter implements SpanExporter {
   }
   async forceFlush?(): Promise<void> {
     console.log(`Flushing diagnostic exporter: ${this.description}`);
+  }
+}
+
+export function constructExporterThatAddsApiKey(exporter: SpanExporter): (team: TracingTeam) => SpanProcessor {
+  return (team: TracingTeam) => {
+    const composite = new GrowingCompositeSpanProcessor();
+    composite.addProcessor(new ProcessorThatInsertsAttributes({ [ATTRIBUTE_NAME_FOR_APIKEY]: team.auth!.apiKey }), "ATTRIBUTE")
+    composite.addProcessor(new WrapSpanProcessorWithDescription(new BatchSpanProcessor(exporter, {
+      scheduledDelayMillis: 1000,
+    }), "send with API key"))
+    return composite;
   }
 }

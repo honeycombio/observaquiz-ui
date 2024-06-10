@@ -13,7 +13,7 @@ import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl, LearnTeam } from "./TracingDestination";
-import { ConstructThePipeline, DiagnosticsOnlyExporter } from "./ObservaquizSpanProcessor";
+import { ConstructThePipeline, DiagnosticsOnlyExporter, constructExporterThatAddsApiKey } from "./ObservaquizSpanProcessor";
 import { ConstructLogPipeline } from "./ObservaquizLogProcessor";
 import { BUILD_INFO } from "./build_info.tmp";
 import { Airplane, ConfigurationType } from "../Configuration";
@@ -57,6 +57,9 @@ function initializeTracing(config: ConfigurationType) {
       scheduledDelayMillis: 1000,
     });
   };
+
+  // alternative
+  const addParticipantApiKeyAndSendToOurCollector = constructExporterThatAddsApiKey(exporter) 
 
   const { learnerOfTeam, observaquizProcessor } = ConstructThePipeline({
     devrelExporter: exportToDevrelTeam,
