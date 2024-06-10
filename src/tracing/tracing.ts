@@ -40,19 +40,22 @@ function initializeTracing(config: ConfigurationType) {
     resource,
   });
 
-  const exporter = config.airplane_mode ? new DiagnosticsOnlyExporter("DevRel Team") :
-    new OTLPTraceExporter({ url: collectorUrl });
-
+  const exporter = configureCompositeExporter([
+    config.diagnostics_for_spans && new DiagnosticsOnlyExporter("DevRel Team"),
+    config.send_spans && new OTLPTraceExporter({ url: collectorUrl })]
+    .filter(a => !!a).map(a => a as any)); // remove falses
 
   const exportToDevrelTeam = new BatchSpanProcessor(exporter, {
     scheduledDelayMillis: 1000,
   });
 
   const exportDirectlyToTheirTeam = (team: TracingTeam) => {
-    const exporter = config.airplane_mode ? new DiagnosticsOnlyExporter("Participant Team") : new OTLPTraceExporter({
-      url: honeycombTelemetryUrl(team.auth!.region) + "/v1/traces",
-      headers: { "x-honeycomb-team": team.auth!.apiKey },
-    });
+    const exporter = configureCompositeExporter([
+      config.diagnostics_for_spans && new DiagnosticsOnlyExporter("Participant Team"),
+      config.send_spans && new OTLPTraceExporter({
+        url: honeycombTelemetryUrl(team.auth!.region) + "/v1/traces",
+        headers: { "x-honeycomb-team": team.auth!.apiKey },
+      })].filter(a => !!a).map(a => a as any));
     return new BatchSpanProcessor(exporter, {
       scheduledDelayMillis: 1000,
     });
@@ -168,9 +171,11 @@ export function initializeTelemetry(configuration: ConfigurationType): LearnTeam
       console.log(observaquizProcessor.describeSelf());
       console.log(logInit.observaquizProcessor.describeSelf());
     },
-  
+
     reset() {
       learnerOfTeam.reset()
+      console.log("After reset:")
+      console.log(observaquizProcessor.describeSelf());
     }
   }
   return learnTeam;

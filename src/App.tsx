@@ -1,5 +1,5 @@
-import { Configuration, Airplane, Production } from "./Configuration";
-const configuration = Production;
+import { Configuration, Airplane, Production, Test } from "./Configuration";
+const configuration = Test;
 import { initializeTelemetry } from "./tracing/tracing"; // TODO: pass configuration to initialization
 const learnTeam = initializeTelemetry(configuration);
 import React from "react";
