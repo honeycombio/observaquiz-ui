@@ -496,5 +496,4 @@ export class DiagnosticsOnlyExporter implements SpanExporter {
   async forceFlush?(): Promise<void> {
     console.log(`Flushing diagnostic exporter: ${this.description}`);
   }
-
 }
