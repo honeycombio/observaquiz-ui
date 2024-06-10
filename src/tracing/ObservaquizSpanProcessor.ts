@@ -193,7 +193,6 @@ class LearnerOfTeam {
 
   public learnCustomerTeam(team: TracingTeam) {
     const attributes: Attributes = {
-      "observaquiz.learned_team_processor": v4(),
       "honeycomb.team.slug": team.auth!.team.slug,
       "honeycomb.region": team.auth!.region,
       "honeycomb.env.slug": team.auth!.environment.slug,
@@ -317,7 +316,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     );
     reportProcessing(span, "Copy made X");
     setAttributesForCopiedOriginals(span); // observaquiz.destination = devrel
-    copy.setAttribute("observaquiz.spanCopier.original_attributes_on_span_start", Object.entries(span.attributes).length)
+    // copy.setAttribute("observaquiz.spanCopier.original_attributes_on_span_start", Object.entries(span.attributes).length)
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
     copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
@@ -338,7 +337,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     }
     const openSpanCopy = this.openSpanCopies[span.spanContext().spanId];
     if (openSpanCopy) {
-      openSpanCopy.setAttribute("observaquiz.spanCopier.original_attributes_on_span_end", Object.entries(span.attributes).length)
+      // openSpanCopy.setAttribute("observaquiz.spanCopier.original_attributes_on_span_end", Object.entries(span.attributes).length)
       const attributes = { ...span.attributes };
       // now, the things that are particular to the copies -- do not pull these from the originals
       removeAttributesForCopiedOriginals(attributes)
