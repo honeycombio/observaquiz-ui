@@ -19,9 +19,8 @@ export function setAttributesForCopiedOriginals(logOrSpan: LogRecord | Span) {
 // call this for spans when, at the end, we gather up their attributes and copy them to the copy, again.
 export function removeAttributesForCopiedOriginals(attributes: Attributes) {
     delete attributes[ATTRIBUTE_NAME_FOR_COPIED_ORIGINALS];
-    if (attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_DEVREL_TEAM) {
-        delete attributes[ATTRIBUTE_NAME_FOR_DESTINATION];
-    }
+    delete attributes[ATTRIBUTE_NAME_FOR_DESTINATION];
+    delete attributes[ATTRIBUTE_NAME_FOR_APIKEY]; // don't send them their own API key, at least if we're sending directly
 }
 
 export function attributesForCopies(): Attributes {

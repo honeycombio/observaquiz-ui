@@ -7,6 +7,7 @@ import { trace, Span } from "@opentelemetry/api";
 import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_DESTINATION, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, ATTRIBUTE_VALUE_FOR_DEVREL_TEAM, ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM, PROCESSING_REPORT_DELIMITER, attributesForCopies, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 import { SessionIdProcessor } from "./SessionIdProcessor";
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
+import { v4 } from "uuid";
 
 
 export function ConstructThePipeline(params: {
@@ -192,6 +193,7 @@ class LearnerOfTeam {
 
   public learnCustomerTeam(team: TracingTeam) {
     const attributes: Attributes = {
+      "observaquiz.learned_team_processor": v4(),
       "honeycomb.team.slug": team.auth!.team.slug,
       "honeycomb.region": team.auth!.region,
       "honeycomb.env.slug": team.auth!.environment.slug,
@@ -315,6 +317,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     );
     reportProcessing(span, "Copy made X");
     setAttributesForCopiedOriginals(span); // observaquiz.destination = devrel
+    copy.setAttribute("observaquiz.spanCopier.original_attributes_on_span_start", Object.entries(span.attributes).length)
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
     copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
@@ -335,6 +338,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     }
     const openSpanCopy = this.openSpanCopies[span.spanContext().spanId];
     if (openSpanCopy) {
+      openSpanCopy.setAttribute("observaquiz.spanCopier.original_attributes_on_span_end", Object.entries(span.attributes).length)
       const attributes = { ...span.attributes };
       // now, the things that are particular to the copies -- do not pull these from the originals
       removeAttributesForCopiedOriginals(attributes)
