@@ -23,6 +23,19 @@ processors:
       span:
         - attributes["observaquiz.destination"] == "participant" or attributes["observaquiz.destination"] == nil
 
+  transform/i-am-the-participant:
+    trace_statements:
+      - context: resource
+        statements:
+          - set(attributes["collector.pipeline"], "participant")
+
+  transform/devrel-gets-everything:
+    trace_statements:
+      - context: resource
+        statements:
+          - set(attributes["collector.pipeline"], "devrel")
+          
+
   groupbyattrs/honeycomb_api_key:
     keys:
       - app.honeycomb_api_key
@@ -100,12 +113,12 @@ service:
   pipelines:
     traces/devrel:
       receivers: [otlp]
-      processors: [batch, transform/labelme, transform/hash_api_key]
+      processors: [batch, filter/participant, transform/devrel-gets-everything, transform/labelme, transform/hash_api_key]
       exporters: [otlp]
 
     traces/attendee_ingest:
       receivers: [otlp]
-      processors: [filter/noapikey, groupbyattrs/honeycomb_api_key]
+      processors: [filter/noapikey, filter/devrel, transform/i-am-the-participant, groupbyattrs/honeycomb_api_key]
       exporters: [resourceattr_to_context]
     traces/attendee_export:
       receivers: [resourceattr_to_context]
