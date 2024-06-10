@@ -427,7 +427,9 @@ function recordProcessingOnStart(
 
 export class DiagnosticsOnlyExporter implements SpanExporter {
 
-  constructor(public description: String) { }
+  constructor(public description: String) { 
+    console.log(`Diagnostic exporter constructed: ${this.description}`)
+  }
 
   // the ExportResult type seems hard to import, hence the 'any' here
   export(spans: ReadableSpan[], resultCallback: (result: any) => void): void {

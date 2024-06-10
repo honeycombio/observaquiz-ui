@@ -62,7 +62,6 @@ function saveApiKeyInLocalStorageInTheFuture() {
 function ApiKeyInputInternal(props: ApiKeyInputProps) {
   const span = useContext(ActiveLifecycleSpan);
   const config = useContext(Configuration);
-  console.log("Config: ", config)
 
   const [loadingness, setLoadingness] = React.useState(false);
   const [enteredApiKey, setEnteredApiKey] = React.useState("");
