@@ -24,11 +24,16 @@ export function ConstructThePipeline(params: {
   observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
   observaquizProcessor.addProcessor(new SpanCopier(), "COPY"); // this sets ATTRIBUTE_NAME_FOR_DESTINATION for each span to 'devrel' or 'participant'
 
+  // For the spans going to devrel, set team fields and then transmit to our collector
+  const setTeamFieldsOnceWeHaveThem = new UpdatableProcessorThatInsertsAttributes();
+  const setTeamFieldsAndExportToDevrel = new GrowingCompositeSpanProcessor(); // I don't really need the growth
+  setTeamFieldsAndExportToDevrel.addProcessor(setTeamFieldsOnceWeHaveThem, "ADD TEAM FIELDS");
+  setTeamFieldsAndExportToDevrel.addProcessor(devrelExporterWithDescription, "SEND TO DEVREL");
   observaquizProcessor.addProcessor( // devrel spans go here
     new FilteringSpanProcessor({
       filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_DEVREL_TEAM,
       filterDescription: "this has been copied, now send it to DevRel's honeycomb team",
-      downstream: devrelExporterWithDescription, // look! this makes it an exporting processor
+      downstream: setTeamFieldsAndExportToDevrel, // look! this makes it an exporting processor
     }),
     "NORMAL"
   );
@@ -44,8 +49,8 @@ export function ConstructThePipeline(params: {
   );
 
   const learnerOfTeam = new LearnerOfTeam(
-    observaquizProcessor,
     switcher,
+    setTeamFieldsOnceWeHaveThem,
     (team) =>
       new WrapSpanProcessorWithDescription(
         params.processorForTeam(team),
@@ -159,6 +164,9 @@ class UpdatableProcessorThatInsertsAttributes implements SelfDescribingSpanProce
   }
 
   describeSelf(): string {
+    if (Object.entries(this.attributes).length === 0) {
+      return "I will add fields to the span someday";
+    }
     return (
       "I add fields to the span, currently: \n" +
       printList(Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString()))
@@ -177,8 +185,8 @@ class UpdatableProcessorThatInsertsAttributes implements SelfDescribingSpanProce
 
 class LearnerOfTeam {
   constructor(
-    private insertProcessorHere: GrowingCompositeSpanProcessor,
     private switcher: SwitcherSpanProcessor,
+    private setTeamFieldsOnceWeHaveThem: UpdatableProcessorThatInsertsAttributes,
     private whatToSwitchTo: (team: TracingTeam) => SelfDescribingSpanProcessor
   ) { }
 
@@ -191,7 +199,7 @@ class LearnerOfTeam {
       [ATTRIBUTE_NAME_FOR_APIKEY]: team.auth!.apiKey, // important that this key match other steps
       "honeycomb.leaderboard.moniker": team.protagonist?.moniker || "anonymous", // TODO: learn this earlier
     };
-    this.insertProcessorHere.addProcessor(new ProcessorThatInsertsAttributes(attributes), "ADD FIELDS");
+    this.setTeamFieldsOnceWeHaveThem.setTheseAttributes(attributes);
     this.switcher.switchTo(this.whatToSwitchTo(team));
   }
 }
@@ -236,7 +244,7 @@ class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
 
   describeSelfInternal(downstreamDescription: string): string {
     return (
-      "I filter spans, choosing " +
+      "I filter spans, choosing: " +
       this.params.filterDescription +
       "\n" +
       " ┗ " +

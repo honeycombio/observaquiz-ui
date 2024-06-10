@@ -212,7 +212,7 @@ class FilteringLogRecordProcessor implements SelfDescribingLogRecordProcessor {
 
   describeSelfInternal(downstreamDescription: string): string {
     return (
-      "I filter LogRecords, choosing " +
+      "I filter LogRecords, choosing: " +
       this.params.filterDescription +
       "\n" +
       " ┗ " +
