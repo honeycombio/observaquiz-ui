@@ -10,13 +10,13 @@ import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
 
 
 export function ConstructThePipeline(params: {
-  normalProcessor: SpanProcessor;
-  normalProcessorDescription: string;
+  devrelExporter: SpanProcessor;
+  devrelExporterDescription: string;
   processorForTeam: (team: TracingTeam) => SpanProcessor;
 }) {
-  const normalProcessorWithDescription = new WrapSpanProcessorWithDescription(
-    params.normalProcessor,
-    params.normalProcessorDescription
+  const devrelExporterWithDescription = new WrapSpanProcessorWithDescription(
+    params.devrelExporter,
+    params.devrelExporterDescription
   );
 
   const observaquizProcessor = new GrowingCompositeSpanProcessor();
@@ -24,7 +24,7 @@ export function ConstructThePipeline(params: {
     new FilteringSpanProcessor({
       filter: (span) => !span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
       filterDescription: "spans that aren't copies",
-      downstream: normalProcessorWithDescription,
+      downstream: devrelExporterWithDescription,
     }),
     "NORMAL"
   );

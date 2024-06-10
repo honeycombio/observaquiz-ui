@@ -45,11 +45,11 @@ function initializeTracing() {
   ]);
 
 
-  const normalProcessor = new BatchSpanProcessor(exporter, {
+  const exportToDevrelTeam = new BatchSpanProcessor(exporter, {
     scheduledDelayMillis: 1000,
   });
 
-  const processorForTeam = (team: TracingTeam) => {
+  const exportDirectlyToTheirTeam = (team: TracingTeam) => {
     const exporter = new OTLPTraceExporter({
       url: honeycombTelemetryUrl(team.auth!.region) + "/v1/traces",
       headers: { "x-honeycomb-team": team.auth!.apiKey },
@@ -60,9 +60,9 @@ function initializeTracing() {
   };
 
   const { learnerOfTeam, observaquizProcessor } = ConstructThePipeline({
-    normalProcessor,
-    normalProcessorDescription: "Batch OTLP over HTTP to /v1/traces",
-    processorForTeam,
+    devrelExporter: exportToDevrelTeam,
+    devrelExporterDescription: "Batch OTLP over HTTP to /v1/traces",
+    processorForTeam: exportDirectlyToTheirTeam,
   });
 
   console.log(observaquizProcessor.describeSelf());
