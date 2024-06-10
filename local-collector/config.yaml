@@ -11,6 +11,18 @@ processors:
       span:
         - attributes["app.honeycomb_api_key"] == nil
 
+  filter/devrel:
+    error_mode: ignore
+    traces:
+      span:
+        - attributes["observaquiz.destination"] == "devrel" or attributes["observaquiz.destination"] == nil
+
+  filter/participant:
+    error_mode: ignore
+    traces:
+      span:
+        - attributes["observaquiz.destination"] == "participant" or attributes["observaquiz.destination"] == nil
+
   groupbyattrs/honeycomb_api_key:
     keys:
       - app.honeycomb_api_key
