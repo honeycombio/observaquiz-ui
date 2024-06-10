@@ -4,7 +4,7 @@ import { ReadableSpan, Span as TraceBaseSpan, SpanProcessor } from "@opentelemet
 import { HONEYCOMB_DATASET_NAME, TracingTeam } from "./TracingDestination";
 import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
-import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, PROCESSING_REPORT_DELIMITER, attributesForCopies, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
+import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_DESTINATION, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, ATTRIBUTE_VALUE_FOR_DEVREL_TEAM, ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM, PROCESSING_REPORT_DELIMITER, attributesForCopies, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 import { SessionIdProcessor } from "./SessionIdProcessor";
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
 
@@ -18,37 +18,31 @@ export function ConstructThePipeline(params: {
     params.devrelExporter,
     params.devrelExporterDescription
   );
-
-  const observaquizProcessor = new GrowingCompositeSpanProcessor();
-  observaquizProcessor.addProcessor(
+  
+  const observaquizProcessor = new GrowingCompositeSpanProcessor(); // I probably don't need the growing anymore
+  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
+  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
+  observaquizProcessor.addProcessor(new SpanCopier(), "COPY"); // this sets ATTRIBUTE_NAME_FOR_DESTINATION for each span to 'devrel' or 'participant'
+  
+  observaquizProcessor.addProcessor( // devrel spans go here
     new FilteringSpanProcessor({
-      filter: (span) => !span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
-      filterDescription: "spans that aren't copies",
-      downstream: devrelExporterWithDescription,
+      filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_DEVREL_TEAM,
+      filterDescription: "this has been copied, now send it to DevRel's honeycomb team",
+      downstream: devrelExporterWithDescription, // look! this makes it an exporting processor
     }),
     "NORMAL"
   );
   const switcher = new SwitcherSpanProcessor(new HoldingSpanProcessor());
-  observaquizProcessor.addProcessor(
-    // NOTE: filtering will work in production, but not locally because my collector isn't sending to customers here
-    //  new FilteringSpanProcessor({
-    //    downstream:
-    new SpanCopier(),
-    //   filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_APIKEY] === undefined,
-    //   filterDescription: "spans without an api key",
-    //  }),
-    "COPY"
-  );
+ 
   observaquizProcessor.addProcessor(
     new FilteringSpanProcessor({
-      filter: (span) => !!span.attributes[ATTRIBUTE_NAME_FOR_COPIES],
+      filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM,
       downstream: switcher,
-      filterDescription: "copied spans",
+      filterDescription: "this span is for the participant's team",
     }),
     "HOLD"
   );
-  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
-  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
+
   const learnerOfTeam = new LearnerOfTeam(
     observaquizProcessor,
     switcher,
@@ -244,6 +238,13 @@ class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
   }
 }
 
+/**
+ * On span start, this makes a copy of the span and starts it. (unless the incoming span was already a copy)
+ * On span end, this ends the copy.
+ * 
+ * The copies are designated as 'observaquiz.destination = participant'
+ * and the originals are 'observaquiz.destination = devrel'
+ */
 class SpanCopier implements SelfDescribingSpanProcessor {
   describeSelf(): string {
     return (
@@ -262,8 +263,8 @@ class SpanCopier implements SelfDescribingSpanProcessor {
     this.copyCount++;
     const itsLibraryName = span.instrumentationLibrary.name;
     const attributes: Attributes = {
-      ...attributesForCopies(),
-      [ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]: "Created by the SpanCopier"
+      ...attributesForCopies(), // observaquiz.destination = participant
+      [ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]: "Created by the SpanCopier" // different for the LogCopier
     }
     const copy: Span = trace.getTracer(itsLibraryName).startSpan(
       span.name,
@@ -276,7 +277,7 @@ class SpanCopier implements SelfDescribingSpanProcessor {
       itsContext
     );
     reportProcessing(span, "Copy made X");
-    setAttributesForCopiedOriginals(span);
+    setAttributesForCopiedOriginals(span); // observaquiz.destination = devrel
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
     copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
