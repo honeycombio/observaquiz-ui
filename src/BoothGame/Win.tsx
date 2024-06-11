@@ -9,6 +9,10 @@ function WinInternal(props: WinProps) {
   React.useEffect(() => {
     const moniker = tracingTeam.populated ? tracingTeam.protagonist?.moniker : "anonymous";
     console.log("Posting to leaderboard: " + moniker + " " + props.score);
+    activeLifecycleSpan.setAttributes({
+      "app.leaderboard.moniker": moniker,
+      "app.leaderboard.score": props.score,
+    });
     activeLifecycleSpan.addLog("Leaderboard", {
       "app.leaderboard.moniker": moniker,
       "app.leaderboard.score": props.score,
