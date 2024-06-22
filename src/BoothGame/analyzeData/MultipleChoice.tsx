@@ -65,7 +65,6 @@ function MultipleChoiceOuter<ParticularQueryData>(props: MultipleChoiceProps<Par
         };
       },
     }).then((json) => {
-      console.log("Answers retrieved", json);
       const queryDataReturned = json as QueryDataResult<ParticularQueryData>;
       if (queryDataReturned.error) { throw new Error("failed to fetch query data: " + queryDataReturned.error) }
       if (!queryDataReturned.query_data) { throw new Error("No query data is here") }

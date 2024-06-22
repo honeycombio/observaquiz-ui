@@ -43,12 +43,10 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
 
   React.useEffect(() => {
     // when the button appears, focus it.
-    console.log("ah ha, the button", buttonRef.current);
     buttonRef.current?.focus(); // this doesn't work, fyi.
   }, [buttonRef.current, state]);
 
   const handleSelection = (ls: RadioButtonRow) => {
-    console.log("value: ", ls);
     setState(ls.moveToState, { eventName: ls.moveToState.stateName });
   };
 

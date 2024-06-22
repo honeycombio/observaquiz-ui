@@ -35,12 +35,9 @@ function TraceQuestionIntroductionInternal<T>(props: TraceQuestionIntroductionPr
     componentName: "traceQuestionIntroduction",
   });
 
-  console.log("Rendering trace question")
   React.useEffect(() => {
-    console.log("Attempting to pick a trace")
     // use the QDAPI to find a trace of interest
     pickATrace(team, activeLifecycleSpan).then((traceId) => {
-      console.log("Trace of interest ", traceId);
       setState({ stateName: "Show the question", questionVisible: true, traceId, datasetSlug, });
     })
   }, []);
@@ -179,7 +176,6 @@ function pickATrace(honeycombTeam: HoneycombTeamContextType, activeLifecycleSpan
       };
     },
   }).then((json) => {
-    console.log("Answers retrieved", json);
     const queryDataReturned = json as QueryDataResult<ParticularQueryData>;
     if (queryDataReturned.error) {
       throw new Error("failed to fetch query data: " + queryDataReturned.error)

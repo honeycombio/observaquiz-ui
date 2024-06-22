@@ -61,7 +61,6 @@ function GetThemATeamInternal(props: GetThemATeamProps) {
   const [state, setState] = useLocalTracedState<GetThemATeamState>(NothingSelectedYet);
 
   const handleSelection = (ls: RadioButtonRow) => {
-    console.log("value: ", ls);
     setState(ls.moveToState);
   };
 

@@ -134,7 +134,6 @@ function TextQuestionInternal(props: QuestionProps) {
   const defaultOpinionRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    console.log("considering focus");
     // Focus the button when the component renders or updates
     if (state.focusOn == "button") {
       buttonRef.current?.focus();
@@ -143,7 +142,6 @@ function TextQuestionInternal(props: QuestionProps) {
       textArea.current?.focus();
     }
     if (state.focusOn == "default opinion") {
-      console.log("focusing on " + defaultOpinionRef.current)
       defaultOpinionRef.current?.focus();
     }
   }, [state]);
@@ -158,7 +156,6 @@ function TextQuestionInternal(props: QuestionProps) {
     }
     if (typedContent.endsWith("\n")) {
       // there has to be a better way to do this. I don't want to submit if they pressed shift-enter
-      console.log("Click the button");
       setAnswerContent(typedContent.trim());
       buttonRef.current?.click();
     } else {

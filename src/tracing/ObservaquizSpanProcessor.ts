@@ -158,7 +158,6 @@ class GrowingCompositeProcessor implements SelfDescribing, SpanAndLogProcessor {
   }
 
   onEmit(logRecord: LogRecord, parentContext?: Context | undefined): void {
-    console.log("A log was, indeed emitted"); 
     const callOneProcessor = (p: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => {
       p.onEmit(event as LogRecord, parentContext);
     };
@@ -578,7 +577,7 @@ export class DiagnosticsOnlyExporter implements SpanExporter, LogRecordExporter 
   export(spans: Array<ReadableSpan | ReadableLogRecord>, resultCallback: (result: any) => void): void {
     const spansWithApiKey = spans.filter((span) => !!span.attributes[ATTRIBUTE_NAME_FOR_APIKEY]).length
     const attributesFromOneSpan = Object.entries(spans[0].attributes).map(([k, v]) => `  ${k}=${v}`).join("\n")
-    console.log(`Exporter: ${this.description}, exporting events: ${spans.length}, with API key: ${spansWithApiKey}\nHere are the attributes for one of them:\n${attributesFromOneSpan}`)
+    // console.log(`Exporter: ${this.description}, exporting events: ${spans.length}, with API key: ${spansWithApiKey}\nHere are the attributes for one of them:\n${attributesFromOneSpan}`)
     resultCallback({ code: 0 });
   }
   async shutdown(): Promise<void> {
