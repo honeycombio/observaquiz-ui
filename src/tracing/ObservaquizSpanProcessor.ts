@@ -7,6 +7,7 @@ import { trace, Span } from "@opentelemetry/api";
 import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_DESTINATION, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, ATTRIBUTE_VALUE_FOR_DEVREL_TEAM, ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM, PROCESSING_REPORT_DELIMITER, attributesForCopies, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 import { SessionIdProcessor } from "./SessionIdProcessor";
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
+import { LogRecord, LogRecordExporter, LogRecordProcessor, ReadableLogRecord } from "@opentelemetry/sdk-logs";
 
 
 export function ConstructThePipeline(params: {
@@ -19,7 +20,7 @@ export function ConstructThePipeline(params: {
     params.devrelExporterDescription
   );
 
-  const observaquizProcessor = new GrowingCompositeSpanProcessor(); // I probably don't need the growing anymore
+  const observaquizProcessor = new GrowingCompositeProcessor(); // I probably don't need the growing anymore
   observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
   observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
   observaquizProcessor.addProcessor(new SpanCopier(), "COPY"); // this sets ATTRIBUTE_NAME_FOR_DESTINATION for each span to 'devrel' or 'participant'
@@ -64,7 +65,7 @@ export function ConstructThePipeline(params: {
   return { learnerOfTeam, observaquizProcessor };
 }
 
-type SelfDescribingSpanProcessor = SpanProcessor & {
+type SelfDescribing = {
   /**
    * Output a string that says everything your processor does.
    * @param prefixForLinesAfterTheFirst If your description has multiple lines, put this in front of all the extra ones.
@@ -87,7 +88,7 @@ function reportProcessing(span: TraceBaseSpan, who: string) {
   }
 }
 
-class WrapSpanProcessorWithDescription implements SelfDescribingSpanProcessor {
+class WrapSpanProcessorWithDescription implements SelfDescribing, SpanProcessor {
   constructor(private readonly processor: SpanProcessor, private readonly description: string) { }
   describeSelf(): string {
     return this.description;
@@ -104,14 +105,17 @@ class WrapSpanProcessorWithDescription implements SelfDescribingSpanProcessor {
   }
   async forceFlush(): Promise<void> {
     return this.processor.forceFlush();
-  }
+}
 }
 
-class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
-  private seriesofProcessors: Array<SelfDescribingSpanProcessor> = [];
+type SpanAndLogProcessor = SpanProcessor & LogRecordProcessor;
+
+class GrowingCompositeProcessor implements SelfDescribing, SpanAndLogProcessor{
+
+  private seriesofProcessors: Array<SelfDescribing & SpanAndLogProcessor> = [];
   private routeDescriptions: Array<string | undefined> = []; // parallel array to seriesofProcessors. guess i should put them in an object together
 
-  public addProcessor(processor: SelfDescribingSpanProcessor, routeDescription?: string) {
+  public addProcessor(processor: SelfDescribing & SpanAndLogProcessor, routeDescription?: string) {
     this.seriesofProcessors.push(processor); // new ones are last
     this.routeDescriptions.push(routeDescription);
   }
@@ -144,6 +148,10 @@ class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
       this.describeSelfInternal(processingReports)
     );
   }
+
+  onEmit(logRecord: LogRecord, context?: Context | undefined): void {
+    throw new Error("Method not implemented.");
+  }
   onEnd(span: ReadableSpan): void {
     this.seriesofProcessors.forEach((processor) => processor.onEnd(span));
   }
@@ -155,7 +163,7 @@ class GrowingCompositeSpanProcessor implements SelfDescribingSpanProcessor {
   }
 }
 
-class UpdatableProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
+class UpdatableProcessorThatInsertsAttributes implements SelfDescribing & SpanProcessor {
   private attributes: Attributes = {};
 
   setTheseAttributes(newAttributes: Attributes) {
@@ -192,7 +200,7 @@ class LearnerOfTeam implements LearnTeam {
   constructor(
     private switcher: SwitcherSpanProcessor,
     private setTeamFieldsOnceWeHaveThem: UpdatableProcessorThatInsertsAttributes,
-    private whatToSwitchTo: (team: TracingTeam) => SelfDescribingSpanProcessor
+    private whatToSwitchTo: (team: TracingTeam) => SelfDescribing & SpanProcessor
   ) { }
 
   public learnParticipantTeam(team: TracingTeam) {
@@ -221,7 +229,7 @@ function printList(list: Array<string>): string {
   return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
 }
 
-class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
+class ProcessorThatInsertsAttributes implements SelfDescribing & SpanProcessor {
   constructor(private readonly attributes: Attributes) { }
   describeSelf(): string {
     return (
@@ -239,12 +247,12 @@ class ProcessorThatInsertsAttributes implements SelfDescribingSpanProcessor {
   async forceFlush(): Promise<void> { }
 }
 
-class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
+class FilteringSpanProcessor implements SelfDescribing & SpanProcessor {
   constructor(
     private readonly params: {
       filter: (span: ReadableSpan) => boolean;
       filterDescription: string;
-      downstream: SelfDescribingSpanProcessor;
+      downstream: SelfDescribing & SpanProcessor;
     }
   ) { }
 
@@ -291,7 +299,7 @@ class FilteringSpanProcessor implements SelfDescribingSpanProcessor {
  * The copies are designated as 'observaquiz.destination = participant'
  * and the originals are 'observaquiz.destination = devrel'
  */
-class SpanCopier implements SelfDescribingSpanProcessor {
+class SpanCopier implements SelfDescribing & SpanProcessor {
   describeSelf(): string {
     return (
       "I copy spans, evilly\n" +
@@ -365,13 +373,13 @@ class SpanCopier implements SelfDescribingSpanProcessor {
   }
 }
 
-class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
+class HoldingSpanProcessor implements SelfDescribing, SpanProcessor {
   constructor() { }
 
   private startedSpans: Array<[TraceBaseSpan, Context]> = [];
   private endedSpans: Array<ReadableSpan> = [];
 
-  flushTo(other: SelfDescribingSpanProcessor) {
+  flushTo(other: SelfDescribing & SpanProcessor) {
     this.startedSpans.forEach(([span, parentContext]) => other.onStart(span, parentContext));
     this.startedSpans = []; // make sure we don't hold a reference to a pile of spans forever.
     this.endedSpans.forEach((span) => other.onEnd(span));
@@ -403,10 +411,10 @@ class HoldingSpanProcessor implements SelfDescribingSpanProcessor {
 }
 
 /** this one accepts a pile of spans at initialization and sends them. */
-class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
-  private state: { name: "holding", downstream: HoldingSpanProcessor } | { name: "sending", downstream: SelfDescribingSpanProcessor };
+class SwitcherSpanProcessor implements SelfDescribing, SpanProcessor {
+  private state: { name: "holding", downstream: HoldingSpanProcessor } | { name: "sending", downstream: SelfDescribing & SpanProcessor };
 
-  public switchTo(downstream: SelfDescribingSpanProcessor) {
+  public switchTo(downstream: SelfDescribing & SpanAndLogProcessor) {
     if (this.state.name === "holding") {
       this.state.downstream.flushTo(downstream)
     };
@@ -437,7 +445,10 @@ class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
     this.state = { name: "holding", downstream: constructInitialDownstream() }
   }
   onStart(span: TraceBaseSpan, parentContext: Context): void {
-    recordProcessingOnStart(span, parentContext, [this.state.downstream], (childReports) =>
+    const callOneProcessor = (p: SpanAndLogProcessor, span: TraceBaseSpan) {
+      p.onStart(span, parentContext);
+    };
+    recordProcessingOnStart(span, [this.state.downstream], callOneProcessor, (childReports) =>
       this.describeSelfInternal(childReports[0])
     );
   }
@@ -452,10 +463,12 @@ class SwitcherSpanProcessor implements SelfDescribingSpanProcessor {
   }
 }
 
+type SpanOrLogRecord = TraceBaseSpan | LogRecord;
+
 function recordProcessingOnStart(
-  span: TraceBaseSpan,
-  parentContext: Context,
-  spanProcessors: SpanProcessor[],
+  span: SpanOrLogRecord,
+  spanProcessors: SpanAndLogProcessor[],
+  callOneProcessor: (processor: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => void,
   wrapTheChildReport: (childReport: string[]) => string
 ) {
   var processingRecordBefore = span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] || "";
@@ -464,9 +477,9 @@ function recordProcessingOnStart(
   }
 
   const processingRecordsFromChildren: string[] = [];
-  spanProcessors.forEach((logProcessor) => {
+  spanProcessors.forEach((p) => {
     span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "";
-    logProcessor.onStart(span, parentContext);
+    callOneProcessor(p, span, parentContext);
     processingRecordsFromChildren.push(span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]);
   });
 
@@ -474,18 +487,21 @@ function recordProcessingOnStart(
     processingRecordBefore + wrapTheChildReport(processingRecordsFromChildren);
 }
 
+type ReadableSpanOrLogRecord = ReadableSpan | ReadableLogRecord;
 
-export class DiagnosticsOnlyExporter implements SpanExporter {
+type SpanAndLogExporter = SpanExporter & LogRecordExporter;
+
+export class DiagnosticsOnlyExporter implements SpanExporter, LogRecordExporter {
 
   constructor(public description: String) {
     console.log(`Diagnostic exporter constructed: ${this.description}`)
   }
 
   // the ExportResult type seems hard to import, hence the 'any' here
-  export(spans: ReadableSpan[], resultCallback: (result: any) => void): void {
+  export(spans: Array<ReadableSpan | ReadableLogRecord>, resultCallback: (result: any) => void): void {
     const spansWithApiKey = spans.filter((span) => !!span.attributes[ATTRIBUTE_NAME_FOR_APIKEY]).length
     const attributesFromOneSpan = Object.entries(spans[0].attributes).map(([k, v]) => `  ${k}=${v}`).join("\n")
-    console.log(`Exporter: ${this.description}, exporting spans: ${spans.length}, with API key: ${spansWithApiKey}\n${attributesFromOneSpan}`)
+    console.log(`Exporter: ${this.description}, exporting spans: ${spans.length}, with API key: ${spansWithApiKey}\nHere are the attributes for one of them:\n${attributesFromOneSpan}`)
     resultCallback({ code: 0 });
   }
   async shutdown(): Promise<void> {
@@ -496,9 +512,9 @@ export class DiagnosticsOnlyExporter implements SpanExporter {
   }
 }
 
-export function constructExporterThatAddsApiKey(exporter: SpanExporter): (team: TracingTeam) => SpanProcessor {
+export function constructExporterThatAddsApiKey(exporter: SpanAndLogExporter): (team: TracingTeam) => SpanAndLogExporter {
   return (team: TracingTeam) => {
-    const composite = new GrowingCompositeSpanProcessor();
+    const composite = new GrowingCompositeProcessor();
     composite.addProcessor(new ProcessorThatInsertsAttributes({ [ATTRIBUTE_NAME_FOR_APIKEY]: team.auth!.apiKey }), "ATTRIBUTE")
     composite.addProcessor(new WrapSpanProcessorWithDescription(new BatchSpanProcessor(exporter, {
       scheduledDelayMillis: 1000,
