@@ -9,7 +9,12 @@ import { LogRecord, LogRecordProcessor } from "@opentelemetry/sdk-logs";
 const { sessionId } = SessionGateway.getSession();
 const SESSION_ID_ATTRIBUTE = "session.id";
 
-export class SessionIdProcessor implements SpanProcessor {
+type SpanAndLogProcessor = SpanProcessor & LogRecordProcessor;
+
+export class SessionIdProcessor implements SpanAndLogProcessor {
+  onEmit(logRecord: LogRecord, context?: Context | undefined): void {
+    logRecord.setAttribute(SESSION_ID_ATTRIBUTE, sessionId);
+  }
   onStart(span: Span, _parentContext: Context): void {
     span.setAttribute(SESSION_ID_ATTRIBUTE, sessionId);
   }

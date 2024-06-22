@@ -11,27 +11,27 @@ import { LogRecord, LogRecordExporter, LogRecordProcessor, ReadableLogRecord } f
 import * as logsAPI from "@opentelemetry/api-logs";
 
 export function ConstructThePipeline(params: {
-  devrelExporter: SpanProcessor;
+  devrelExporter: SpanAndLogProcessor;
   devrelExporterDescription: string;
   processorForTeam: (team: TracingTeam) => SpanProcessor;
 }) {
-  const devrelExporterWithDescription = new WrapSpanProcessorWithDescription(
+  const devrelExporterWithDescription = new WrapProcessorWithDescription(
     params.devrelExporter,
     params.devrelExporterDescription
   );
 
   const observaquizProcessor = new GrowingCompositeProcessor(); // I probably don't need the growing anymore
-  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
-  observaquizProcessor.addProcessor(new WrapSpanProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
-  observaquizProcessor.addProcessor(new SpanCopier(), "COPY"); // this sets ATTRIBUTE_NAME_FOR_DESTINATION for each span to 'devrel' or 'participant'
+  observaquizProcessor.addProcessor(new WrapProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
+  observaquizProcessor.addProcessor(new WrapProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
+  observaquizProcessor.addProcessor(new Copier(), "COPY"); // this sets ATTRIBUTE_NAME_FOR_DESTINATION for each span to 'devrel' or 'participant'
 
   // For the spans going to devrel, set team fields and then transmit to our collector
   const setTeamFieldsOnceWeHaveThem = new UpdatableProcessorThatInsertsAttributes();
-  const setTeamFieldsAndExportToDevrel = new GrowingCompositeSpanProcessor(); // I don't really need the growth
+  const setTeamFieldsAndExportToDevrel = new GrowingCompositeProcessor(); // I don't really need the growth
   setTeamFieldsAndExportToDevrel.addProcessor(setTeamFieldsOnceWeHaveThem, "ADD TEAM FIELDS");
   setTeamFieldsAndExportToDevrel.addProcessor(devrelExporterWithDescription, "SEND TO DEVREL");
   observaquizProcessor.addProcessor( // devrel spans go here
-    new FilteringSpanProcessor({
+    new FilteringProcessor({
       filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_DEVREL_TEAM,
       filterDescription: "this has been copied, now send it to DevRel's honeycomb team",
       downstream: setTeamFieldsAndExportToDevrel, // look! this makes it an exporting processor
@@ -41,9 +41,9 @@ export function ConstructThePipeline(params: {
 
   // for the spans that go to the participant: we will first hold them, and then send them,
   // once we have their team API key.
-  const switcher = new SwitcherSpanProcessor(() => new HoldingSpanProcessor());
+  const switcher = new SwitcherProcessor(() => new HoldingProcessor());
   observaquizProcessor.addProcessor(
-    new FilteringSpanProcessor({
+    new FilteringProcessor({
       filter: (span) => span.attributes[ATTRIBUTE_NAME_FOR_DESTINATION] === ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM,
       downstream: switcher,
       filterDescription: "this span is for the participant's team",
@@ -56,7 +56,7 @@ export function ConstructThePipeline(params: {
     switcher,
     setTeamFieldsOnceWeHaveThem,
     (team) =>
-      new WrapSpanProcessorWithDescription(
+      new WrapProcessorWithDescription(
         params.processorForTeam(team),
         "I have been constructed to send to team " + team.auth!.team.slug
       )
@@ -88,8 +88,9 @@ function reportProcessing(span: SpanOrLogRecord, who: string) {
   }
 }
 
-class WrapSpanProcessorWithDescription implements SelfDescribing, SpanProcessor {
-  constructor(private readonly processor: SpanProcessor, private readonly description: string) { }
+class WrapProcessorWithDescription implements SelfDescribing, SpanAndLogProcessor {
+  constructor(private readonly processor: SpanAndLogProcessor, private readonly description: string) { }
+
   describeSelf(): string {
     return this.description;
   }
@@ -99,6 +100,10 @@ class WrapSpanProcessorWithDescription implements SelfDescribing, SpanProcessor 
   }
   onEnd(span: ReadableSpan): void {
     this.processor.onEnd(span);
+  }
+  onEmit(logRecord: LogRecord, parentContext?: Context | undefined): void {
+    reportProcessing(logRecord, this.description);
+    this.processor.onEmit(logRecord, parentContext);
   }
   async shutdown(): Promise<void> {
     return this.processor.shutdown();
@@ -144,13 +149,21 @@ class GrowingCompositeProcessor implements SelfDescribing, SpanAndLogProcessor {
   }
 
   onStart(span: TraceBaseSpan, parentContext: Context): void {
-    recordProcessingOnStart(span, parentContext, this.seriesofProcessors, (processingReports) =>
+    const callOneProcessor = (p: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => {
+      p.onStart(event as TraceBaseSpan, parentContext);
+    };
+    recordProcessingOnStart(span, this.seriesofProcessors, callOneProcessor, (processingReports) =>
       this.describeSelfInternal(processingReports)
     );
   }
 
-  onEmit(logRecord: LogRecord, context?: Context | undefined): void {
-    throw new Error("Method not implemented.");
+  onEmit(logRecord: LogRecord, parentContext?: Context | undefined): void {
+    const callOneProcessor = (p: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => {
+      p.onEmit(event as LogRecord, parentContext);
+    };
+    recordProcessingOnStart(logRecord, this.seriesofProcessors, callOneProcessor, (processingReports) =>
+      this.describeSelfInternal(processingReports)
+    );
   }
   onEnd(span: ReadableSpan): void {
     this.seriesofProcessors.forEach((processor) => processor.onEnd(span));
