@@ -1,4 +1,4 @@
-import { WebTracerProvider, BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-web";
+import { WebTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
@@ -7,16 +7,15 @@ import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions"
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-document-load";
 import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
-import { configureCompositeExporter } from "./composite-exporter";
 import { LoggerProvider, BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 import { HONEYCOMB_DATASET_NAME, TracingTeam, honeycombTelemetryUrl, LearnTeam } from "./TracingDestination";
-import { ConstructThePipeline, DiagnosticsOnlyExporter, constructExporterThatAddsApiKey } from "./ObservaquizSpanProcessor";
-import { ConstructLogPipeline } from "./ObservaquizLogProcessor";
+import { CombineSpanAndLogProcessor, ConstructThePipeline, DiagnosticsOnlyExporter, constructExporterThatAddsApiKey } from "./ObservaquizSpanProcessor";
 import { BUILD_INFO } from "./build_info.tmp";
 import { Airplane, ConfigurationType } from "../Configuration";
+import { CompositeLogExporter, CompositeSpanExporter } from "./composite-exporter";
 
 const serviceName = HONEYCOMB_DATASET_NAME;
 const collectorUrl = "/v1/traces";
@@ -36,45 +35,67 @@ const resource = new Resource({
 });
 
 function initializeTracing(config: ConfigurationType) {
-  const provider = new WebTracerProvider({
+  const tracerProvider = new WebTracerProvider({
     resource,
   });
 
-  const exporter = configureCompositeExporter([
-    config.diagnostics_for_spans && new DiagnosticsOnlyExporter("DevRel Team"),
+  const devrelSpanExporter = new CompositeSpanExporter([
+    config.diagnostics_for_spans && new DiagnosticsOnlyExporter("DevRel Team Spans"),
     config.send_spans && new OTLPTraceExporter({ url: collectorUrl })]
     .filter(a => !!a).map(a => a as any)); // remove falses
-
-  const exportToDevrelTeam = new BatchSpanProcessor(exporter, {
+  const devRelSpanProcessor = new BatchSpanProcessor(devrelSpanExporter, {
     scheduledDelayMillis: 1000,
   });
 
-  const exportDirectlyToTheirTeam = (team: TracingTeam) => {
-    const exporter = configureCompositeExporter([
-      config.diagnostics_for_spans && new DiagnosticsOnlyExporter("Participant Team"),
+  const devrelLogExporter = new CompositeLogExporter([
+    config.diagnostics_for_spans && new DiagnosticsOnlyExporter("DevRel Team Spans"),
+    config.send_spans && new OTLPLogExporter({ url: collectorUrl })]
+    .filter(a => !!a).map(a => a as any)); // remove falses
+  const devRelLogProcessor = new BatchLogRecordProcessor(devrelLogExporter, {
+    scheduledDelayMillis: 1000,
+  });
+
+  const exportToDevrelTeam = CombineSpanAndLogProcessor(devRelSpanProcessor, devRelLogProcessor);
+
+  const participantSpanAndLogProcessor = (team: TracingTeam) => {
+    // alternative participantSpanProcessor... but it's gonna have the wrong name in its diagnostics
+    // const addParticipantApiKeyAndSendToOurCollector = constructExporterThatAddsApiKey(devrelSpanProcessor)
+
+    // these are exporters, because i want the printing to happen after the batching.
+    const spanExporter = new CompositeSpanExporter([
+      config.diagnostics_for_spans && new DiagnosticsOnlyExporter("Participant Team Spans"),
       config.send_spans && new OTLPTraceExporter({
         url: honeycombTelemetryUrl(team.auth!.region) + "/v1/traces",
         headers: { "x-honeycomb-team": team.auth!.apiKey },
       })].filter(a => !!a).map(a => a as any));
-    return new BatchSpanProcessor(exporter, {
+    const spanProcessor = new BatchSpanProcessor(spanExporter, {
       scheduledDelayMillis: 1000,
     });
-  };
 
-  // alternative
-  const addParticipantApiKeyAndSendToOurCollector = constructExporterThatAddsApiKey(exporter)
+    const logExporter = new CompositeLogExporter([
+      config.diagnostics_for_spans && new DiagnosticsOnlyExporter("Participant Team Logs"),
+      config.send_spans && new OTLPTraceExporter({
+        url: honeycombTelemetryUrl(team.auth!.region) + "/v1/logs",
+        headers: { "x-honeycomb-team": team.auth!.apiKey },
+      })].filter(a => !!a).map(a => a as any));
+    const logProcessor = new BatchLogRecordProcessor(logExporter, {
+      scheduledDelayMillis: 1000,
+    });
+
+    return CombineSpanAndLogProcessor(spanProcessor, logProcessor);
+  };
 
   const { learnerOfTeam, observaquizProcessor } = ConstructThePipeline({
     devrelExporter: exportToDevrelTeam,
     devrelExporterDescription: "Batch OTLP over HTTP to /v1/traces",
-    processorForTeam: exportDirectlyToTheirTeam,
+    processorForTeam: participantSpanAndLogProcessor,
   });
 
   console.log(observaquizProcessor.describeSelf());
 
-  provider.addSpanProcessor(observaquizProcessor);
+  tracerProvider.addSpanProcessor(observaquizProcessor);
 
-  provider.register({
+  tracerProvider.register({
     contextManager: new ZoneContextManager(),
   });
 
@@ -84,44 +105,12 @@ function initializeTracing(config: ConfigurationType) {
 
   console.log("Tracing initialized, version l");
 
-  return { learnerOfTeam, observaquizProcessor };
-}
-
-function initializeLogging() {
-  console.log("initializing logging")
-  // To start a logger, you first need to initialize the Logger provider.
   const loggerProvider = new LoggerProvider({
     resource,
   });
-
-  const normalProcessor = new BatchLogRecordProcessor(
-    new OTLPLogExporter({
-      url: "/v1/logs",
-      // headers: {
-      //   "X-Honeycomb-Team": process.env.HONEYCOMB_API_KEY,
-      // },
-    }),
-    { scheduledDelayMillis: 500 }
-  );
-
-  const processorForTeam = (team: TracingTeam) => {
-    const exporter = new OTLPLogExporter({
-      url: honeycombTelemetryUrl(team.auth!.region) + "/v1/logs",
-      headers: { "x-honeycomb-team": team.auth!.apiKey },
-    });
-    return new BatchLogRecordProcessor(exporter, { scheduledDelayMillis: 500 });
-  };
-
-  const { learnerOfTeam, observaquizProcessor } = ConstructLogPipeline({
-    normalProcessor,
-    normalProcessorDescription: "Batch OTLP over HTTP to /v1/logs",
-    processorForTeam,
-  });
-
-  console.log(observaquizProcessor.describeSelf());
-
   loggerProvider.addLogRecordProcessor(observaquizProcessor);
   logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
+  console.log("Logging initialized");
 
   return { learnerOfTeam, observaquizProcessor };
 }
@@ -161,16 +150,13 @@ function instrumentGlobalErrors() {
 
 export function initializeTelemetry(configuration: ConfigurationType): LearnTeam {
   const { learnerOfTeam, observaquizProcessor } = initializeTracing(configuration);
-  const logInit = initializeLogging();
   instrumentGlobalErrors();
 
   const learnTeam: LearnTeam = {
     learnParticipantTeam(team: TracingTeam) {
       learnerOfTeam.learnParticipantTeam(team);
-      logInit.learnerOfTeam.learnCustomerTeam(team);
       // you want to see it! it has reconfigured, see.
       console.log(observaquizProcessor.describeSelf());
-      console.log(logInit.observaquizProcessor.describeSelf());
     },
 
     reset() {

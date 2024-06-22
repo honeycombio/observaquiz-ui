@@ -598,3 +598,23 @@ export function constructExporterThatAddsApiKey(batchedExporter: SpanAndLogProce
     return composite;
   }
 }
+
+export function CombineSpanAndLogProcessor(spanProcessor: SpanProcessor, logProcessor: LogRecordProcessor): SpanAndLogProcessor {
+  return {
+    onStart: (span: TraceBaseSpan, parentContext: Context) => {
+      spanProcessor.onStart(span, parentContext);
+    },
+    onEnd: (span: ReadableSpan) => {
+      spanProcessor.onEnd(span);
+    },
+    onEmit: (logRecord: LogRecord, parentContext?: Context | undefined) => {
+      logProcessor.onEmit(logRecord, parentContext);
+    },
+    shutdown: () => {
+      return Promise.all([spanProcessor.shutdown(), logProcessor.shutdown()]).then(() => { });
+    },
+    forceFlush: () => {
+      return Promise.all([spanProcessor.forceFlush(), logProcessor.forceFlush()]).then(() => { });
+    }
+  }
+} // this was a copilot success, this function. It typed it in one hit.

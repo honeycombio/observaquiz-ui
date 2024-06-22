@@ -1,17 +1,6 @@
 import { ExportResult, ExportResultCode } from "@opentelemetry/core";
+import { LogRecordExporter, ReadableLogRecord } from "@opentelemetry/sdk-logs";
 import { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-base";
-
-/**
- * Builds and returns a new {@link SpanExporter} that wraps the provided array
- * of {@link SpanExporter}s
- *
- * @remark This is not for production use. (why not??)
- * @param exporters the exporters to wrap with the composite exporter
- * @returns the configured {@link SpanExporter} instance
- */
-export function configureCompositeExporter(exporters: SpanExporter[]): SpanExporter {
-  return new CompositeSpanExporter(exporters);
-}
 
 /**
  * A custom SpanExporter that wraps a number of other exporters and calls export and shutdown
@@ -19,7 +8,7 @@ export function configureCompositeExporter(exporters: SpanExporter[]): SpanExpor
  *
  * @remarks Not for production use.
  */
-class CompositeSpanExporter implements SpanExporter {
+export class CompositeSpanExporter implements SpanExporter {
   private _exporters: SpanExporter[];
 
   constructor(exporters: SpanExporter[]) {
@@ -27,6 +16,32 @@ class CompositeSpanExporter implements SpanExporter {
   }
 
   export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
+    this._exporters.forEach((exporter) => exporter.export(spans, resultCallback));
+    resultCallback({ code: ExportResultCode.SUCCESS });
+  }
+
+  async shutdown(): Promise<void> {
+    const results: Promise<void>[] = [];
+    this._exporters.forEach((exporter) => results.push(exporter.shutdown()));
+    await Promise.all(results);
+  }
+}
+
+
+/**
+ * A custom SpanExporter that wraps a number of other exporters and calls export and shutdown
+ * for each when.
+ *
+ * @remarks Not for production use.
+ */
+export class CompositeLogExporter implements LogRecordExporter {
+  private _exporters: LogRecordExporter[];
+
+  constructor(exporters: LogRecordExporter[]) {
+    this._exporters = exporters;
+  }
+
+  export(spans: ReadableLogRecord[], resultCallback: (result: ExportResult) => void): void {
     this._exporters.forEach((exporter) => exporter.export(spans, resultCallback));
     resultCallback({ code: ExportResultCode.SUCCESS });
   }
