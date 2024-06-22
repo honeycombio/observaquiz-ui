@@ -8,7 +8,7 @@ import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FO
 import { SessionIdProcessor } from "./SessionIdProcessor";
 import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
 import { LogRecord, LogRecordExporter, LogRecordProcessor, ReadableLogRecord } from "@opentelemetry/sdk-logs";
-
+import * as logsAPI from "@opentelemetry/api-logs";
 
 export function ConstructThePipeline(params: {
   devrelExporter: SpanProcessor;
@@ -105,12 +105,12 @@ class WrapSpanProcessorWithDescription implements SelfDescribing, SpanProcessor 
   }
   async forceFlush(): Promise<void> {
     return this.processor.forceFlush();
-}
+  }
 }
 
 type SpanAndLogProcessor = SpanProcessor & LogRecordProcessor;
 
-class GrowingCompositeProcessor implements SelfDescribing, SpanAndLogProcessor{
+class GrowingCompositeProcessor implements SelfDescribing, SpanAndLogProcessor {
 
   private seriesofProcessors: Array<SelfDescribing & SpanAndLogProcessor> = [];
   private routeDescriptions: Array<string | undefined> = []; // parallel array to seriesofProcessors. guess i should put them in an object together
@@ -189,9 +189,9 @@ class UpdatableProcessorThatInsertsAttributes implements SelfDescribing & SpanPr
     span.setAttributes(this.attributes);
   }
 
-  onEnd(_span: ReadableSpan): void { }
-  async shutdown(): Promise<void> { }
-  async forceFlush(): Promise<void> { }
+  onEnd(_span: ReadableSpan): void {}
+  async shutdown(): Promise < void> {}
+  async forceFlush(): Promise < void> {}
 }
 
 
@@ -229,7 +229,7 @@ function printList(list: Array<string>): string {
   return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
 }
 
-class ProcessorThatInsertsAttributes implements SelfDescribing & SpanProcessor {
+class ProcessorThatInsertsAttributes implements SelfDescribing, SpanProcessor {
   constructor(private readonly attributes: Attributes) { }
   describeSelf(): string {
     return (
@@ -247,14 +247,15 @@ class ProcessorThatInsertsAttributes implements SelfDescribing & SpanProcessor {
   async forceFlush(): Promise<void> { }
 }
 
-class FilteringSpanProcessor implements SelfDescribing & SpanProcessor {
+class FilteringProcessor implements SelfDescribing, SpanAndLogProcessor {
   constructor(
     private readonly params: {
-      filter: (span: ReadableSpan) => boolean;
+      filter: (span: ReadableSpanOrLogRecord) => boolean;
       filterDescription: string;
-      downstream: SelfDescribing & SpanProcessor;
+      downstream: SelfDescribing & SpanAndLogProcessor;
     }
   ) { }
+
 
   describeSelf(): string {
     return this.describeSelfInternal(this.params.downstream.describeSelf());
@@ -270,19 +271,32 @@ class FilteringSpanProcessor implements SelfDescribing & SpanProcessor {
     );
   }
 
-  onStart(span: TraceBaseSpan, parentContext: Context): void {
-    if (this.params.filter(span)) {
-      recordProcessingOnStart(span, parentContext, [this.params.downstream], (childReports) =>
+  filter(event: SpanOrLogRecord, callOneProcessor: (processor: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => void) {
+    if (this.params.filter(event)) {
+      recordProcessingOnStart(event, [this.params.downstream], callOneProcessor, (childReports) =>
         this.describeSelfInternal(childReports[0])
       );
     } else {
-      reportProcessing(span, "FilterProcessor says we only want " + this.params.filterDescription + " X");
+      reportProcessing(event, "FilterProcessor says we only want: " + this.params.filterDescription + " X");
     }
+  }
+
+  onStart(span: TraceBaseSpan, parentContext: Context): void {
+    const callOneProcessor = (p: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => {
+      p.onStart(event as TraceBaseSpan, parentContext);
+    };
+    this.filter(span, callOneProcessor)
   }
   onEnd(span: ReadableSpan): void {
     if (this.params.filter(span)) {
       this.params.downstream.onEnd(span);
     }
+  }
+  onEmit(event: LogRecord, parentContext?: Context | undefined): void {
+    const callOneProcessor = (p: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => {
+      p.onEmit(event as LogRecord, parentContext);
+    };
+    this.filter(event, callOneProcessor)
   }
   shutdown(): Promise<void> {
     return this.params.downstream.shutdown();
@@ -299,7 +313,7 @@ class FilteringSpanProcessor implements SelfDescribing & SpanProcessor {
  * The copies are designated as 'observaquiz.destination = participant'
  * and the originals are 'observaquiz.destination = devrel'
  */
-class SpanCopier implements SelfDescribing & SpanProcessor {
+class Copier implements SelfDescribing, SpanAndLogProcessor {
   describeSelf(): string {
     return (
       "I copy spans, evilly\n" +
@@ -332,7 +346,6 @@ class SpanCopier implements SelfDescribing & SpanProcessor {
     );
     reportProcessing(span, "Copy made X");
     setAttributesForCopiedOriginals(span); // observaquiz.destination = devrel
-    // copy.setAttribute("observaquiz.spanCopier.original_attributes_on_span_start", Object.entries(span.attributes).length)
     // now the cheaty bit. Good thing this is JavaScript.
     copy.spanContext().spanId = span.spanContext().spanId;
     copy.spanContext().traceId = span.spanContext().traceId; // should be the same already except on the root span
@@ -364,6 +377,30 @@ class SpanCopier implements SelfDescribing & SpanProcessor {
       delete this.openSpanCopies[span.spanContext().spanId];
     }
   }
+
+  // logs are a little different
+  private copyLogRecord(logRecord: LogRecord, itsContext: Context) {
+    this.copyCount++;
+    const itsLibraryName = logRecord.instrumentationScope.name;
+    const attributes: logsAPI.LogAttributes = { ...logRecord.attributes, ...attributesForCopies() };
+    attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "Created by the LogRecordCopier";
+    logsAPI.logs.getLogger(itsLibraryName).emit({
+      ...logRecord,
+      context: itsContext,
+      attributes,
+    });
+    setAttributesForCopiedOriginals(logRecord)
+  }
+
+  onEmit(logRecord: LogRecord, parentContext: Context): void {
+    if (logRecord.attributes[ATTRIBUTE_NAME_FOR_COPIES]) {
+      reportProcessing(logRecord, "Copy processor doesn't copy copies X");
+      return; // don't copy copies
+    }
+    reportProcessing(logRecord, this.describeSelf());
+    this.copyLogRecord(logRecord, parentContext);
+  }
+
   shutdown(): Promise<void> {
     return Promise.resolve();
   }
@@ -496,7 +533,7 @@ function recordProcessingOnStart(
   const processingRecordsFromChildren: string[] = [];
   spanProcessors.forEach((p) => {
     span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT] = "";
-    callOneProcessor(p, span, parentContext);
+    callOneProcessor(p, span);
     processingRecordsFromChildren.push(span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT]);
   });
 
