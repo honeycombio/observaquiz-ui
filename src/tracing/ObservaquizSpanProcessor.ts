@@ -158,6 +158,7 @@ class GrowingCompositeProcessor implements SelfDescribing, SpanAndLogProcessor {
   }
 
   onEmit(logRecord: LogRecord, parentContext?: Context | undefined): void {
+    console.log("A log was, indeed emitted"); 
     const callOneProcessor = (p: SpanAndLogProcessor, event: ReadableSpanOrLogRecord) => {
       p.onEmit(event as LogRecord, parentContext);
     };
