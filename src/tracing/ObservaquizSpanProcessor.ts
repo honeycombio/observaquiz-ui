@@ -76,7 +76,7 @@ type SelfDescribing = {
   describeSelf(): string;
 };
 
-function reportProcessing(span: TraceBaseSpan, who: string) {
+function reportProcessing(span: SpanOrLogRecord, who: string) {
   const existingProcessingReport = span.attributes[ATTRIBUTE_NAME_FOR_PROCESSING_REPORT];
   if (!existingProcessingReport) {
     span.setAttribute(ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, who);
@@ -373,17 +373,22 @@ class SpanCopier implements SelfDescribing & SpanProcessor {
   }
 }
 
-class HoldingSpanProcessor implements SelfDescribing, SpanProcessor {
+class HoldingProcessor implements SelfDescribing, SpanAndLogProcessor {
   constructor() { }
+
 
   private startedSpans: Array<[TraceBaseSpan, Context]> = [];
   private endedSpans: Array<ReadableSpan> = [];
 
-  flushTo(other: SelfDescribing & SpanProcessor) {
+  private logRecords: Array<[LogRecord, Context | undefined]> = [];
+
+  flushTo(other: SelfDescribing & SpanAndLogProcessor) {
     this.startedSpans.forEach(([span, parentContext]) => other.onStart(span, parentContext));
     this.startedSpans = []; // make sure we don't hold a reference to a pile of spans forever.
     this.endedSpans.forEach((span) => other.onEnd(span));
     this.endedSpans = [];
+    this.logRecords.forEach(([logRecord, parentContext]) => other.onEmit(logRecord, parentContext));
+    this.logRecords = [];
   }
 
   describeSelf(): string {
@@ -394,6 +399,10 @@ class HoldingSpanProcessor implements SelfDescribing, SpanProcessor {
       " ┗ " +
       `${this.endedSpans.length} ended spans`
     );
+  }
+  onEmit(logRecord: LogRecord, parentContext?: Context | undefined): void {
+    reportProcessing(logRecord, "Holding on to this one...");
+    this.logRecords.push([logRecord, parentContext]);
   }
   onStart(span: TraceBaseSpan, parentContext: Context): void {
     reportProcessing(span, "Holding on to this one...");
@@ -411,8 +420,8 @@ class HoldingSpanProcessor implements SelfDescribing, SpanProcessor {
 }
 
 /** this one accepts a pile of spans at initialization and sends them. */
-class SwitcherSpanProcessor implements SelfDescribing, SpanProcessor {
-  private state: { name: "holding", downstream: HoldingSpanProcessor } | { name: "sending", downstream: SelfDescribing & SpanProcessor };
+class SwitcherSpanProcessor implements SelfDescribing, SpanAndLogProcessor {
+  private state: { name: "holding", downstream: HoldingProcessor } | { name: "sending", downstream: SelfDescribing & SpanAndLogProcessor };
 
   public switchTo(downstream: SelfDescribing & SpanAndLogProcessor) {
     if (this.state.name === "holding") {
@@ -441,12 +450,20 @@ class SwitcherSpanProcessor implements SelfDescribing, SpanProcessor {
     );
   }
 
-  constructor(private readonly constructInitialDownstream: () => HoldingSpanProcessor) {
+  constructor(private readonly constructInitialDownstream: () => HoldingProcessor) {
     this.state = { name: "holding", downstream: constructInitialDownstream() }
   }
+  onEmit(logRecord: LogRecord, parentContext?: Context | undefined): void {
+    const callOneProcessor = (p: SpanAndLogProcessor, logRecord: ReadableSpanOrLogRecord) => {
+      p.onEmit(logRecord as LogRecord, parentContext);
+    };
+    recordProcessingOnStart(logRecord, [this.state.downstream], callOneProcessor, (childReports) =>
+      this.describeSelfInternal(childReports[0])
+    );
+  }
   onStart(span: TraceBaseSpan, parentContext: Context): void {
-    const callOneProcessor = (p: SpanAndLogProcessor, span: TraceBaseSpan) {
-      p.onStart(span, parentContext);
+    const callOneProcessor = (p: SpanAndLogProcessor, span: ReadableSpanOrLogRecord) => {
+      p.onStart(span as TraceBaseSpan, parentContext);
     };
     recordProcessingOnStart(span, [this.state.downstream], callOneProcessor, (childReports) =>
       this.describeSelfInternal(childReports[0])
