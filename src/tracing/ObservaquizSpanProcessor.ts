@@ -13,7 +13,7 @@ import * as logsAPI from "@opentelemetry/api-logs";
 export function ConstructThePipeline(params: {
   devrelExporter: SpanAndLogProcessor;
   devrelExporterDescription: string;
-  processorForTeam: (team: TracingTeam) => SpanProcessor;
+  processorForTeam: (team: TracingTeam) => SpanAndLogProcessor;
 }) {
   const devrelExporterWithDescription = new WrapProcessorWithDescription(
     params.devrelExporter,
@@ -590,13 +590,11 @@ export class DiagnosticsOnlyExporter implements SpanExporter, LogRecordExporter 
   }
 }
 
-export function constructExporterThatAddsApiKey(exporter: SpanAndLogExporter): (team: TracingTeam) => SpanAndLogExporter {
+export function constructExporterThatAddsApiKey(batchedExporter: SpanAndLogProcessor): (team: TracingTeam) => SpanAndLogProcessor {
   return (team: TracingTeam) => {
     const composite = new GrowingCompositeProcessor();
     composite.addProcessor(new ProcessorThatInsertsAttributes({ [ATTRIBUTE_NAME_FOR_APIKEY]: team.auth!.apiKey }), "ATTRIBUTE")
-    composite.addProcessor(new WrapSpanProcessorWithDescription(new BatchSpanProcessor(exporter, {
-      scheduledDelayMillis: 1000,
-    }), "send with API key"))
+    composite.addProcessor(new WrapProcessorWithDescription(batchedExporter, "send with API key"))
     return composite;
   }
 }
