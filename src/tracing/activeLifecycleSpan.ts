@@ -58,6 +58,7 @@ export function wrapAsActiveLifecycleSpan(
     addLog: (name: string, attributes?: Attributes) => {
       console.log("Making a log");
       const uniqueID = uuidv4();
+       console.log(componentLifecycleLogger);
       componentLifecycleLogger.emit({
         body: name,
         severityNumber: logsAPI.SeverityNumber.INFO,
