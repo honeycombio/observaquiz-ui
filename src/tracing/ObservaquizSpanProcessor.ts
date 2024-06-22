@@ -6,7 +6,7 @@ import { Context, Attributes } from "@opentelemetry/api";
 import { trace, Span } from "@opentelemetry/api";
 import { ATTRIBUTE_NAME_FOR_APIKEY, ATTRIBUTE_NAME_FOR_COPIES, ATTRIBUTE_NAME_FOR_DESTINATION, ATTRIBUTE_NAME_FOR_PROCESSING_REPORT, ATTRIBUTE_VALUE_FOR_DEVREL_TEAM, ATTRIBUTE_VALUE_FOR_PARTICIPANT_TEAM, PROCESSING_REPORT_DELIMITER, attributesForCopies, removeAttributesForCopiedOriginals, setAttributesForCopiedOriginals } from "./ObservaquizProcessorCommon";
 import { SessionIdProcessor } from "./SessionIdProcessor";
-import { BaggageSpanProcessor } from "./BaggageSpanProcessor";
+import { BaggageProcessor } from "./BaggageSpanProcessor";
 import { LogRecord, LogRecordExporter, LogRecordProcessor, ReadableLogRecord } from "@opentelemetry/sdk-logs";
 import * as logsAPI from "@opentelemetry/api-logs";
 
@@ -22,7 +22,7 @@ export function ConstructThePipeline(params: {
 
   const observaquizProcessor = new GrowingCompositeProcessor(); // I probably don't need the growing anymore
   observaquizProcessor.addProcessor(new WrapProcessorWithDescription(new SessionIdProcessor(), "I add the session ID"), "SESSION ID");
-  observaquizProcessor.addProcessor(new WrapProcessorWithDescription(new BaggageSpanProcessor(), "I add all the baggage"), "BAGGAGE");
+  observaquizProcessor.addProcessor(new WrapProcessorWithDescription(new BaggageProcessor(), "I add all the baggage"), "BAGGAGE");
   observaquizProcessor.addProcessor(new Copier(), "COPY"); // this sets ATTRIBUTE_NAME_FOR_DESTINATION for each span to 'devrel' or 'participant'
 
   // For the spans going to devrel, set team fields and then transmit to our collector
