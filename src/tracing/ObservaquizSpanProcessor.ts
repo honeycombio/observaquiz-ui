@@ -163,7 +163,8 @@ class GrowingCompositeProcessor implements SelfDescribing, SpanAndLogProcessor {
   }
 }
 
-class UpdatableProcessorThatInsertsAttributes implements SelfDescribing & SpanProcessor {
+class UpdatableProcessorThatInsertsAttributes implements SelfDescribing, SpanAndLogProcessor {
+
   private attributes: Attributes = {};
 
   setTheseAttributes(newAttributes: Attributes) {
@@ -176,7 +177,7 @@ class UpdatableProcessorThatInsertsAttributes implements SelfDescribing & SpanPr
 
   describeSelf(): string {
     if (Object.entries(this.attributes).length === 0) {
-      return "I will add fields to the span someday";
+      return "I will add fields to the event someday";
     }
     return (
       "I add fields to the span, currently: \n" +
@@ -189,18 +190,23 @@ class UpdatableProcessorThatInsertsAttributes implements SelfDescribing & SpanPr
     span.setAttributes(this.attributes);
   }
 
-  onEnd(_span: ReadableSpan): void {}
-  async shutdown(): Promise < void> {}
-  async forceFlush(): Promise < void> {}
+  onEmit(event: LogRecord, context?: Context | undefined): void {
+    reportProcessing(event, this.describeSelf());
+    event.setAttributes(this.attributes);
+  }
+
+  onEnd(_span: ReadableSpan): void { }
+  async shutdown(): Promise<void> { }
+  async forceFlush(): Promise<void> { }
 }
 
 
 
 class LearnerOfTeam implements LearnTeam {
   constructor(
-    private switcher: SwitcherSpanProcessor,
+    private switcher: SwitcherProcessor,
     private setTeamFieldsOnceWeHaveThem: UpdatableProcessorThatInsertsAttributes,
-    private whatToSwitchTo: (team: TracingTeam) => SelfDescribing & SpanProcessor
+    private whatToSwitchTo: (team: TracingTeam) => SelfDescribing & SpanAndLogProcessor
   ) { }
 
   public learnParticipantTeam(team: TracingTeam) {
@@ -229,17 +235,22 @@ function printList(list: Array<string>): string {
   return list.map((p, i) => (isLast(i) ? lastLinePrefix : linePrefix) + p).join("\n");
 }
 
-class ProcessorThatInsertsAttributes implements SelfDescribing, SpanProcessor {
+class ProcessorThatInsertsAttributes implements SelfDescribing, SpanAndLogProcessor {
   constructor(private readonly attributes: Attributes) { }
+
   describeSelf(): string {
     return (
-      "I add fields to the span: \n" +
+      "I add fields to the event: \n" +
       printList(Object.entries(this.attributes).map(([k, v]) => k + "=" + v?.toString()))
     );
   }
-  onStart(span: TraceBaseSpan, _parentContext: Context): void {
-    reportProcessing(span, this.describeSelf());
-    span.setAttributes(this.attributes);
+  onStart(event: TraceBaseSpan, _parentContext: Context): void {
+    reportProcessing(event, this.describeSelf());
+    event.setAttributes(this.attributes);
+  }
+  onEmit(event: LogRecord, context?: Context | undefined): void {
+    reportProcessing(event, this.describeSelf());
+    event.setAttributes(this.attributes);
   }
 
   onEnd(_span: ReadableSpan): void { }
@@ -457,7 +468,7 @@ class HoldingProcessor implements SelfDescribing, SpanAndLogProcessor {
 }
 
 /** this one accepts a pile of spans at initialization and sends them. */
-class SwitcherSpanProcessor implements SelfDescribing, SpanAndLogProcessor {
+class SwitcherProcessor implements SelfDescribing, SpanAndLogProcessor {
   private state: { name: "holding", downstream: HoldingProcessor } | { name: "sending", downstream: SelfDescribing & SpanAndLogProcessor };
 
   public switchTo(downstream: SelfDescribing & SpanAndLogProcessor) {
