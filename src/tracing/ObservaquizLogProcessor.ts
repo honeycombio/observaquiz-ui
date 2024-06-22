@@ -97,6 +97,7 @@ class WrapLogRecordProcessorWithDescription implements SelfDescribingLogRecordPr
     return this.description;
   }
   onEmit(logRecord: LogRecord, parentContext: Context): void {
+    console.log("Processing a log: " + this.description)
     reportProcessing(logRecord, this.description);
     this.processor.onEmit(logRecord, parentContext);
   }

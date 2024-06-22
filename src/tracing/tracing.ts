@@ -88,6 +88,7 @@ function initializeTracing(config: ConfigurationType) {
 }
 
 function initializeLogging() {
+  console.log("initializing logging")
   // To start a logger, you first need to initialize the Logger provider.
   const loggerProvider = new LoggerProvider({
     resource,

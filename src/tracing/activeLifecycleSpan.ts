@@ -23,10 +23,10 @@ export type ActiveLifecycleSpanType = {
 };
 
 export const nilSpan: ActiveLifecycleSpanType = {
-  setAttributes: () => {},
-  addLog: (name: string, attributes?: Attributes) => {},
+  setAttributes: () => { },
+  addLog: (name: string, attributes?: Attributes) => { console.log("Not making a log") },
   withLog: <T>(name: string, attributes: Attributes, fn: () => T): T => fn(),
-  addError: (name: string, error?: Error, attributes?: Attributes) => {},
+  addError: (name: string, error?: Error, attributes?: Attributes) => { },
   spanContext: () => undefined,
   inSpan: (name: string, attributes: Attributes, fn: () => any) => fn(),
   inSpanAsync: (name: string, attributes: Attributes, fn: (span?: Span) => any) => fn(undefined),
@@ -56,6 +56,7 @@ export function wrapAsActiveLifecycleSpan(
     traceId: componentLifecycleSpans.spanThatWeSendRightAway.spanContext().traceId,
     componentName,
     addLog: (name: string, attributes?: Attributes) => {
+      console.log("Making a log");
       const uniqueID = uuidv4();
       componentLifecycleLogger.emit({
         body: name,
