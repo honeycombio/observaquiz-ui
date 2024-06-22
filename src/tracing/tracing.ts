@@ -3,7 +3,6 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { Resource } from "@opentelemetry/resources";
-import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { DocumentLoadInstrumentation } from "@opentelemetry/instrumentation-document-load";
 import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
@@ -16,9 +15,10 @@ import { CombineSpanAndLogProcessor, ConstructThePipeline, DiagnosticsOnlyExport
 import { BUILD_INFO } from "./build_info.tmp";
 import { Airplane, ConfigurationType } from "../Configuration";
 import { CompositeLogExporter, CompositeSpanExporter } from "./composite-exporter";
+import { SEMRESATTRS_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 
 const serviceName = HONEYCOMB_DATASET_NAME;
-const collectorUrl = "/v1/traces";
+const collectorUrl = "/";
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
 
@@ -26,7 +26,7 @@ const buildInfo = BUILD_INFO || {};
 console.log("build stamp: ", buildInfo["build.uuid"]);
 
 const resource = new Resource({
-  [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+  [SEMRESATTRS_SERVICE_NAME]: serviceName,
   "browser.user_agent": window.navigator.userAgent,
   "browser.language": window.navigator.language,
   "browser.url": window.location.href,
@@ -41,15 +41,15 @@ function initializeTracing(config: ConfigurationType) {
 
   const devrelSpanExporter = new CompositeSpanExporter([
     config.diagnostics_for_spans && new DiagnosticsOnlyExporter("DevRel Team Spans"),
-    config.send_spans && new OTLPTraceExporter({ url: collectorUrl })]
+    config.send_spans && new OTLPTraceExporter({ url: collectorUrl + "v1/traces" })]
     .filter(a => !!a).map(a => a as any)); // remove falses
   const devRelSpanProcessor = new BatchSpanProcessor(devrelSpanExporter, {
     scheduledDelayMillis: 1000,
   });
 
   const devrelLogExporter = new CompositeLogExporter([
-    config.diagnostics_for_spans && new DiagnosticsOnlyExporter("DevRel Team Spans"),
-    config.send_spans && new OTLPLogExporter({ url: collectorUrl })]
+    config.diagnostics_for_spans && new DiagnosticsOnlyExporter("DevRel Team Logs"),
+    config.send_spans && new OTLPLogExporter({ url: collectorUrl + "v1/logs" })]
     .filter(a => !!a).map(a => a as any)); // remove falses
   const devRelLogProcessor = new BatchLogRecordProcessor(devrelLogExporter, {
     scheduledDelayMillis: 1000,
@@ -74,7 +74,7 @@ function initializeTracing(config: ConfigurationType) {
 
     const logExporter = new CompositeLogExporter([
       config.diagnostics_for_spans && new DiagnosticsOnlyExporter("Participant Team Logs"),
-      config.send_spans && new OTLPTraceExporter({
+      config.send_spans && new OTLPLogExporter({
         url: honeycombTelemetryUrl(team.auth!.region) + "/v1/logs",
         headers: { "x-honeycomb-team": team.auth!.apiKey },
       })].filter(a => !!a).map(a => a as any));
@@ -87,7 +87,7 @@ function initializeTracing(config: ConfigurationType) {
 
   const { learnerOfTeam, observaquizProcessor } = ConstructThePipeline({
     devrelExporter: exportToDevrelTeam,
-    devrelExporterDescription: "Batch OTLP over HTTP to /v1/traces",
+    devrelExporterDescription: "Batch OTLP over HTTP to DevRel team",
     processorForTeam: participantSpanAndLogProcessor,
   });
 

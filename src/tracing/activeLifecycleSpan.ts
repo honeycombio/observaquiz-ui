@@ -34,8 +34,6 @@ export const nilSpan: ActiveLifecycleSpanType = {
   traceId: "00000"
 };
 
-const componentLifecycleLogger = logsAPI.logs.getLogger("app/component-lifecycle");
-const componentLifecycleTracer = trace.getTracer("app/component-lifecycle");
 export const EVENT_ID_KEY = Symbol("event ID key");
 export const EVENT_SPAN_ID_KEY = Symbol("span ID of the parent of the event");
 
@@ -52,13 +50,18 @@ export function wrapAsActiveLifecycleSpan(
   componentLifecycleSpans: ComponentLifecycleSpans,
   componentAttributes?: Attributes
 ): ActiveLifecycleSpanType {
+  // the Logger wasn't working because it got initialized too early
+  console.log("what do we know about logs?", logsAPI.logs)
+  const componentLifecycleLogger = logsAPI.logs.getLogger("app/component-lifecycle");
+  // somehow tracing worked even when global and initialized before tracing SDK, but :magic:
+  const componentLifecycleTracer = trace.getTracer("app/component-lifecycle");
   return {
     traceId: componentLifecycleSpans.spanThatWeSendRightAway.spanContext().traceId,
     componentName,
     addLog: (name: string, attributes?: Attributes) => {
       console.log("Making a log");
       const uniqueID = uuidv4();
-       console.log(componentLifecycleLogger);
+      console.log(componentLifecycleLogger);
       componentLifecycleLogger.emit({
         body: name,
         severityNumber: logsAPI.SeverityNumber.INFO,

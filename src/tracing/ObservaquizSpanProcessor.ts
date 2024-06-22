@@ -288,7 +288,7 @@ class FilteringProcessor implements SelfDescribing, SpanAndLogProcessor {
 
   describeSelfInternal(downstreamDescription: string): string {
     return (
-      "I filter spans, choosing: " +
+      "I filter events, choosing: " +
       this.params.filterDescription +
       "\n" +
       " ┗ " +
@@ -568,8 +568,6 @@ function recordProcessingOnStart(
 
 type ReadableSpanOrLogRecord = ReadableSpan | ReadableLogRecord;
 
-type SpanAndLogExporter = SpanExporter & LogRecordExporter;
-
 export class DiagnosticsOnlyExporter implements SpanExporter, LogRecordExporter {
 
   constructor(public description: String) {
@@ -580,7 +578,7 @@ export class DiagnosticsOnlyExporter implements SpanExporter, LogRecordExporter 
   export(spans: Array<ReadableSpan | ReadableLogRecord>, resultCallback: (result: any) => void): void {
     const spansWithApiKey = spans.filter((span) => !!span.attributes[ATTRIBUTE_NAME_FOR_APIKEY]).length
     const attributesFromOneSpan = Object.entries(spans[0].attributes).map(([k, v]) => `  ${k}=${v}`).join("\n")
-    console.log(`Exporter: ${this.description}, exporting spans: ${spans.length}, with API key: ${spansWithApiKey}\nHere are the attributes for one of them:\n${attributesFromOneSpan}`)
+    console.log(`Exporter: ${this.description}, exporting events: ${spans.length}, with API key: ${spansWithApiKey}\nHere are the attributes for one of them:\n${attributesFromOneSpan}`)
     resultCallback({ code: 0 });
   }
   async shutdown(): Promise<void> {
