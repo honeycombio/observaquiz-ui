@@ -23,7 +23,7 @@ import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
 
 const HardCodedEvent = {
-  eventName: "Monitorama",
+  eventName: "KCDC",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
