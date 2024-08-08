@@ -29,7 +29,7 @@ function WinInternal(props: WinProps) {
       <p>Come by the Honeycomb booth at FinTechDevCon to see how this compares with other scores, and to collect your prize!</p>
       <hr />
       <p>If you'd like to talk more about this quiz, or observability, or OpenTelemetry: chat with Jessitron (or Martin) in 
-        <a href="https://honeycomb.io/office-hours">Office Hours</a></p>
+        {" "}<a href="https://honeycomb.io/office-hours">Office Hours</a>.</p>
     </div>
   );
 }

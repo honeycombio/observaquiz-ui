@@ -300,7 +300,7 @@ function TextQuestionInternal(props: QuestionProps) {
         />
       </p>
       <p className="answer-response">{usefulContent}</p>
-      {state.askForOpinion && <p> {opinionButtons}</p>}
+      {state.askForOpinion && <p> <span id="say-what-you-think">What do you think of that response? </span>{opinionButtons}</p>}
       <p>
         <button
           id="question-go"
