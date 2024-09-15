@@ -5,7 +5,7 @@
 
 
 echo "starting frontend collector"
-docker-compose -f ./local-collector/docker-compose.yml up -d
+docker compose -f ./local-collector/docker-compose.yml up -d
 
 # start up the JS buildy stuff
 npm run serve &
