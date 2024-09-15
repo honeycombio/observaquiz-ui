@@ -6,8 +6,8 @@ import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { MultipleChoice, MultipleChoiceResult, WhatMultipleChoiceNeedsToKnow } from "./MultipleChoice";
 import popOutIndicator from "../../../static/images/arrowSquareUpRight.svg";
 
-const PleaseLookAtTheData = { questionVisible: false };
-const LookedAtTheData = { questionVisible: true };
+const PleaseLookAtTheData = { questionEnabled: false };
+const LookedAtTheData = { questionEnabled: true };
 
 type TraceQuestionState = typeof PleaseLookAtTheData | typeof LookedAtTheData;
 
@@ -36,16 +36,16 @@ function TraceQuestionInternal<T>(props: TraceQuestionProps<T>) {
   }
 
 
-  const questionAndAnswer = state.questionVisible ? (
+  const questionAndAnswer = 
     <MultipleChoice<T>
+      enabled = {state.questionEnabled}
       questionText={<>How many spans in this trace are named 'HTTP POST'?</>}
       queryName="span count by name"
       queryDefinition={queryDefinition}
       dataset={BACKEND_DATASET_NAME}
       interpretData={props.interpretData}
       moveOn={props.moveForward}
-    />
-  ) : null;
+    />;
 
   return (
     <div>
