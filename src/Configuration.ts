@@ -10,6 +10,7 @@ export const Airplane = {
   honeycomb_auth_url: "/fake-hny-auth",
   airplane_mode: true,
   send_spans: false,
+  diagnostics_for_spans: true,
 };
 
 export const Test = {
