@@ -26,7 +26,7 @@ function WinInternal(props: WinProps) {
         Congratulations on completing the Observaquiz!
       </p>
       <p className="score-report">Your score is: {props.score}</p>
-      <p>Come by the Honeycomb booth at FinTechDevCon to see how this compares with other scores, and to collect your prize!</p>
+      <p>Come by the Honeycomb booth at DevOpsDays Denver 2024 to see how this compares with other scores, and to collect your prize!</p>
       <hr />
       <p>If you'd like to talk more about this quiz, or observability, or OpenTelemetry: chat with Jessitron (or Martin) in 
         {" "}<a href="https://honeycomb.io/office-hours">Office Hours</a>.</p>

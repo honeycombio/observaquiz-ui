@@ -23,7 +23,7 @@ import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
 
 const HardCodedEvent = {
-  eventName: "FinTechDevCon",
+  eventName: "DevOpsDays Denver",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
