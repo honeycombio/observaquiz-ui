@@ -7,8 +7,8 @@ import { MultipleChoice, MultipleChoiceResult } from "./MultipleChoice";
 import { DataQuestionParameters } from "./DataQuestionParameters";
 import popOutIndicator from "../../../static/images/arrowSquareUpRight.svg";
 
-const PleaseLookAtTheData = { questionVisible: false };
-const LookedAtTheData = { questionVisible: true };
+const PleaseLookAtTheData = { questionEnabled: false };
+const LookedAtTheData = { questionEnabled: true };
 
 type DataQuestionState = typeof PleaseLookAtTheData | typeof LookedAtTheData;
 
@@ -36,16 +36,16 @@ function DataQuestionInternal<T>(props: DataQuestionProps<T>) {
     setState(LookedAtTheData);
   }
 
-  const questionAndAnswer = state.questionVisible ? (
+  const questionAndAnswer =
     <MultipleChoice<T>
+      enabled={state.questionEnabled}
       questionText={<>Which question led to the slowest response?</>}
       queryDefinition={queryDefinition}
       queryName="Slowest response from LLM"
       dataset={BACKEND_DATASET_NAME}
       moveOn={props.moveForward}
       interpretData={props.interpretData}
-    />
-  ) : null;
+    />;
 
   return (
     <div>

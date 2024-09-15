@@ -22,7 +22,7 @@ export const whichResponseTookTheLongestQuestionParameters = (activeLifecycleSpa
     ,
     queryDefinition: queryForLongestLLMResponse(activeLifecycleSpan, honeycombTeam),
     datasetSlug: BACKEND_DATASET_NAME,
-    interpretData
+interpretData
 });
 
 function interpretData(data: DataFromLongestLLMResponse[]): WhatMultipleChoiceNeedsToKnow {

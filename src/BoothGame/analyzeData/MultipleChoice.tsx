@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../../tracing/ComponentLifecycleTracing";
 import { HoneycombTeamContext } from "../HoneycombTeamContext";
 import { fetchFromBackend } from "../../tracing/fetchFromBackend";
@@ -105,6 +105,7 @@ type MultipleChoiceInternalProps = {
   answers: AnswerOption[],
   scoreAnswer: (a: AnswerOption) => Score
   moveOn: (result: MultipleChoiceResult) => void;
+  enabled: boolean
 };
 
 export type AnswerOption = {
@@ -117,10 +118,18 @@ export type Score = {
   remark: string
 }
 
+const NoAnswerAllowedYet = {
+  name: "no answer allowed yet",
+  answer: undefined,
+  button: "Submit",
+  buttonEnabled: false,
+  radioButtonsEnabled: false,
+};
+
 const NoAnswerPicked = {
   name: "no answer picked",
   answer: undefined,
-  button: "submit",
+  button: "Submit",
   buttonEnabled: false,
   radioButtonsEnabled: true,
 };
@@ -144,9 +153,16 @@ type MultipleChoiceInternalState = typeof NoAnswerPicked | PickedOne | DeliverVe
 
 function MultipleChoiceInternal(props: MultipleChoiceInternalProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-  const [state, setState] = useLocalTracedState<MultipleChoiceInternalState>(NoAnswerPicked, {
+  const [state, setState] = useLocalTracedState<MultipleChoiceInternalState>(props.enabled ? NoAnswerPicked : NoAnswerAllowedYet, {
     componentName: "MultipleChoiceDisplay",
   });
+
+  useEffect(() => {
+    // this state update comes in from outside
+    if (state.name === "no answer allowed yet" && props.enabled) {
+       setState(NoAnswerPicked);
+    }
+  }, [props.enabled, state])
 
   const answers = props.answers
 
@@ -242,6 +258,7 @@ type MultipleChoiceProps<ParticularQueryData> = {
   dataset: string;
   interpretData: (data: ParticularQueryData[]) => WhatMultipleChoiceNeedsToKnow;
   moveOn: (result: MultipleChoiceResult) => void;
+  enabled: boolean;
 };
 export function MultipleChoice<ParticularQueryData>(props: MultipleChoiceProps<ParticularQueryData>) {
   return (
