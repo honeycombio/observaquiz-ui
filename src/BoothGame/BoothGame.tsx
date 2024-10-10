@@ -23,7 +23,7 @@ import { HoneycombTeamContext } from "./HoneycombTeamContext";
 import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
 
 const HardCodedEvent = {
-  eventName: "DevOpsDays Denver",
+  eventName: "MethodConf",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
@@ -124,7 +124,7 @@ function BoothGameInternal(props: BoothGameProps) {
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);
-      content = <Win score={accumulatedScore} />;
+      content = <Win score={accumulatedScore} eventName={HardCodedEvent} />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
