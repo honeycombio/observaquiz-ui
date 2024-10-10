@@ -124,7 +124,7 @@ function BoothGameInternal(props: BoothGameProps) {
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);
-      content = <Win score={accumulatedScore} eventName={HardCodedEvent} />;
+      content = <Win score={accumulatedScore} eventName={HardCodedEvent.eventName} />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
