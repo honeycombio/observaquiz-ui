@@ -13,9 +13,11 @@ export HONEYCOMB_API_KEY=<your-key>
 
 This will run a collector on port 4318 that will forward everything to honeycomb and a webserver that serves the app plus a fake backend, and forwards /v1/traces and /v1/logs to the collector.
 
-this will make builds happen whenever you make changes:
+And it will make builds happen whenever you make changes, with `npm run serve`
 
-`npm run serve`
+And it will start the fake-server for when you are on an airplane.
+
+And then I guess, `live-server dist` to get it to show up in the browser
 
 To continue work:
 
