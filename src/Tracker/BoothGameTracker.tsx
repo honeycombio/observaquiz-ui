@@ -3,7 +3,7 @@ import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing"
 import { isComplete, isCurrentStep, TrackedStep, TrackedSteps } from "./trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 
-function paintSteps(steps: TrackedStep[], currentStepPath: string) {
+function paintSteps(steps: TrackedStep[], currentStepPath: string): React.ReactNode {
   return steps.map((step, index) => {
     if (step.invisible) {
       return <></>
@@ -14,10 +14,10 @@ function paintSteps(steps: TrackedStep[], currentStepPath: string) {
         : isComplete(step)
           ? "completed-step"
           : "incomplete-step";
-    const innerSteps =
-      !step.substeps ? <></> : <div key={step.id + "/substeps"} className="inner-booth-game-tracker">{paintSteps(step.substeps, currentStepPath)}</div>
-    return <div key={step.id} title={step.name} className={className} >
-      {innerSteps}
+    if (step.substeps) {
+      return paintSteps(step.substeps, currentStepPath);
+    }
+   return <div key={step.id} title={step.name} className={className} >
     </div>;
   });
 }

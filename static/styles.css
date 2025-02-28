@@ -13,6 +13,7 @@
   --color-hny-honey: #ffb000;
   --color-hny-tango: #f96e10;
   --color-hny-indigo: #51368d;
+  --color-grayish: #a0a0a0;
   /* also good with the primary, tetradic: #CD02EC */
   /* --grid-maxWidth: 120rem;
   --grid-gutter: 2rem;
@@ -59,7 +60,7 @@ img.small-logo {
 img.observaquiz-horizontal-logo {
   display: inline;
   object-fit: scale-down;
-  height: 4rem;
+  height: 8rem;
   margin-right: 1rem;
 }
 
@@ -72,34 +73,35 @@ img.observaquiz-horizontal-logo {
 .booth-game-tracker {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: space-around;
   background-color: var(--color-hny-indigo);
   border-top-right-radius: 2px;
   border-top-left-radius: 2px;
   align-items: center;
-  margin: 1px 0px 0px 0px;
-  height: 2rem;
+  margin: 4rem 0px 0px 0px;
+  height: 3px;
 }
 
 .booth-game-tracker>div {
   margin: 2px;
   height: 1rem;
   border-radius: 2px;
-  width: 50%;
+  width: 30px;
+  height: 30px;
+  border: 5px var(--color-grayish) solid;
   transition: all 0.5s linear;
 }
 
 .booth-game-tracker>.completed-step {
-  background-color: var(--color-hny-lime)
+  background-color: var(--color-hny-pacific)
 }
 
 .booth-game-tracker>.you-are-here {
-  background-color: var(--color-hny-pacific);
-  height: 1.3rem;
+  background-color: var(--color-hny-lime);
 }
 
 .booth-game-tracker>.incomplete-step {
-  background-color: var(--color-hny-honey);
+  background-color: white;
 }
 
 .inner-booth-game-tracker {
