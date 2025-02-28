@@ -15,9 +15,9 @@ This will run a collector on port 4318 that will forward everything to honeycomb
 
 And it will make builds happen whenever you make changes, with `npm run serve`
 
-And it will start the fake-server for when you are on an airplane.
+And it will start the fake-server, which serves the site, proxies to the local collector, and responds to the fake endpoints for when I am on an airplane.
 
-And then I guess, `live-server dist` to get it to show up in the browser
+[http://localhost:4000]()
 
 To continue work:
 
