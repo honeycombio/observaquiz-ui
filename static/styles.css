@@ -22,6 +22,19 @@
   /* --font-family-mono: monaco, "Consolas", "Lucida Console", monospace; */
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+}
+
+main {
+  margin: auto;
+  max-width: 90%;
+  flex-grow: 1;
+}
+
 footer {
   margin-top: 10rem;
 }
