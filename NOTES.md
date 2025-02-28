@@ -37,6 +37,8 @@ There are 9 screens in the app. How about 9 boxes.
 It might be _easier_ from my current position to have the number of boxes grow as it loads.
 I can start by working on the appearance, and think about the logic later.
 
+Hmm, I still need them to have a unique key
+
 ### Tracing
 
 The tracing for this app is weird. I would love to add a 'description' field to each span!
@@ -60,3 +62,9 @@ I can give them an "I already have one" option to the first question maybe?
 I tried sticking an ApiKeyInput right there, but I'm stuck on the state machine flow being restrictive.
 
 It looks easier to jump ahead to the "enter your api key" section if they push a button.
+
+Yeah, that worked! (once I figured out how to use the fake backend)
+
+### Tell people about the connection success.
+
+okay. Now I need to add a step in between the API key and the questions. This is hard work. But the app is set up to do this.

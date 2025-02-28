@@ -1,24 +1,37 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
-import { isComplete, isCurrentStep, TrackedStep, TrackedSteps } from "./trackedSteps";
+import {
+  isComplete,
+  isCurrentStep,
+  TrackedStep,
+  TrackedSteps,
+} from "./trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 
-function paintSteps(steps: TrackedStep[], currentStepPath: string): React.ReactNode {
-  return steps.map((step, index) => {
+function paintSteps(
+  steps: TrackedStep[],
+  currentStepPath: string,
+  idPrefix: string = ""
+): React.ReactNode {
+  return steps.map((step) => {
     if (step.invisible) {
-      return <></>
+      return <></>;
     }
-    const className =
-      isCurrentStep(step, currentStepPath)
-        ? "you-are-here"
-        : isComplete(step)
-          ? "completed-step"
-          : "incomplete-step";
+    const className = isCurrentStep(step, currentStepPath)
+      ? "you-are-here"
+      : isComplete(step)
+      ? "completed-step"
+      : "incomplete-step";
     if (step.substeps) {
-      return paintSteps(step.substeps, currentStepPath);
+      return paintSteps(step.substeps, currentStepPath, idPrefix + step.id);
     }
-   return <div key={step.id} title={step.name} className={className} >
-    </div>;
+    return (
+      <div
+        key={"step " + idPrefix + step.id}
+        title={step.name}
+        className={className}
+      ></div>
+    );
   });
 }
 
@@ -28,8 +41,12 @@ function BoothGameTrackerInternal(props: BoothGameTrackerProps) {
     "app.tracker.currentStep": ts.currentStepPath,
   }));
 
-  const paintedSteps = paintSteps(steps, currentStepPath)
-  return <div id="booth-game-tracker" className="booth-game-tracker">{paintedSteps}</div>;
+  const paintedSteps = paintSteps(steps, currentStepPath);
+  return (
+    <div id="booth-game-tracker" className="booth-game-tracker">
+      {paintedSteps}
+    </div>
+  );
 }
 
 export type BoothGameTrackerProps = { trackedSteps: TracedState<TrackedSteps> };
