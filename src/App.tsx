@@ -1,6 +1,6 @@
 import { initializeTelemetry } from "./tracing/tracing"; // TODO: pass configuration to initialization
-import { Configuration, Airplane, Production, Test } from "./Configuration";
-const configuration = Production;
+import { Configuration, Airplane, Test } from "./Configuration";
+const configuration = Airplane;
 const learnTeam = initializeTelemetry(configuration);
 import React from "react";
 import { createRoot } from "react-dom/client";
