@@ -1,6 +1,6 @@
 :root {
   /* variables from chota */
-  --bg-color: #f5f7fa;
+  --bg-color: white;
   /* --bg-secondary-color: #f3f3f6; */
   --color-primary: #0296ec;
   /* --color-lightGrey: #d2d6dd;
@@ -68,13 +68,28 @@ img.observaquiz-horizontal-logo {
   color: var(--color-error);
 }
 
+.booth-game-portion {
+  max-width: 600px;
+  margin: auto;
+  padding-top: 2rem;
+}
+.instructions {
+  max-width: 600px;
+  margin: auto;
+  text-align: center;
+  padding-inline: 15vw;  
+}
+.moniker-prompt {
+  text-align: center;
+}
+
 /* Tracker team */
 
 .booth-game-tracker {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  background-color: var(--color-hny-indigo);
+  background-color: var(--color-grayish);
   border-top-right-radius: 2px;
   border-top-left-radius: 2px;
   align-items: center;
@@ -193,6 +208,7 @@ section.step {
   padding: 10px;
   padding-left: 15px;
   border-color: var(--color-lightGrey);
+  text-align: left; 
 }
 
 .section-header h3 {

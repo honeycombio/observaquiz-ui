@@ -9,13 +9,15 @@ function HelloInternal(props: HelloProps) {
   }
 
   return (
-    <div>
+    <>
+    <div className="instructions">
       <h3>Hello, {props.eventName}!</h3>
       <p>You have found the Observaquiz!</p>
-      <p>This quiz will sort of test your observability knowledge, while helping you experience observability in Honeycomb.</p>
-      <p>Complete it, then come by the Honeycomb booth for a prize!</p>
-      <MonikerForLeaderboard report={saveMoniker} />
+      <p>This quiz will sort of test your observability knowledge, while helping you experience observability in Honeycomb.
+      Complete it, then come by the Honeycomb booth for a prize!</p>
     </div>
+      <MonikerForLeaderboard report={saveMoniker} />
+    </>
   );
 }
 
@@ -64,7 +66,7 @@ function MonikerForLeaderboard(props: DoStuffWithInputProps) {
   };
 
   return (
-    <p>
+    <p className="moniker-prompt">
       <label htmlFor="moniker">
         Enter your name for the leaderboard:
         <input

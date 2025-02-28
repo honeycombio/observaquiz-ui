@@ -69,12 +69,14 @@ function LeadThemToTheirApiKeyInternal(props: LeadThemToTheirApiKeyProps) {
 
   return (
     <>
+    <div className="instructions">
       <h2>Connect to Honeycomb</h2>
       <p>
         As you answer questions, Observaquiz sends telemetry to Honeycomb where you can see it. You'll use that data to
         learn the workings of Observaquiz!
       </p>
       <p>To do this, Observaquiz will connect to a Honeycomb team that belongs to you.</p>
+    </div>
 
       <CollapsingSection
         header="Honeycomb login"
