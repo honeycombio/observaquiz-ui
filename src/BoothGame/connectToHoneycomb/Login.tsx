@@ -1,6 +1,9 @@
 import React from "react";
 import { useLocalTracedState } from "../../tracing/LocalTracedState";
-import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../../tracing/ComponentLifecycleTracing";
+import {
+  ActiveLifecycleSpan,
+  ComponentLifecycleTracing,
+} from "../../tracing/ComponentLifecycleTracing";
 import { RadioButtonList } from "./RadioButtonList";
 import popOutIndicator from "../../../static/images/arrowSquareUpRight.svg";
 
@@ -16,29 +19,67 @@ const LoginButton = {
   result: { honeycombLogin: "existing" } as DoTheyHaveALoginResult,
 };
 
-const NothingSelectedYet = { stateName: "no selection", instructions: "empty", button: undefined };
-const SelectedYes = { stateName: "have a login", instructions: "sign in", button: LoginButton };
-const SelectedNo = { stateName: "no login", instructions: "sign up", button: SignupButton };
+const ContinueButton = {
+  text: "Continue",
+  href: undefined,
+  result: { honeycombLogin: "known" } as DoTheyHaveALoginResult,
+};
+
+const NothingSelectedYet = {
+  stateName: "no selection",
+  instructions: "empty",
+  button: undefined,
+};
+const SelectedYes = {
+  stateName: "have a login",
+  instructions: "sign in",
+  button: LoginButton,
+};
+const SelectedNo = {
+  stateName: "no login",
+  instructions: "sign up",
+  button: SignupButton,
+};
 const SelectedDunno = {
   stateName: "they don't know whether they have a login",
   instructions: "sign up anyway",
   button: SignupButton,
 };
+const SelectedKnown = {
+  stateName: "they have an API key already",
+  instructions: "get on with it",
+  button: ContinueButton,
+};
 
-type DoTheyHaveALoginState = typeof NothingSelectedYet | typeof SelectedYes | typeof SelectedNo | typeof SelectedDunno;
+type DoTheyHaveALoginState =
+  | typeof NothingSelectedYet
+  | typeof SelectedYes
+  | typeof SelectedNo
+  | typeof SelectedDunno
+  | typeof SelectedKnown;
 
-type LoginSelection = "yes" | "no" | "dunno";
+type LoginSelection = "yes" | "no" | "dunno" | "known";
 
-type RadioButtonRow = { key: LoginSelection; text: string; moveToState: DoTheyHaveALoginState };
+type RadioButtonRow = {
+  key: LoginSelection;
+  text: string;
+  moveToState: DoTheyHaveALoginState;
+};
 const radioButtons: Array<RadioButtonRow> = [
   { key: "yes", text: "Yes", moveToState: SelectedYes },
   { key: "no", text: "No", moveToState: SelectedNo },
   { key: "dunno", text: "I'm not sure", moveToState: SelectedDunno },
+  {
+    key: "known",
+    text: "I already have an API key",
+    moveToState: SelectedKnown,
+  },
 ];
 
 function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
-  const [state, setState] = useLocalTracedState<DoTheyHaveALoginState>(NothingSelectedYet);
+  const [state, setState] =
+    useLocalTracedState<DoTheyHaveALoginState>(NothingSelectedYet);
   const buttonRef = React.useRef<HTMLAnchorElement>(null);
 
   React.useEffect(() => {
@@ -59,12 +100,13 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
       instructions = (
         <>
           <p>
-            You're in luck! You get a free Honeycomb account. Your free team lasts forever, and it can receive{" "}
-            <i>20 million</i> events per month. After that you'll get rate limited.
+            You're in luck! You get a free Honeycomb account. Your free team
+            lasts forever, and it can receive <i>20 million</i> events per
+            month. After that you'll get rate limited.
           </p>
           <p>
-            This quiz will send about 400 events, so you can take it {20000000 / 400} times this month. (But don't. Once
-            is good.)
+            This quiz will send about 400 events, so you can take it{" "}
+            {20000000 / 400} times this month. (But don't. Once is good.)
           </p>
         </>
       );
@@ -72,13 +114,19 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
     case "sign up anyway":
       instructions = (
         <>
-          <p>Go ahead and sign up. If you already have an account, you'll get an email with a "reset password" link.</p>
           <p>
-            Your free Honeycomb team is free forever, and it will accept 20 million events per month. This quiz will
-            send about 400 events .
+            Go ahead and sign up. If you already have an account, you'll get an
+            email with a "reset password" link.
+          </p>
+          <p>
+            Your free Honeycomb team is free forever, and it will accept 20
+            million events per month. This quiz will send about 400 events .
           </p>
         </>
       );
+      break;
+    case "get on with it":
+      instructions = <p>Great!</p>;
       break;
   }
 
@@ -86,7 +134,10 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
     if (state.button) {
       activeLifecycleSpan.withLog(
         "clicked " + state.button.text,
-        { "app.login.buttonClicked": state.button.text, "app.login.result": JSON.stringify(state.button.result) },
+        {
+          "app.login.buttonClicked": state.button.text,
+          "app.login.result": JSON.stringify(state.button.result),
+        },
         () => props.handleCompletion(state.button.result)
       );
     } else {
@@ -96,25 +147,57 @@ function DoTheyHaveALoginInternal(props: DoTheyHaveALoginProps) {
 
   var button = <></>;
   if (state.button) {
-    button = (
-      <a href={state.button.href} target="_blank" tabIndex={0} className="button primary" onClick={buttonClick} ref={buttonRef}>
-        {state.button.text} <img className="buttonPopOut" src={popOutIndicator} alt="Opens in a new tab" />
-      </a>
-    );
+    if (!state.button.href) {
+      button = (
+        <a
+          tabIndex={0}
+          className="button primary"
+          onClick={buttonClick}
+          ref={buttonRef}
+        >
+          {state.button.text}
+        </a>
+      );
+    } else {
+      button = (
+        <a
+          href={state.button.href}
+          target="_blank"
+          tabIndex={0}
+          className="button primary"
+          onClick={buttonClick}
+          ref={buttonRef}
+        >
+          {state.button.text}{" "}
+          <img
+            className="buttonPopOut"
+            src={popOutIndicator}
+            alt="Opens in a new tab"
+          />
+        </a>
+      );
+    }
   }
   return (
     <>
       <p>Do you already have a Honeycomb login?</p>
-      <RadioButtonList radioButtons={radioButtons} handleSelection={handleSelection} />
+      <RadioButtonList
+        radioButtons={radioButtons}
+        handleSelection={handleSelection}
+      />
       {instructions}
       {button}
     </>
   );
 }
 
-export type DoTheyHaveALoginResult = { honeycombLogin: "new" | "existing" };
+export type DoTheyHaveALoginResult = {
+  honeycombLogin: "new" | "existing" | "known";
+};
 
-export type DoTheyHaveALoginProps = { handleCompletion: (s: DoTheyHaveALoginResult) => void };
+export type DoTheyHaveALoginProps = {
+  handleCompletion: (s: DoTheyHaveALoginResult) => void;
+};
 
 export function DoTheyHaveALogin(props: DoTheyHaveALoginProps) {
   return (

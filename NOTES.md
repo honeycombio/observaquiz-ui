@@ -42,6 +42,14 @@ I can start by working on the appearance, and think about the logic later.
 The tracing for this app is weird. I would love to add a 'description' field to each span!
 ... but that is not something i can work on offline.
 
+hmm, and then I hit a snag, and how do I debug without my traces?
+
+Now I need my local collector to serve the trace viewer... what is that local trace viewer thing, dangit... it was an azure whatzit. I have run it before, but I don't remember where or how. It's probably in my slack stream.
+
+Brains don't work anymore without internet!
+
+... fortunately my thing started working once I added a console log. Wat. (probably didn't compile fully before??)
+
 ### When you already have an API key
 
 When someone has an API key in their hot little hands already, the walkthrough of steps to get one is too slow.
@@ -51,4 +59,4 @@ I can give them an "I already have one" option to the first question maybe?
 
 I tried sticking an ApiKeyInput right there, but I'm stuck on the state machine flow being restrictive.
 
-
+It looks easier to jump ahead to the "enter your api key" section if they push a button.
