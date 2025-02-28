@@ -41,3 +41,14 @@ I can start by working on the appearance, and think about the logic later.
 
 The tracing for this app is weird. I would love to add a 'description' field to each span!
 ... but that is not something i can work on offline.
+
+### When you already have an API key
+
+When someone has an API key in their hot little hands already, the walkthrough of steps to get one is too slow.
+
+I can give them an "I already have one" option to the first question maybe?
+... which should then pop a form and get them right past this screen.
+
+I tried sticking an ApiKeyInput right there, but I'm stuck on the state machine flow being restrictive.
+
+
