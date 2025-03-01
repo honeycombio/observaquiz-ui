@@ -35,6 +35,7 @@ describe("advance function", () => {
           name: "Begin",
           substeps: [
             { id: "begin-email", name: "Identify Yourself" },
+            { id: "begin-something", name: "Another thing" },
             { id: "begin-apikey", name: "Start Tracing" },
           ],
         },
