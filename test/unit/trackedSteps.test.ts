@@ -1,4 +1,8 @@
-import { advance, findCurrentStep, TrackedSteps } from "../../src/Tracker/trackedSteps";
+import {
+  advance,
+  findCurrentStep,
+  TrackedSteps,
+} from "../../src/Tracker/trackedSteps";
 
 describe("advance function", () => {
   it("should advance to the next substep", () => {
@@ -17,8 +21,10 @@ describe("advance function", () => {
       currentStepPath: "initialstep-letsgo/begin-email",
     };
 
-    advance(trackedSteps);
-    expect(trackedSteps.currentStepPath).toBe("initialstep-letsgo/begin-apikey");
+    const newTrackedSteps = advance(trackedSteps);
+    expect(newTrackedSteps.currentStepPath).toBe(
+      "initialstep-letsgo/begin-apikey"
+    );
   });
 
   it("should advance to the next step after the last substep", () => {
@@ -37,8 +43,8 @@ describe("advance function", () => {
       currentStepPath: "initialstep-letsgo/begin-apikey",
     };
 
-    advance(trackedSteps);
-    expect(trackedSteps.currentStepPath).toBe("initialstep-play");
+    const newTrackedSteps = advance(trackedSteps);
+    expect(newTrackedSteps.currentStepPath).toBe("initialstep-play");
   });
 
   it("should throw an error if there are no more steps", () => {
