@@ -36,6 +36,7 @@ export const initialTrackedSteps: TrackedSteps = {
         { id: "begin-hello", name: "Hello" },
         //  { id: "begin-email", name: "Identify Yourself" },
         { id: "begin-apikey", name: "Start Tracing" },
+        { id: "celebrate-tracing", name: "Connection Successful" },
       ],
     },
     { id: TopLevelSteps.PLAY, name: "Play" },
@@ -50,19 +51,35 @@ export function findCurrentStep(trackedSteps: TrackedSteps): TrackedStep {
   var currentStep: TrackedStep | undefined = undefined;
   for (const currentStepId of trackedSteps.currentStepPath.split("/")) {
     currentStep = steps.find((s) => s.id === currentStepId);
-    if (!currentStep) throw new Error(`TrackedSteps is invalid! What is this step? ${trackedSteps.currentStepPath}`);
+    if (!currentStep)
+      throw new Error(
+        `TrackedSteps is invalid! What is this step? ${trackedSteps.currentStepPath}`
+      );
     steps = currentStep.substeps || [];
   }
-  if (!currentStep) throw new Error(`TrackedSteps is invalid! What is this step? ${trackedSteps.currentStepPath}`);
+  if (!currentStep)
+    throw new Error(
+      `TrackedSteps is invalid! What is this step? ${trackedSteps.currentStepPath}`
+    );
   return currentStep;
 }
 
 export function isComplete(step: TrackedStep): boolean {
-  return !!step.completionResults || (step.substeps && step.substeps.every(isComplete)) || false;
+  return (
+    !!step.completionResults ||
+    (step.substeps && step.substeps.every(isComplete)) ||
+    false
+  );
 }
 
-export function isCurrentStep(step: TrackedStep, currentStepPath: string): boolean {
-  return currentStepPath.startsWith(step.id) || currentStepPath.endsWith("/" + step.id); // this won't work forever, but it happens to now
+export function isCurrentStep(
+  step: TrackedStep,
+  currentStepPath: string
+): boolean {
+  return (
+    currentStepPath.startsWith(step.id) ||
+    currentStepPath.endsWith("/" + step.id)
+  ); // this won't work forever, but it happens to now
 }
 
 /**
@@ -73,18 +90,26 @@ export function isCurrentStep(step: TrackedStep, currentStepPath: string): boole
  * @param newSubsteps
  * @returns
  */
-export function advanceIntoNewSubsteps(trackedSteps: TrackedSteps, newSubsteps: TrackedStep[]): TrackedSteps {
+export function advanceIntoNewSubsteps(
+  trackedSteps: TrackedSteps,
+  newSubsteps: TrackedStep[]
+): TrackedSteps {
   const currentStep = findCurrentStep(trackedSteps);
   currentStep.substeps = newSubsteps;
 
-  const firstIncompleteSubstep = newSubsteps.findIndex((s) => !s.completionResults);
+  const firstIncompleteSubstep = newSubsteps.findIndex(
+    (s) => !s.completionResults
+  );
   return {
     ...trackedSteps,
     currentStepPath: `${trackedSteps.currentStepPath}/${newSubsteps[firstIncompleteSubstep].id}`,
   };
 }
 
-function findLengthsOfArrays(trackedSteps: TrackedSteps, indexes: number[]): number[] {
+function findLengthsOfArrays(
+  trackedSteps: TrackedSteps,
+  indexes: number[]
+): number[] {
   var modifiableIndexes = indexes.slice();
   var steps = trackedSteps.steps;
   const lengthsOfArrays = [];
@@ -107,10 +132,17 @@ function advanceIndex(indexes: number[], lengthsOfArrays: number[]): number[] {
     reversedIndexes.shift();
     reversedLengthsOfArrays.shift();
   }
-  throw new Error(`No more steps. Indexes: ${JSON.stringify(indexes)}, Lengths: ${JSON.stringify(lengthsOfArrays)}`);
+  throw new Error(
+    `No more steps. Indexes: ${JSON.stringify(
+      indexes
+    )}, Lengths: ${JSON.stringify(lengthsOfArrays)}`
+  );
 }
 
-function findPathFromIndexes(trackedSteps: TrackedSteps, indexes: number[]): string {
+function findPathFromIndexes(
+  trackedSteps: TrackedSteps,
+  indexes: number[]
+): string {
   var steps = trackedSteps.steps;
   var currentPath = "";
   for (const index of indexes) {
@@ -120,16 +152,26 @@ function findPathFromIndexes(trackedSteps: TrackedSteps, indexes: number[]): str
   return currentPath.slice(1); // remove the leading slash
 }
 
-export function advance(trackedSteps: TrackedSteps, completionResults?: object): TrackedSteps {
+export function advance(
+  trackedSteps: TrackedSteps,
+  completionResults?: object
+): TrackedSteps {
   // complete the current step
   const currentStep = findCurrentStep(trackedSteps);
+  console.log("Advancing tracked step from", currentStep);
   currentStep.completionResults = { complete: true, ...completionResults };
 
   // now move
   const indexesToCurrentStep = indexToCurrentStep(trackedSteps);
-  const lengthsOfArrays = findLengthsOfArrays(trackedSteps, indexesToCurrentStep);
+  const lengthsOfArrays = findLengthsOfArrays(
+    trackedSteps,
+    indexesToCurrentStep
+  );
 
-  const indexesToNextStep = advanceIndex(indexToCurrentStep(trackedSteps), lengthsOfArrays);
+  const indexesToNextStep = advanceIndex(
+    indexToCurrentStep(trackedSteps),
+    lengthsOfArrays
+  );
   const newCurrentPath = findPathFromIndexes(trackedSteps, indexesToNextStep);
 
   return {
@@ -148,19 +190,27 @@ function indexToCurrentStep(trackedSteps: TrackedSteps): number[] {
   var indexes = [];
   for (const currentStepId of trackedSteps.currentStepPath.split("/")) {
     const index = steps.findIndex((s) => s.id === currentStepId);
-    if (index === -1) throw new Error(`TrackedSteps is invalid! What is this step? ${trackedSteps.currentStepPath}`);
+    if (index === -1)
+      throw new Error(
+        `TrackedSteps is invalid! What is this step? ${trackedSteps.currentStepPath}`
+      );
     steps = steps[index].substeps || [];
     indexes.push(index);
   }
   return indexes;
 }
 
-export function allCompletionResults(steps: TrackedStep[] | undefined): CompletionResult[] {
+export function allCompletionResults(
+  steps: TrackedStep[] | undefined
+): CompletionResult[] {
   if (!steps) {
     return [];
   }
   const subResults = steps.map((s) => allCompletionResults(s.substeps)).flat();
-  return removeUndefinedDammit([...subResults, ...steps.map((s) => s.completionResults)]);
+  return removeUndefinedDammit([
+    ...subResults,
+    ...steps.map((s) => s.completionResults),
+  ]);
 }
 
 // i don't have internet to look this up atm

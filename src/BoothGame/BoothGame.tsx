@@ -1,11 +1,14 @@
 import React from "react";
 import { ApiKeyInputSuccess } from "./connectToHoneycomb/ApiKeyInput";
 import { QuestionSet, QuestionSetRetrieval } from "./QuestionSetRetrieval";
-import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/ComponentLifecycleTracing";
+import {
+  ComponentLifecycleTracing,
+  ActiveLifecycleSpan,
+} from "../tracing/ComponentLifecycleTracing";
 import { Hello } from "./Hello";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
-import { Event } from "./Event"
+import { Event } from "./Event";
 import {
   TopLevelSteps,
   TrackedStep,
@@ -20,7 +23,11 @@ import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKe
 import { DataQuestion } from "./analyzeData/DataQuestion";
 import { whichResponseTookTheLongestQuestionParameters } from "./analyzeData/DataQuestionParameters";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
-import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
+import {
+  TheNextQuestionParameters,
+  TraceQuestionIntroduction,
+} from "./analyzeData/TraceQuestionIntroduction";
+import { TellThemAboutTheConnection } from "./TellThemAboutTheConnection";
 
 const HardCodedEvent = {
   eventName: "All Things Open",
@@ -31,7 +38,12 @@ function BoothGameInternal(props: BoothGameProps) {
   const team = React.useContext(HoneycombTeamContext);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
-  const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
+  const {
+    advanceTrackedSteps,
+    advanceIntoNewSubsteps,
+    addAuthToTracingTeam,
+    addMonikerToTracingTeam,
+  } = props;
 
   React.useEffect(() => {
     // just once, go through completed steps and catch up our in-memory stuff
@@ -69,12 +81,19 @@ function BoothGameInternal(props: BoothGameProps) {
       {
         id: "retrieve-questions",
         invisible: true,
-        completionResults: { complete: true, questionSetId: questionSet.question_set },
+        completionResults: {
+          complete: true,
+          questionSetId: questionSet.question_set,
+        },
       },
       ...questionSet.questions.map((q, i) => ({
         id: `question-${i + 1}`,
         name: "Question",
-        parameters: { questionId: q.id, questionText: q.question, questionNumber: i + 1 },
+        parameters: {
+          questionId: q.id,
+          questionText: q.question,
+          questionNumber: i + 1,
+        },
       })),
     ]);
   }
@@ -88,10 +107,17 @@ function BoothGameInternal(props: BoothGameProps) {
   var content = null;
   switch (currentStep.id) {
     case "begin-hello":
-      content = <Hello eventName={HardCodedEvent.eventName} moveForward={helloBegin} />;
+      content = (
+        <Hello eventName={HardCodedEvent.eventName} moveForward={helloBegin} />
+      );
       break;
     case "begin-apikey":
       content = <LeadThemToTheirApiKey moveForward={acceptApiKey} />;
+      break;
+    case "celebrate-tracing":
+      content = (
+        <TellThemAboutTheConnection moveForward={advanceTrackedSteps} />
+      );
       break;
     case TopLevelSteps.PLAY:
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;
@@ -117,17 +143,36 @@ function BoothGameInternal(props: BoothGameProps) {
       if (!team.populated) {
         throw new Error("Honeycomb team not populated, not ok");
       }
-      content = <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...whichResponseTookTheLongestQuestionParameters(activeLifecycleSpan, team)} />;
+      content = (
+        <DataQuestion
+          key={currentStep.id}
+          moveForward={advanceTrackedSteps}
+          {...whichResponseTookTheLongestQuestionParameters(
+            activeLifecycleSpan,
+            team
+          )}
+        />
+      );
       break;
     case "trace-question-2":
-      content = <TraceQuestionIntroduction key={currentStep.id} moveForward={advanceTrackedSteps} {...TheNextQuestionParameters} />;
+      content = (
+        <TraceQuestionIntroduction
+          key={currentStep.id}
+          moveForward={advanceTrackedSteps}
+          {...TheNextQuestionParameters}
+        />
+      );
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);
-      content = <Win score={accumulatedScore} eventName={HardCodedEvent.eventName} />;
+      content = (
+        <Win score={accumulatedScore} eventName={HardCodedEvent.eventName} />
+      );
       break;
     default:
-      activeLifecycleSpan.addLog("Unhandled state", { "app.state.unhandled": currentStep.id });
+      activeLifecycleSpan.addLog("Unhandled state", {
+        "app.state.unhandled": currentStep.id,
+      });
       console.log("Unhandled state", currentStep.id);
       content = <div>FAILURE</div>;
       break;

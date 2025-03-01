@@ -11,9 +11,14 @@ function dispatchStorageEvent(key: string, newValue: any) {
 }
 
 const setLocalStorageItem = (key: string, value: any) => {
-  const stringifiedValue = JSON.stringify(value);
-  window.localStorage.setItem(key, stringifiedValue);
-  dispatchStorageEvent(key, stringifiedValue);
+  try {
+    const stringifiedValue = JSON.stringify(value);
+    window.localStorage.setItem(key, stringifiedValue);
+    dispatchStorageEvent(key, stringifiedValue);
+  } catch (e) {
+    console.log(e);
+    console.error("Error trying to set state for item: " + key);
+  }
 };
 
 const removeLocalStorageItem = (key: string) => {
@@ -34,10 +39,17 @@ const getLocalStorageServerSnapshot = () => {
   throw Error("useLocalStorage is a client-only hook");
 };
 
-export function useLocalStorage<T>(key: string, initialValue?: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+export function useLocalStorage<T>(
+  key: string,
+  initialValue?: T
+): [T, React.Dispatch<React.SetStateAction<T>>] {
   const getSnapshot = () => getLocalStorageItem(key);
 
-  const store = React.useSyncExternalStore(useLocalStorageSubscribe, getSnapshot, getLocalStorageServerSnapshot);
+  const store = React.useSyncExternalStore(
+    useLocalStorageSubscribe,
+    getSnapshot,
+    getLocalStorageServerSnapshot
+  );
 
   const setState = React.useCallback(
     (v: any) => {
@@ -57,7 +69,10 @@ export function useLocalStorage<T>(key: string, initialValue?: T): [T, React.Dis
   );
 
   React.useEffect(() => {
-    if (getLocalStorageItem(key) === null && typeof initialValue !== "undefined") {
+    if (
+      getLocalStorageItem(key) === null &&
+      typeof initialValue !== "undefined"
+    ) {
       setLocalStorageItem(key, initialValue);
     }
   }, [key, initialValue]);
