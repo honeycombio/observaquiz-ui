@@ -68,3 +68,11 @@ Yeah, that worked! (once I figured out how to use the fake backend)
 ### Tell people about the connection success.
 
 okay. Now I need to add a step in between the API key and the questions. This is hard work. But the app is set up to do this.
+
+There's a weird error about a circular object when it tries to advance the step. This is bad.
+
+There are tests for that function, maybe I can find it there?
+
+I spend a long time getting the tests to run. Partly they were outdated. and then it was running both the .js and .ts tests
+when it only needed to run the .ts tests
+which is SO CONFUSING
