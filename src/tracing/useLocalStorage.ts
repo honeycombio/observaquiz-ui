@@ -5,6 +5,7 @@
  */
 
 import React from "react";
+import { serializeCyclicObject } from "./diagnoseCyclicObject";
 
 function dispatchStorageEvent(key: string, newValue: any) {
   window.dispatchEvent(new StorageEvent("storage", { key, newValue }));
@@ -18,6 +19,7 @@ const setLocalStorageItem = (key: string, value: any) => {
   } catch (e) {
     console.log(e);
     console.error("Error trying to set state for item: " + key);
+    console.log("Here is the failed value: ", serializeCyclicObject(value));
   }
 };
 

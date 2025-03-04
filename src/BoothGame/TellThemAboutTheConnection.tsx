@@ -7,7 +7,7 @@ function TellThemAboutTheConnectionInternal(
   return (
     <>
       <p>Hellooooo</p>
-      <button type="submit" onClick={props.moveForward}>
+      <button type="submit" onClick={() => props.moveForward()}>
         Let's go
       </button>
     </>
