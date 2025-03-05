@@ -14,7 +14,7 @@ function TellThemAboutTheConnectionInternal(
       <h1 className="text-center">Interact with ObservaQUIZ</h1>
       <p>
         Your data is in Honeycomb now! You can interact with it in your{" "}
-        <a href={teamUrl}>{teamName}</a>. team.
+        <a href={teamUrl}>{teamName}</a> team.
       </p>
       <p>There are two datasets:</p>
       <ul>

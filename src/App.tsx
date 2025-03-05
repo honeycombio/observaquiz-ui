@@ -1,6 +1,6 @@
 import { initializeTelemetry } from "./tracing/tracing"; // TODO: pass configuration to initialization
 import { Configuration, Airplane, Test } from "./Configuration";
-const configuration = Airplane;
+const configuration = Test;
 const learnTeam = initializeTelemetry(configuration);
 import React from "react";
 import { createRoot } from "react-dom/client";
@@ -10,7 +10,6 @@ import { useLocalStorage } from "./tracing/useLocalStorage";
 
 console.log("begin! at");
 
-
 function newExecution(resets: number): ObservaquizExecution {
   return {
     resetCount: resets,
@@ -19,11 +18,14 @@ function newExecution(resets: number): ObservaquizExecution {
   };
 }
 function QuizApp() {
-  const [execution, saveExecution] = useLocalStorage<ObservaquizExecution>("execution", newExecution(0));
+  const [execution, saveExecution] = useLocalStorage<ObservaquizExecution>(
+    "execution",
+    newExecution(0)
+  );
 
   function reset() {
     console.log("Resetting");
-    learnTeam.reset()
+    learnTeam.reset();
     saveExecution(newExecution(execution.resetCount + 1));
   }
 
