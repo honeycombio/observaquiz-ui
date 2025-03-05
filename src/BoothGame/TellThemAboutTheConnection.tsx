@@ -50,7 +50,7 @@ export function TellThemAboutTheConnection(
   props: TellThemAboutTheConnectionProps
 ) {
   return (
-    <ComponentLifecycleTracing componentName="Hello">
+    <ComponentLifecycleTracing componentName="TellThemAboutTheConnection">
       <TellThemAboutTheConnectionInternal {...props} />
     </ComponentLifecycleTracing>
   );
