@@ -29,7 +29,7 @@ import {
 import { TellThemAboutTheConnection } from "./TellThemAboutTheConnection";
 
 const HardCodedEvent = {
-  eventName: "All Things Open",
+  eventName: "DevOpsDays LA",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
@@ -115,7 +115,10 @@ function BoothGameInternal(props: BoothGameProps) {
       break;
     case "celebrate-tracing":
       content = (
-        <TellThemAboutTheConnection team={team} moveForward={advanceTrackedSteps} />
+        <TellThemAboutTheConnection
+          team={team}
+          moveForward={advanceTrackedSteps}
+        />
       );
       break;
     case TopLevelSteps.PLAY:
