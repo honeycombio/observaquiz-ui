@@ -22,11 +22,15 @@ import { TracingErrorBoundary } from "./tracing/TracingErrorBoundary";
 import { HowToReset } from "./resetQuiz";
 
 function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
-  const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>("tracked steps", initialTrackedSteps);
-  const [tracingTeamWithTracking, setTracingTeamInternal] = useDeclareTracedState<TracingTeam>("tracing team", {
-    version: TRACING_TEAM_VERSION,
-    execution: props.observaquizExecution,
-  });
+  const [trackedSteps, setTrackedSteps] = useDeclareTracedState<TrackedSteps>(
+    "tracked steps",
+    initialTrackedSteps
+  );
+  const [tracingTeamWithTracking, setTracingTeamInternal] =
+    useDeclareTracedState<TracingTeam>("tracing team", {
+      version: TRACING_TEAM_VERSION,
+      execution: props.observaquizExecution,
+    });
   const tracingTeam = tracingTeamWithTracking.value;
 
   React.useEffect(() => {
@@ -34,15 +38,24 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
     if (tracingTeam.version !== TRACING_TEAM_VERSION) {
       console.log("Tracing team out of date, reset everything");
       setTrackedSteps(initialTrackedSteps);
-      setTracingTeamInternal({ version: TRACING_TEAM_VERSION, execution: props.observaquizExecution });
+      setTracingTeamInternal({
+        version: TRACING_TEAM_VERSION,
+        execution: props.observaquizExecution,
+      });
     }
   }, []);
 
   React.useEffect(() => {
-    if (props.observaquizExecution.executionId !== tracingTeam.execution.executionId) {
+    if (
+      props.observaquizExecution.executionId !==
+      tracingTeam.execution.executionId
+    ) {
       console.log("New execution ID, resetting tracked steps");
       setTrackedSteps(initialTrackedSteps);
-      setTracingTeamInternal({ version: TRACING_TEAM_VERSION, execution: props.observaquizExecution });
+      setTracingTeamInternal({
+        version: TRACING_TEAM_VERSION,
+        execution: props.observaquizExecution,
+      });
     }
   }, [props.observaquizExecution]);
 
@@ -78,17 +91,14 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
   };
 
   const resetButton = (
-    <p>
-      <button className="button clear pull-right" onClick={howToReset}>
-        Reset quiz
-      </button>
-    </p>
+    <button className="button clear pull-right" onClick={howToReset}>
+      Reset quiz
+    </button>
   );
   return (
     <HoneycombTeamContextProvider tracingTeam={tracingTeamWithTracking}>
       <TracingErrorBoundary howToReset={props.howToReset}>
         <BoothGameTracker trackedSteps={trackedSteps} />
-        <TracingTracker />
         <BoothGame
           advanceTrackedSteps={advanceTrackedSteps}
           advanceIntoNewSubsteps={advanceIntoNewSubstepsAndSet}
@@ -97,7 +107,10 @@ function TrackedBoothGameInternal(props: TrackedBoothGameProps) {
           addAuthToTracingTeam={addAuthToTracingTeam}
           addMonikerToTracingTeam={addMonikerToTracingTeam}
         />
-        {resetButton}
+        <div className="in-case-of-emergency">
+          {resetButton}
+          <TracingTracker />
+        </div>
       </TracingErrorBoundary>
     </HoneycombTeamContextProvider>
   );

@@ -163,7 +163,7 @@ img.observaquiz-horizontal-logo {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
-  color: white;
+  color: black;
 }
 
 #tracing-tracker p {
@@ -171,19 +171,18 @@ img.observaquiz-horizontal-logo {
 }
 
 #tracing-tracker a:link {
-  color: white;
+  color: black;
   text-decoration: underline;
 }
 
 #tracing-tracker a:visited {
-  color: white;
+  color: black;
   text-decoration: underline;
 }
 
 /* TODO: get this transition to work */
 #tracing-tracker-placeholder {
   transition: all 0.5s linear;
-  background-color: var(--color-hny-indigo);
   border-bottom-right-radius: 2px;
   border-bottom-left-radius: 2px;
   margin: 0px 0px 16px 0px;

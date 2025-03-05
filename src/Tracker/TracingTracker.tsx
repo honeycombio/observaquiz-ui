@@ -1,6 +1,9 @@
 // a component that displays where the traces are going
 import React from "react";
-import { ActiveLifecycleSpan, ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
+import {
+  ActiveLifecycleSpan,
+  ComponentLifecycleTracing,
+} from "../tracing/ComponentLifecycleTracing";
 import { getLinkToCurrentSpan } from "../tracing/activeLifecycleSpan";
 import { HoneycombTeamContext } from "../BoothGame/HoneycombTeamContext";
 
@@ -8,22 +11,20 @@ function TracingTrackerInternal(props: TracingTrackerProps) {
   const activeLifecycleSpan = React.useContext(ActiveLifecycleSpan);
   const honeycombTeam = React.useContext(HoneycombTeamContext);
   if (!honeycombTeam.populated) {
-    return <div id="tracing-tracker-placeholder"></div>;
+    return <></>;
   }
   return (
-    <div id="tracing-tracker">
-      <p>Honeycomb team: {honeycombTeam.auth!.team.name}</p>
-      <p>Environment: {honeycombTeam.auth!.environment.name}</p>
-      <p>
-        <a target="_blank" href={getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan)}>
-          See current trace
-        </a>
-      </p>
-    </div>
+    <a
+      className="button clear pull-right"
+      target="_blank"
+      href={getLinkToCurrentSpan(honeycombTeam, activeLifecycleSpan)}
+    >
+      See current trace
+    </a>
   );
 }
 
-type TracingTrackerProps = {}
+type TracingTrackerProps = {};
 
 export function TracingTracker(props: TracingTrackerProps) {
   return (

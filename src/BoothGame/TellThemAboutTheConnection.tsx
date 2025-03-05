@@ -1,20 +1,24 @@
 import React from "react";
 import { ComponentLifecycleTracing } from "../tracing/ComponentLifecycleTracing";
 import { HoneycombTeamContextType } from "./HoneycombTeamContext";
-import { TracingTeam, getUrlToTeam } from "../tracing/TracingDestination";
+import { TracingTeam, getUrlToDataset } from "../tracing/TracingDestination";
 
 function TellThemAboutTheConnectionInternal(
   props: TellThemAboutTheConnectionProps
 ) {
   const team = props.team as TracingTeam;
-  const teamUrl = getUrlToTeam(team);
+  const teamUrl = getUrlToDataset(team.auth!) + "/home";
   const teamName = team.auth!.team.name;
+
   return (
     <>
       <h1 className="text-center">Interact with ObservaQUIZ</h1>
       <p>
         Your data is in Honeycomb now! You can interact with it in your{" "}
-        <a href={teamUrl}>{teamName}</a> team.
+        <a href={teamUrl} target="_blank">
+          {teamName}
+        </a>{" "}
+        team.
       </p>
       <p>There are two datasets:</p>
       <ul>

@@ -71,13 +71,6 @@ export function getUrlToDataset(
   }/datasets/${dataset}`;
 }
 
-export function getUrlToTeam(team: TracingTeam): string {
-  if (!team.auth) {
-    throw new Error("Team must have auth to get a URL");
-  }
-  return `${honeycombUrl(team.auth!.region)}/${team.auth!.team.slug}`;
-}
-
 export function getQueryTemplateLink(
   team: {
     region: HoneycombRegion;
