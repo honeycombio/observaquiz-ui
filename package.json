@@ -8,7 +8,7 @@
     "static-build": "cp -r static/* dist",
     "build": "npm run build-info && npm run esbuild-build && npm run static-build",
     "clean": "rm -f src/**/*.js && rm -rf dist/*",
-    "serve": "esbuild src/App.tsx --bundle --watch --loader:.png=file --loader:.jpg=file --loader:.jpeg=file --loader:.svg=file --loader:.gif=file --public-path=/assets --servedir=. --outdir=dist/assets",
+    "serve": "esbuild src/App.tsx --bundle --watch --servedir=dist --outdir=dist --loader:.png=file --loader:.jpg=file --loader:.jpeg=file --loader:.svg=file --loader:.gif=file --public-path=/assets ",
     "test": "jest"
   },
   "repository": {
