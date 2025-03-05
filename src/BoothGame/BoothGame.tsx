@@ -8,7 +8,6 @@ import {
 import { Hello } from "./Hello";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
-import { Event } from "./Event";
 import {
   TopLevelSteps,
   TrackedStep,
@@ -116,7 +115,7 @@ function BoothGameInternal(props: BoothGameProps) {
       break;
     case "celebrate-tracing":
       content = (
-        <TellThemAboutTheConnection moveForward={advanceTrackedSteps} />
+        <TellThemAboutTheConnection team={team} moveForward={advanceTrackedSteps} />
       );
       break;
     case TopLevelSteps.PLAY:

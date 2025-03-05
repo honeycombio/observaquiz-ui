@@ -46,7 +46,6 @@ function honeycombUrl(region: HoneycombRegion): string {
 }
 
 export function honeycombTelemetryUrl(region: HoneycombRegion): string {
-
   // Let the collector handle this.
   //return "";
 
@@ -67,7 +66,16 @@ export function getUrlToDataset(
   dataset: string = HONEYCOMB_DATASET_NAME
 ): string {
   // https://ui.honeycomb.io/modernity/environments/quiz-local/datasets/browser/
-  return `${honeycombUrl(team.region)}/${team.team.slug}/environments/${team.environment.slug}/datasets/${dataset}`;
+  return `${honeycombUrl(team.region)}/${team.team.slug}/environments/${
+    team.environment.slug
+  }/datasets/${dataset}`;
+}
+
+export function getUrlToTeam(team: TracingTeam): string {
+  if (!team.auth) {
+    throw new Error("Team must have auth to get a URL");
+  }
+  return `${honeycombUrl(team.auth!.region)}/${team.auth!.team.slug}`;
 }
 
 export function getQueryTemplateLink(
