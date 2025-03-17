@@ -29,7 +29,7 @@ import {
 import { TellThemAboutTheConnection } from "./TellThemAboutTheConnection";
 
 const HardCodedEvent = {
-  eventName: "DevOpsDays LA",
+  eventName: "DevOpsDays Chicago",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
