@@ -1,20 +1,11 @@
 import React from "react";
 import { ApiKeyInputSuccess } from "./connectToHoneycomb/ApiKeyInput";
 import { QuestionSet, QuestionSetRetrieval } from "./QuestionSetRetrieval";
-import {
-  ComponentLifecycleTracing,
-  ActiveLifecycleSpan,
-} from "../tracing/ComponentLifecycleTracing";
+import { ComponentLifecycleTracing, ActiveLifecycleSpan } from "../tracing/ComponentLifecycleTracing";
 import { Hello } from "./Hello";
 import { TracingTeamFromAuth } from "../tracing/TracingDestination";
 import { AnalyzeData } from "./analyzeData/AnalyzeData";
-import {
-  TopLevelSteps,
-  TrackedStep,
-  TrackedSteps,
-  allCompletionResults,
-  findCurrentStep,
-} from "../Tracker/trackedSteps";
+import { TopLevelSteps, TrackedStep, TrackedSteps, allCompletionResults, findCurrentStep } from "../Tracker/trackedSteps";
 import { TracedState, useTracedState } from "../tracing/TracedState";
 import { TextQuestion } from "./TextQuestion";
 import { Win } from "./Win";
@@ -22,14 +13,11 @@ import { LeadThemToTheirApiKey } from "./connectToHoneycomb/LeadThemToTheirApiKe
 import { DataQuestion } from "./analyzeData/DataQuestion";
 import { whichResponseTookTheLongestQuestionParameters } from "./analyzeData/DataQuestionParameters";
 import { HoneycombTeamContext } from "./HoneycombTeamContext";
-import {
-  TheNextQuestionParameters,
-  TraceQuestionIntroduction,
-} from "./analyzeData/TraceQuestionIntroduction";
+import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeData/TraceQuestionIntroduction";
 import { TellThemAboutTheConnection } from "./TellThemAboutTheConnection";
 
 const HardCodedEvent = {
-  eventName: "DevOpsDays Chicago",
+  eventName: "DevOpsDays Atlanta",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
@@ -37,29 +25,20 @@ function BoothGameInternal(props: BoothGameProps) {
   const team = React.useContext(HoneycombTeamContext);
   const trackedSteps = useTracedState<TrackedSteps>(props.trackedSteps);
   const currentStep = findCurrentStep(trackedSteps);
-  const {
-    advanceTrackedSteps,
-    advanceIntoNewSubsteps,
-    addAuthToTracingTeam,
-    addMonikerToTracingTeam,
-  } = props;
+  const { advanceTrackedSteps, advanceIntoNewSubsteps, addAuthToTracingTeam, addMonikerToTracingTeam } = props;
 
   React.useEffect(() => {
     // just once, go through completed steps and catch up our in-memory stuff
     allCompletionResults(trackedSteps.steps).forEach((completionResults) => {
       console.log("Processing completion results: ", completionResults);
       if (completionResults.tracingTeam?.moniker) {
-        activeLifecycleSpan.withLog(
-          "Begin has already completed",
-          { "app.completionResults": JSON.stringify(completionResults) },
-          () => addMonikerToTracingTeam(completionResults.tracingTeam)
+        activeLifecycleSpan.withLog("Begin has already completed", { "app.completionResults": JSON.stringify(completionResults) }, () =>
+          addMonikerToTracingTeam(completionResults.tracingTeam)
         );
       }
       if (completionResults.tracingTeam?.apiKey) {
-        activeLifecycleSpan.withLog(
-          "ApiKeyInput has already completed",
-          { "app.completionResults": JSON.stringify(completionResults) },
-          () => addAuthToTracingTeam(completionResults.tracingTeam)
+        activeLifecycleSpan.withLog("ApiKeyInput has already completed", { "app.completionResults": JSON.stringify(completionResults) }, () =>
+          addAuthToTracingTeam(completionResults.tracingTeam)
         );
       }
     });
@@ -106,20 +85,13 @@ function BoothGameInternal(props: BoothGameProps) {
   var content = null;
   switch (currentStep.id) {
     case "begin-hello":
-      content = (
-        <Hello eventName={HardCodedEvent.eventName} moveForward={helloBegin} />
-      );
+      content = <Hello eventName={HardCodedEvent.eventName} moveForward={helloBegin} />;
       break;
     case "begin-apikey":
       content = <LeadThemToTheirApiKey moveForward={acceptApiKey} />;
       break;
     case "celebrate-tracing":
-      content = (
-        <TellThemAboutTheConnection
-          team={team}
-          moveForward={advanceTrackedSteps}
-        />
-      );
+      content = <TellThemAboutTheConnection team={team} moveForward={advanceTrackedSteps} />;
       break;
     case TopLevelSteps.PLAY:
       content = <QuestionSetRetrieval moveForward={acceptQuestionSet} />;
@@ -146,30 +118,15 @@ function BoothGameInternal(props: BoothGameProps) {
         throw new Error("Honeycomb team not populated, not ok");
       }
       content = (
-        <DataQuestion
-          key={currentStep.id}
-          moveForward={advanceTrackedSteps}
-          {...whichResponseTookTheLongestQuestionParameters(
-            activeLifecycleSpan,
-            team
-          )}
-        />
+        <DataQuestion key={currentStep.id} moveForward={advanceTrackedSteps} {...whichResponseTookTheLongestQuestionParameters(activeLifecycleSpan, team)} />
       );
       break;
     case "trace-question-2":
-      content = (
-        <TraceQuestionIntroduction
-          key={currentStep.id}
-          moveForward={advanceTrackedSteps}
-          {...TheNextQuestionParameters}
-        />
-      );
+      content = <TraceQuestionIntroduction key={currentStep.id} moveForward={advanceTrackedSteps} {...TheNextQuestionParameters} />;
       break;
     case TopLevelSteps.WIN:
       const accumulatedScore = countUpScores(trackedSteps);
-      content = (
-        <Win score={accumulatedScore} eventName={HardCodedEvent.eventName} />
-      );
+      content = <Win score={accumulatedScore} eventName={HardCodedEvent.eventName} />;
       break;
     default:
       activeLifecycleSpan.addLog("Unhandled state", {
@@ -194,11 +151,7 @@ export type BoothGameProps = {
 
 export function BoothGame(props: BoothGameProps) {
   return (
-    <ComponentLifecycleTracing
-      componentName="BoothGame"
-      team="QuizWhizzes"
-      attributes={{ "app.resetCount": props.resetCount }}
-    >
+    <ComponentLifecycleTracing componentName="BoothGame" team="QuizWhizzes" attributes={{ "app.resetCount": props.resetCount }}>
       <BoothGameInternal {...props} />
     </ComponentLifecycleTracing>
   );
