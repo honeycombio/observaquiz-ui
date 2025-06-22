@@ -38,6 +38,7 @@ Do this once: Login to pulumi via the CLI, and pick the stack
 cd infra
 pulumi login
 pulumi stack select honeycomb-devrel/prod
+pulumi install
 ```
 
 Now, from the project root
