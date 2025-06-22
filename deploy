@@ -12,3 +12,8 @@ npm run build
 cd infra
 
 pulumi up --yes
+
+# Create deployment marker after successful deploy
+cd ..
+echo "Creating deployment marker..."
+source .be && ./scripts/create-marker.sh
