@@ -17,7 +17,7 @@ import { TheNextQuestionParameters, TraceQuestionIntroduction } from "./analyzeD
 import { TellThemAboutTheConnection } from "./TellThemAboutTheConnection";
 
 const HardCodedEvent = {
-  eventName: "twitch.tv/honeycombio",
+  eventName: "FinTech DevCon",
 };
 
 function BoothGameInternal(props: BoothGameProps) {
