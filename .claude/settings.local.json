@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__honeycomb__list_environments",
+      "mcp__honeycomb__run_unsaved_query",
+      "mcp__honeycomb__get_query_history",
+      "mcp__honeycomb__get_trace",
+      "Bash(npm run serve:*)",
+      "mcp__playwright__browser_navigate"
+    ],
+    "deny": []
+  }
+}

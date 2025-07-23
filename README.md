@@ -1,28 +1,26 @@
 # frontend for now
 
-## reference
+This is the frontend for Observaquiz, a fun app that gets data into Honeycomb.
 
-[Otel API docs](https://open-telemetry.github.io/opentelemetry-js/)
+## How to run
 
-## Running Locally
+The `run` script will build and run the app; it starts up a fake backend app, so that you can test even without internet.
+It expects a Honeycomb API key in $HONEYCOMB_API_KEY.
 
 ```sh
 export HONEYCOMB_API_KEY=<your-key>
 ./run
 ```
 
-This will run a collector on port 4318 that will forward everything to honeycomb and a webserver that serves the app plus a fake backend, and forwards /v1/traces and /v1/logs to the collector.
+This will also run a collector on port 4318 that will forward everything to Honeycomb. The fake backend serves the static app, andwill forward /v1/traces and /v1/logs to the collector.
 
-And it will make builds happen whenever you make changes, with `npm run serve`
-
-And it will start the fake-server, which serves the site, proxies to the local collector, and responds to the fake endpoints for when I am on an airplane.
+Access the app:
 
 [http://localhost:4000]()
 
 To continue work:
 
 - make changes
-- npm run build (if you don't have 'npm run serve' running)
 - in the browser, cmd-shift-R for "no really, refresh all the things"
 
 To stop:
@@ -38,6 +36,7 @@ Do this once: Login to pulumi via the CLI, and pick the stack
 cd infra
 pulumi login
 pulumi stack select honeycomb-devrel/prod
+pulumi install
 ```
 
 Now, from the project root
